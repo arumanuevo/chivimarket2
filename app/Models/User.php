@@ -47,4 +47,17 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function businesses()
+    {
+        return $this->hasMany(Business::class);
+    }
+
+    /**
+     * Relación con la suscripción del usuario.
+     */
+    public function subscription()
+    {
+        return $this->hasOne(Subscription::class);
+    }
 }
