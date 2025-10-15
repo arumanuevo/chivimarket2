@@ -53,7 +53,7 @@ class ProductController extends Controller
                 'message' => 'Has alcanzado el límite de productos para tu plan. Actualiza a premium para publicar más.'
             ], 403);
         }
-
+dd('sjsjsjs');
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
