@@ -37,6 +37,11 @@ class ProductController extends Controller
 
         // Validar límite de productos según suscripción
         $user = Auth::user();
+        dd(
+            'User ID:', $user->id,
+            'Business User ID:', $business->user_id,
+            'Are they equal?', $user->id === $business->user_id
+        );
         $subscription = $user->subscription;
 
         // 👇 Crear suscripción "free" si no existe
