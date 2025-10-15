@@ -37,16 +37,17 @@ public function store(Request $request, Business $business)
     $user = Auth::user();
 
     // Verificar si el usuario es dueño del negocio
-    if ($user->id !== $business->user_id) {
-        $userBusinesses = $user->businesses()->pluck('id', 'name'); // Obtener negocios del usuario
-
+    if ((int)$user->id !== (int)$business->user_id) {
+        $userBusinesses = $user->businesses()->pluck('name', 'id'); // Cambié el orden para mejor legibilidad
+    
         return response()->json([
             'message' => 'No tienes permiso para crear productos en este negocio.',
             'user_id' => $user->id,
             'business_user_id' => $business->user_id,
-            'your_businesses' => $userBusinesses, // Lista de negocios del usuario
+            'your_businesses' => $userBusinesses,
         ], 403);
     }
+    
 
     // Validar límite de productos según suscripción
     $subscription = $user->subscription;
