@@ -31,52 +31,59 @@ class ProductController extends Controller
      * Crear un nuevo producto para un negocio.
      * Ejemplo: POST /api/businesses/1/products
      */
-    public function store(Request $request, Business $business)
-    {
-        //$this->authorize('update', $business); // Verificar que el usuario sea dueño del negocio
+   // app/Http/Controllers/API/ProductController.php
+public function store(Request $request, Business $business)
+{
+    $user = Auth::user();
 
-        // Validar límite de productos según suscripción
-        $user = Auth::user();
-        dd(
-            'User ID:', $user->id,
-            'Business User ID:', $business->user_id,
-            'Are they equal?', $user->id === $business->user_id
-        );
-        $subscription = $user->subscription;
+    // Verificar si el usuario es dueño del negocio
+    if ($user->id !== $business->user_id) {
+        $userBusinesses = $user->businesses()->pluck('id', 'name'); // Obtener negocios del usuario
 
-        // 👇 Crear suscripción "free" si no existe
-        if (!$subscription) {
-            $subscription = $user->subscription()->create([
-                'type' => 'free',
-                'product_limit' => 11,
-                'is_active' => true
-            ]);
-        }
-
-        if ($subscription->type === 'free' && $business->products()->count() >= $subscription->product_limit) {
-            return response()->json([
-                'message' => 'Has alcanzado el límite de productos para tu plan. Actualiza a premium para publicar más.'
-            ], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'stock' => 'required|integer|min:0',
-            'category_id' => 'required|exists:product_categories,id',
-            'is_active' => 'boolean'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        // Crear el producto asociado al negocio
-        $product = $business->products()->create($request->all());
-
-        return response()->json($product, 201);
+        return response()->json([
+            'message' => 'No tienes permiso para crear productos en este negocio.',
+            'user_id' => $user->id,
+            'business_user_id' => $business->user_id,
+            'your_businesses' => $userBusinesses, // Lista de negocios del usuario
+        ], 403);
     }
+
+    // Validar límite de productos según suscripción
+    $subscription = $user->subscription;
+
+    // Crear suscripción "free" si no existe
+    if (!$subscription) {
+        $subscription = $user->subscription()->create([
+            'type' => 'free',
+            'product_limit' => 11,
+            'is_active' => true
+        ]);
+    }
+
+    if ($subscription->type === 'free' && $business->products()->count() >= $subscription->product_limit) {
+        return response()->json([
+            'message' => 'Has alcanzado el límite de productos para tu plan. Actualiza a premium para publicar más.'
+        ], 403);
+    }
+
+    $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'price' => 'required|numeric|min:0',
+        'stock' => 'required|integer|min:0',
+        'category_id' => 'required|exists:product_categories,id',
+        'is_active' => 'boolean'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+    }
+
+    // Crear el producto asociado al negocio
+    $product = $business->products()->create($request->all());
+    return response()->json($product, 201);
+}
+
 
    /**
  * Buscar productos por nombre, categoría, negocio, etc.
