@@ -5,21 +5,21 @@ use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-
 class SubscriptionController extends Controller
 {
     // Obtener suscripción actual
     public function show()
     {
-        $subscription = Auth::user()->subscription ?? Auth::user()->subscription()->create([
+        $user = Auth::user();
+        $subscription = $user->subscription ?? $user->subscription()->create([
             'type' => 'free',
-            'product_limit' => 10
+            'product_limit' => 10,
+            'is_active' => true
         ]);
-
         return response()->json($subscription);
     }
 
-    // Actualizar a premium
+    // Actualizar suscripción
     public function upgrade(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -46,11 +46,27 @@ class SubscriptionController extends Controller
         );
 
         return response()->json([
-            'message' => sprintf('¡Suscripción actualizada a %s! Ahora puedes tener hasta %d negocios.',
+            'message' => sprintf(
+                '¡Suscripción actualizada a %s! Ahora puedes tener hasta %d negocios y %d productos.',
                 ucfirst($plan),
+                $this->getMaxBusinessesForSubscription($plan),
                 $this->getProductLimitForPlan($plan)
             )
         ]);
+    }
+
+    /**
+     * Obtener el límite de negocios según el plan.
+     */
+    protected function getMaxBusinessesForSubscription($subscriptionType)
+    {
+        $limits = [
+            'free' => 1,      // Usuarios free pueden tener 1 negocio
+            'basic' => 3,     // Usuarios basic pueden tener 3 negocios
+            'premium' => 10,   // Usuarios premium pueden tener 10 negocios
+            'enterprise' => 50 // Usuarios enterprise pueden tener 50 negocios
+        ];
+        return $limits[$subscriptionType] ?? 1;
     }
 
     /**
@@ -63,8 +79,8 @@ class SubscriptionController extends Controller
             'premium' => 1000,  // 1000 productos
             'enterprise' => 5000 // 5000 productos
         ];
-
-        return $limits[$plan] ?? 10; // Default: 10 (si no existe el plan)
+        return $limits[$plan] ?? 10;
     }
 }
+
 
