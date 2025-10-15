@@ -87,7 +87,7 @@ Route::apiResource('product-categories', \App\Http\Controllers\API\ProductCatego
     Route::get('products/search', [ProductController::class, 'search']);
     Route::get('products/category/{category}', [ProductController::class, 'byCategory']);
     Route::get('products/business/{business}', [ProductController::class, 'byBusiness']);
-    
+    Route::get('products/{product}', [ProductController::class, 'show']);
     // =============================================
     // RUTAS PROTEGIDAS (requieren autenticación)
     // =============================================

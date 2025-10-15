@@ -166,7 +166,7 @@ public function search(Request $request)
      */
     public function show(Product $product)
     {
-        $this->authorize('view', $product->business); // Verificar que el usuario pueda ver el negocio asociado
+        //$this->authorize('view', $product->business); // Verificar que el usuario pueda ver el negocio asociado
 
         return response()->json($product->load(['business', 'category', 'images']));
     }
