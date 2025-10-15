@@ -48,7 +48,7 @@ public function store(Request $request, Business $business)
         ], 403);
     }
     
-
+    $this->authorize('update', $business);
     // Validar límite de productos según suscripción
     $subscription = $user->subscription;
 
