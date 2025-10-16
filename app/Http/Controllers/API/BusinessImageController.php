@@ -61,6 +61,8 @@ class BusinessImageController extends Controller
      */
     public function store(Request $request, Business $business)
     {
+        $user = $request->user(); // Obtener el usuario autenticado
+        dd($user->id, $business->user_id); // Verificar los IDs en la consola
         $this->authorize('update', $business);
     
         if ($business->images()->count() >= 2) {
