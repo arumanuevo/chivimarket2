@@ -60,7 +60,7 @@ class BusinessImageController extends Controller
      */
     public function store(Request $request, Business $business)
     {
-        $this->authorize('update', $business); // Política de autorización
+        //$this->authorize('update', $business); // Política de autorización
 
         // Validar que el negocio no tenga más de 2 imágenes
         if ($business->images()->count() >= 2) {
