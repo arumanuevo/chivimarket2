@@ -63,18 +63,21 @@ class BusinessImageController extends Controller
     {
         // Depuración: Verificar el usuario autenticado y el negocio
         $user = $request->user();
+    $token = $request->bearerToken();
+    $businessId = $business->id;
 
-        \Log::info('User ID:', ['user_id' => $user->id, 'type' => gettype($user->id)]);
-        \Log::info('Business User ID:', ['business_user_id' => $business->user_id, 'type' => gettype($business->user_id)]);
-    
-        if ((int)$user->id !== (int)$business->user_id) {
-            \Log::error('Usuario no es dueño del negocio', [
-                'user_id' => $user->id,
-                'business_user_id' => $business->user_id
-            ]);
-            return response()->json(['message' => 'No tienes permiso para actualizar este negocio.'], 403);
-        }
-    
+    \Log::info('Business ID resuelto en el backend:', ['business_id' => $businessId]);
+    \Log::info('User ID:', ['user_id' => $user->id]);
+    \Log::info('Business User ID:', ['business_user_id' => $business->user_id]);
+
+    if ((int)$user->id !== (int)$business->user_id) {
+        \Log::error('Usuario no es dueño del negocio', [
+            'user_id' => $user->id,
+            'business_user_id' => $business->user_id,
+            'business_id' => $businessId
+        ]);
+        return response()->json(['message' => 'No tienes permiso para actualizar este negocio.'], 403);
+    }
         // Intentar autorizar manualmente
         try {
             $this->authorize('update', $business);

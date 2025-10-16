@@ -110,7 +110,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('businesses/{business}/categories', [BusinessController::class, 'updateCategories']);
     Route::delete('businesses/{business}/categories/{category}', [BusinessController::class, 'removeCategory']);
     Route::post('businesses/{business}/categories/{category}', [BusinessController::class, 'addCategory']);
-    Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessImageController::class, 'store']);
+   // Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessImageController::class, 'store']);
 
     Route::delete('businesses/{business}/images/{image}', [\App\Http\Controllers\API\BusinessImageController::class, 'destroy']);
 
@@ -140,6 +140,7 @@ Route::get('/check-business/{business}', function (Request $request, Business $b
     ]);
 })->middleware('auth:sanctum');
 
+Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessImageController::class, 'store'])->middleware('auth:sanctum');
 
 
 
