@@ -61,19 +61,45 @@ class BusinessImageController extends Controller
      */
     public function store(Request $request, Business $business)
     {
-       // $user = $request->user(); // Obtener el usuario autenticado
-       // dd($user->id, $business->user_id); // Verificar los IDs en la consola
-        $this->authorize('update', $business);
+        // Depuración: Verificar el usuario autenticado y el negocio
+        $user = $request->user();
+        \Log::info('User ID:', ['user_id' => $user->id]);
+        \Log::info('Business User ID:', ['business_user_id' => $business->user_id]);
     
+        // Verificar si el usuario está autenticado
+        if (!$user) {
+            \Log::error('Usuario no autenticado');
+            return response()->json(['message' => 'Usuario no autenticado.'], 401);
+        }
+    
+        // Verificar si el usuario es el dueño del negocio
+        if ($user->id !== $business->user_id) {
+            \Log::error('Usuario no es dueño del negocio', [
+                'user_id' => $user->id,
+                'business_user_id' => $business->user_id
+            ]);
+            return response()->json(['message' => 'No tienes permiso para actualizar este negocio.'], 403);
+        }
+    
+        // Intentar autorizar manualmente
+        try {
+            $this->authorize('update', $business);
+        } catch (\Illuminate\Auth\Access\AuthorizationException $e) {
+            \Log::error('Error de autorización:', ['error' => $e->getMessage()]);
+            return response()->json(['message' => 'No autorizado: ' . $e->getMessage()], 403);
+        }
+    
+        // Validar que el negocio no tenga más de 2 imágenes
         if ($business->images()->count() >= 2) {
             return response()->json([
                 'message' => 'No puedes subir más de 2 imágenes por negocio.'
             ], 403);
         }
     
+        // Validar la imagen
         $validator = Validator::make($request->all(), [
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:1024',
-            'is_primary' => 'boolean', // Asegúrate de que el campo sea booleano
+            'is_primary' => 'boolean',
             'description' => 'nullable|string'
         ]);
     
@@ -81,16 +107,18 @@ class BusinessImageController extends Controller
             return response()->json($validator->errors(), 422);
         }
     
+        // Guardar la imagen
         $path = $request->file('image')->store('business_images', 'public');
     
         $image = $business->images()->create([
             'url' => $path,
-            'is_primary' => $request->is_primary ?? false, // Usa el valor booleano
+            'is_primary' => $request->is_primary ?? false,
             'description' => $request->description
         ]);
     
         return response()->json($image, 201);
     }
+    
     
 
     /**
