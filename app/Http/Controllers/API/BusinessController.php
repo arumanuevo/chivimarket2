@@ -34,7 +34,7 @@ class BusinessController extends Controller
     /**
      * Crear un nuevo negocio (con límite según suscripción).
      */
-    public function store(Request $request)
+    /*public function store(Request $request)
     {
         $user = Auth::user();
         $subscription = $user->subscription;
@@ -85,7 +85,60 @@ class BusinessController extends Controller
         }
 
         return response()->json($business->load('categories'), 201);
+    }*/
+
+    public function store(Request $request)
+{
+    $user = Auth::user();
+    $subscription = $user->subscription;
+
+    // Validar límite de negocios según suscripción
+    $maxBusinesses = $subscription ? $this->getMaxBusinessesForSubscription($subscription->type) : 1;
+    if ($user->businesses()->count() >= $maxBusinesses) {
+        return response()->json([
+            'message' => sprintf(
+                'Has alcanzado el límite de %d negocios para tu plan (%s). Actualiza tu suscripción para crear más negocios.',
+                $maxBusinesses,
+                $subscription ? $subscription->type : 'free'
+            )
+        ], 403);
     }
+
+    // Validación de datos del negocio
+    $validator = Validator::make($request->all(), [
+        'name' => [
+            'required',
+            'string',
+            'max:255',
+            Rule::unique('businesses')->where(function ($query) use ($user) {
+                return $query->where('user_id', $user->id);
+            })
+        ],
+        'description' => 'nullable|string',
+        'address' => 'required|string',
+        'latitude' => 'nullable|numeric|between:-90,90',
+        'longitude' => 'nullable|numeric|between:-180,180',
+        'categories' => 'nullable|array',
+        'categories.*' => 'exists:business_categories,id'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+    }
+
+    // Crear el negocio
+    $businessData = $request->except('categories');
+    $businessData['user_id'] = $user->id;
+    $business = Business::create($businessData);
+
+    // Asignar categorías si existen
+    if ($request->has('categories')) {
+        $business->categories()->attach($request->categories);
+    }
+
+    return response()->json($business->load('categories'), 201);
+}
+
 
     /**
      * Obtener el límite de negocios según el tipo de suscripción.
