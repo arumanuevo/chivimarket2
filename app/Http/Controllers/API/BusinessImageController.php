@@ -63,15 +63,11 @@ class BusinessImageController extends Controller
     {
         $user = $request->user();
     
-        \Log::info('is_primary recibido:', [
-            'value' => $request->is_primary,
-            'type' => gettype($request->is_primary)
-        ]);
         if ((int)$user->id !== (int)$business->user_id) {
             return response()->json(['message' => 'No tienes permiso para actualizar este negocio.'], 403);
         }
     
-        $isPrimary = filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN); // Convertir a booleano
+        $isPrimary = filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN);
     
         $validator = Validator::make($request->all(), [
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:1024',
@@ -79,7 +75,7 @@ class BusinessImageController extends Controller
         ]);
     
         if ($validator->fails()) {
-            return response()->json($validator->fails(), 422);
+            return response()->json($validator->errors(), 422);
         }
     
         $path = $request->file('image')->store('business_images', 'public');
@@ -90,8 +86,13 @@ class BusinessImageController extends Controller
             'description' => $request->description
         ]);
     
+        // Cargar la imagen recién creada con el accesor full_url
+        $image->refresh();
+        $image->full_url = $image->getFullUrlAttribute();
+    
         return response()->json($image, 201);
     }
+    
     
     
     /**
