@@ -63,30 +63,36 @@ class BusinessImageController extends Controller
     {
         $user = $request->user();
     
+        \Log::info('is_primary recibido:', [
+            'value' => $request->is_primary,
+            'type' => gettype($request->is_primary)
+        ]);
         if ((int)$user->id !== (int)$business->user_id) {
             return response()->json(['message' => 'No tienes permiso para actualizar este negocio.'], 403);
         }
     
+        $isPrimary = filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN); // Convertir a booleano
+    
         $validator = Validator::make($request->all(), [
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:1024',
-            'is_primary' => 'boolean', // Asegúrate de que el campo sea booleano
             'description' => 'nullable|string'
         ]);
     
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json($validator->fails(), 422);
         }
     
         $path = $request->file('image')->store('business_images', 'public');
     
         $image = $business->images()->create([
             'url' => $path,
-            'is_primary' => $request->is_primary ?? false, // Usar el valor booleano
+            'is_primary' => $isPrimary,
             'description' => $request->description
         ]);
     
         return response()->json($image, 201);
     }
+    
     
     /**
      * Eliminar una imagen de un negocio.
