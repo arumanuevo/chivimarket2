@@ -63,17 +63,11 @@ class BusinessImageController extends Controller
     {
         // Depuración: Verificar el usuario autenticado y el negocio
         $user = $request->user();
-        \Log::info('User ID:', ['user_id' => $user->id]);
-        \Log::info('Business User ID:', ['business_user_id' => $business->user_id]);
+
+        \Log::info('User ID:', ['user_id' => $user->id, 'type' => gettype($user->id)]);
+        \Log::info('Business User ID:', ['business_user_id' => $business->user_id, 'type' => gettype($business->user_id)]);
     
-        // Verificar si el usuario está autenticado
-        if (!$user) {
-            \Log::error('Usuario no autenticado');
-            return response()->json(['message' => 'Usuario no autenticado.'], 401);
-        }
-    
-        // Verificar si el usuario es el dueño del negocio
-        if ($user->id !== $business->user_id) {
+        if ((int)$user->id !== (int)$business->user_id) {
             \Log::error('Usuario no es dueño del negocio', [
                 'user_id' => $user->id,
                 'business_user_id' => $business->user_id

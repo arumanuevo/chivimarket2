@@ -129,6 +129,18 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
+Route::get('/check-business/{business}', function (Request $request, Business $business) {
+    $user = $request->user();
+    return response()->json([
+        'user_id' => $user->id,
+        'business_user_id' => $business->user_id,
+        'user_id_type' => gettype($user->id),
+        'business_user_id_type' => gettype($business->user_id),
+        'is_owner' => (int)$user->id === (int)$business->user_id
+    ]);
+})->middleware('auth:sanctum');
+
+
 
 
     
