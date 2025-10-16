@@ -6,6 +6,7 @@ use App\Models\BusinessImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
 
 class BusinessImageController extends Controller
 {
