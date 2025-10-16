@@ -36,6 +36,7 @@ class BusinessImage extends Model
     {
         //return config('app.url') . '/storage/' . $this->url;
         //return asset('storage/' . $this->url);
-        return env('APP_URL') . '/' . $this->url;
+       // return env('APP_URL') . '/' . $this->url;
+       return rtrim(env('APP_URL'), '/') . '/' . $this->url;
     }
 }
