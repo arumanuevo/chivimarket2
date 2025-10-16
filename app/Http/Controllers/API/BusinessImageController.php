@@ -99,20 +99,39 @@ class BusinessImageController extends Controller
      * Eliminar una imagen de un negocio.
      */
     public function destroy(Business $business, BusinessImage $image)
-{
-    $this->authorize('update', $business);
+    {
+        $this->authorize('update', $business);
 
-    // Eliminar la imagen del directorio public/business_images
-    $imagePath = public_path($image->url);
-    if (file_exists($imagePath)) {
-        unlink($imagePath);
+        // Eliminar la imagen del directorio public/business_images
+        $imagePath = public_path($image->url);
+        if (file_exists($imagePath)) {
+            unlink($imagePath);
+        }
+
+        // Eliminar el registro de la base de datos
+        $image->delete();
+
+        return response()->json(['message' => 'Imagen eliminada correctamente']);
+    }
+    public function update(Request $request, Business $business, BusinessImage $image)
+    {
+        $this->authorize('update', $business);
+
+        $validator = Validator::make($request->all(), [
+            'description' => 'nullable|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $image->update([
+            'description' => $request->description
+        ]);
+
+        return response()->json($image, 200);
     }
 
-    // Eliminar el registro de la base de datos
-    $image->delete();
-
-    return response()->json(['message' => 'Imagen eliminada correctamente']);
-}
 
 }
 

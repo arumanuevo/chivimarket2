@@ -142,6 +142,9 @@ Route::get('/check-business/{business}', function (Request $request, Business $b
 
 Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessImageController::class, 'store'])->middleware('auth:sanctum');
 
+Route::patch('businesses/{business}/images/{image}', [\App\Http\Controllers\API\BusinessImageController::class, 'update'])->middleware('auth:sanctum');
+
+
 
 
     
