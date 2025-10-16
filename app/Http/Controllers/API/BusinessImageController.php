@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class BusinessImageController extends Controller
 {
+    use AuthorizesRequests;
     /**
      * Subir una imagen para un negocio.
      */
