@@ -210,7 +210,7 @@ class BusinessController extends Controller
     }
 
     // Buscar negocios por nombre, categoría o ubicación
-    public function search(Request $request)
+   /* public function search(Request $request)
     {
         $query = Business::query()->with(['categories', 'images']);
 
@@ -238,7 +238,31 @@ class BusinessController extends Controller
         }
 
         return response()->json($query->get());
+    }*/
+
+    public function search(Request $request)
+{
+    $query = Business::query()->with(['categories', 'images']);
+
+    // Filtrar por nombre
+    if ($request->has('name')) {
+        $query->where('name', 'like', '%' . $request->name . '%');
     }
+
+    // Filtrar por categoría
+    if ($request->has('category')) {
+        $query->whereHas('categories', function($q) use ($request) {
+            $q->where('business_category.category_id', $request->category);
+        });
+    }
+
+    // No incluir el filtro por ubicación por ahora
+
+    $businesses = $query->get();
+
+    return response()->json($businesses);
+}
+
 
     // Negocios cercanos (simplificado)
     public function nearby(Request $request)
