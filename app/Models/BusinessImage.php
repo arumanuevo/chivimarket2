@@ -35,6 +35,7 @@ class BusinessImage extends Model
     public function getFullUrlAttribute(): string
     {
         //return config('app.url') . '/storage/' . $this->url;
-        return asset('storage/' . $this->url);
+        //return asset('storage/' . $this->url);
+        return env('APP_URL') . '/' . $this->url;
     }
 }

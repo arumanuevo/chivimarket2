@@ -78,20 +78,20 @@ class BusinessImageController extends Controller
             return response()->json($validator->errors(), 422);
         }
     
-        $path = $request->file('image')->store('business_images', 'public');
+        // Guardar la imagen en public/business_images
+        $imageFile = $request->file('image');
+        $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+        $imageFile->move(public_path('business_images'), $filename);
     
         $image = $business->images()->create([
-            'url' => $path,
+            'url' => 'business_images/' . $filename,
             'is_primary' => $isPrimary,
             'description' => $request->description
         ]);
     
-        // Cargar la imagen recién creada con el accesor full_url
-        $image->refresh();
-        $image->full_url = $image->getFullUrlAttribute();
-    
         return response()->json($image, 201);
     }
+    
     
     
     
@@ -99,17 +99,21 @@ class BusinessImageController extends Controller
      * Eliminar una imagen de un negocio.
      */
     public function destroy(Business $business, BusinessImage $image)
-    {
-        $this->authorize('update', $business);
+{
+    $this->authorize('update', $business);
 
-        // Eliminar la imagen del storage
-        Storage::disk('public')->delete($image->url);
-
-        // Eliminar el registro de la base de datos
-        $image->delete();
-
-        return response()->json(['message' => 'Imagen eliminada correctamente']);
+    // Eliminar la imagen del directorio public/business_images
+    $imagePath = public_path($image->url);
+    if (file_exists($imagePath)) {
+        unlink($imagePath);
     }
+
+    // Eliminar el registro de la base de datos
+    $image->delete();
+
+    return response()->json(['message' => 'Imagen eliminada correctamente']);
+}
+
 }
 
 
