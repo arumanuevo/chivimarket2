@@ -127,6 +127,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('product-categories', \App\Http\Controllers\API\ProductCategoryController::class)
             ->except(['index', 'show']);
     });
+    Route::get('/subscription/check-business', [SubscriptionController::class, 'checkBusinessCreation']);
+    Route::get('/subscription/check-product/{business}', [SubscriptionController::class, 'checkProductCreation']);
 });
 
 Route::get('/check-business/{business}', function (Request $request, Business $business) {

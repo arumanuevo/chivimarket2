@@ -5,6 +5,8 @@ use App\Models\Subscription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use App\Services\SubscriptionService;
+
 class SubscriptionController extends Controller
 {
     // Obtener suscripción actual
@@ -80,6 +82,18 @@ class SubscriptionController extends Controller
             'enterprise' => 5000 // 5000 productos
         ];
         return $limits[$plan] ?? 10;
+    }
+
+    public function checkBusinessCreation()
+    {
+        $user = Auth::user();
+        return response()->json(SubscriptionService::canCreateBusiness($user));
+    }
+
+    public function checkProductCreation(Business $business)
+    {
+        $user = Auth::user();
+        return response()->json(SubscriptionService::canCreateProduct($user, $business->id));
     }
 }
 
