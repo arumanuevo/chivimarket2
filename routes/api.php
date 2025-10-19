@@ -148,6 +148,8 @@ Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessI
 
 Route::patch('businesses/{business}/images/{image}', [\App\Http\Controllers\API\BusinessImageController::class, 'update'])->middleware('auth:sanctum');
 
+// Búsqueda de negocios (PÚBLICA)
+Route::get('businesses/{business}', [BusinessController::class, 'show']);
 
 
 
