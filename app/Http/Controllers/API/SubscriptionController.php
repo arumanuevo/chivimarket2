@@ -27,8 +27,8 @@ class SubscriptionController extends Controller
     public function upgrade(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'plan' => 'required|in:basic,premium,enterprise',
-            'payment_method' => 'required|string|in:mercadopago,transferencia,tarjeta'
+            'plan' => 'required|in:free,basic,premium,enterprise',
+            'payment_method' => $request->plan !== 'free' ? 'required|string|in:mercadopago,transferencia,tarjeta' : 'nullable'
         ]);
 
         if ($validator->fails()) {
@@ -38,16 +38,21 @@ class SubscriptionController extends Controller
         $user = Auth::user();
         $plan = $request->plan;
 
-        $user->subscription()->updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'type' => $plan,
-                'product_limit' => SubscriptionService::getMaxProductsForSubscription($plan),
-                'starts_at' => now(),
-                'ends_at' => now()->addYear(),
-                'is_active' => true
-            ]
-        );
+        if ($plan !== 'free') {
+            $user->subscription()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'type' => $plan,
+                    'product_limit' => SubscriptionService::getMaxProductsForSubscription($plan),
+                    'starts_at' => now(),
+                    'ends_at' => now()->addYear(),
+                    'is_active' => true
+                ]
+            );
+        } else {
+            // Si es degradación a free, usar la lógica de degradación
+            SubscriptionService::changePlan($user, $plan);
+        }
 
         return response()->json([
             'message' => sprintf(

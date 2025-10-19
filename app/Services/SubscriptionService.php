@@ -99,25 +99,25 @@ class SubscriptionService
     public static function changePlan(User $user, $newPlan)
     {
         $subscription = $user->subscription ?? self::createDefaultSubscription($user);
-
+    
         $maxBusinesses = self::getMaxBusinessesForSubscription($newPlan);
         $maxProducts = self::getMaxProductsForSubscription($newPlan);
-
+    
         $businesses = $user->businesses()->withCount('products')->get();
         $currentBusinesses = $businesses->count();
-
+    
         // Si el usuario tiene más negocios que el límite del nuevo plan, desactivar los excedentes
         if ($currentBusinesses > $maxBusinesses) {
             $businessesToDeactivate = $businesses->sortBy('created_at')->take($currentBusinesses - $maxBusinesses);
-
+    
             foreach ($businessesToDeactivate as $business) {
                 $business->update(['is_active' => false]);
-
+    
                 // Si el negocio tiene más productos que el límite del nuevo plan, desactivar los productos excedentes
                 if ($business->products_count > $maxProducts) {
                     $products = $business->products()->orderBy('created_at')->get();
                     $productsToDeactivate = $products->take($business->products_count - $maxProducts);
-
+    
                     foreach ($productsToDeactivate as $product) {
                         $product->update(['is_active' => false]);
                     }
@@ -129,22 +129,24 @@ class SubscriptionService
                 if ($business->products_count > $maxProducts) {
                     $products = $business->products()->orderBy('created_at')->get();
                     $productsToDeactivate = $products->take($business->products_count - $maxProducts);
-
+    
                     foreach ($productsToDeactivate as $product) {
                         $product->update(['is_active' => false]);
                     }
                 }
             }
         }
-
+    
         // Actualizar la suscripción al nuevo plan
         $subscription->update([
             'type' => $newPlan,
             'product_limit' => $maxProducts,
-            'status' => 'changed'
+            'is_active' => true,
+            'ends_at' => $newPlan === 'free' ? null : now()->addYear()
         ]);
-
+    
         return true;
     }
+    
 }
 
