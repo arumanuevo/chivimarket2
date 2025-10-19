@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Subscription;
+use App\Models\Business;
+use Carbon\Carbon;
 
 class SubscriptionService
 {
@@ -64,7 +66,7 @@ class SubscriptionService
     {
         $subscription = $user->subscription ?? self::createDefaultSubscription($user);
         $maxProducts = self::getMaxProductsForSubscription($subscription->type);
-        $currentProducts = \App\Models\Business::find($businessId)->products()->count();
+        $currentProducts = Business::find($businessId)->products()->count();
 
         return [
             'can_create' => $currentProducts < $maxProducts,
@@ -90,4 +92,59 @@ class SubscriptionService
             'is_active' => true
         ]);
     }
+
+    /**
+     * Cambiar el plan de suscripción de un usuario.
+     */
+    public static function changePlan(User $user, $newPlan)
+    {
+        $subscription = $user->subscription ?? self::createDefaultSubscription($user);
+
+        $maxBusinesses = self::getMaxBusinessesForSubscription($newPlan);
+        $maxProducts = self::getMaxProductsForSubscription($newPlan);
+
+        $businesses = $user->businesses()->withCount('products')->get();
+        $currentBusinesses = $businesses->count();
+
+        // Si el usuario tiene más negocios que el límite del nuevo plan, desactivar los excedentes
+        if ($currentBusinesses > $maxBusinesses) {
+            $businessesToDeactivate = $businesses->sortBy('created_at')->take($currentBusinesses - $maxBusinesses);
+
+            foreach ($businessesToDeactivate as $business) {
+                $business->update(['is_active' => false]);
+
+                // Si el negocio tiene más productos que el límite del nuevo plan, desactivar los productos excedentes
+                if ($business->products_count > $maxProducts) {
+                    $products = $business->products()->orderBy('created_at')->get();
+                    $productsToDeactivate = $products->take($business->products_count - $maxProducts);
+
+                    foreach ($productsToDeactivate as $product) {
+                        $product->update(['is_active' => false]);
+                    }
+                }
+            }
+        } else {
+            // Si no excede el límite de negocios, verificar productos en cada negocio
+            foreach ($businesses as $business) {
+                if ($business->products_count > $maxProducts) {
+                    $products = $business->products()->orderBy('created_at')->get();
+                    $productsToDeactivate = $products->take($business->products_count - $maxProducts);
+
+                    foreach ($productsToDeactivate as $product) {
+                        $product->update(['is_active' => false]);
+                    }
+                }
+            }
+        }
+
+        // Actualizar la suscripción al nuevo plan
+        $subscription->update([
+            'type' => $newPlan,
+            'product_limit' => $maxProducts,
+            'status' => 'changed'
+        ]);
+
+        return true;
+    }
 }
+

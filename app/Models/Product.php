@@ -16,9 +16,14 @@ class Product extends Model
         'description',
         'price',
         'stock',
+        'category_id',
         'is_active'
     ];
 
+    protected $casts = [
+        'is_active' => 'boolean'
+    ];
+    
     /**
      * Relación con el negocio al que pertenece el producto.
      */

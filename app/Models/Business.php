@@ -12,6 +12,7 @@ class Business extends Model
 
     protected $casts = [
         'user_id' => 'integer',
+        'is_active' => 'boolean'
     ];
     
     protected $fillable = [

@@ -70,6 +70,45 @@ class SubscriptionController extends Controller
         $user = Auth::user();
         return response()->json(SubscriptionService::canCreateProduct($user, $business->id));
     }
+
+    public function changePlan(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'user_id' => 'required|exists:users,id',
+            'new_plan' => 'required|in:free,basic,premium,enterprise'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $user = User::find($request->user_id);
+        $newPlan = $request->new_plan;
+
+        SubscriptionService::changePlan($user, $newPlan);
+
+        return response()->json([
+            'message' => sprintf(
+                'Suscripción cambiada a %s correctamente. Algunos negocios o productos pueden haber sido desactivados si excedían los límites del nuevo plan.',
+                ucfirst($newPlan)
+            )
+        ]);
+    }
+    public function status()
+    {
+        $user = Auth::user();
+        $subscription = $user->subscription ?? SubscriptionService::createDefaultSubscription($user);
+
+        return response()->json([
+            'type' => $subscription->type,
+            'product_limit' => $subscription->product_limit,
+            'is_active' => $subscription->is_active,
+            'status' => $subscription->status,
+            'max_businesses' => SubscriptionService::getMaxBusinessesForSubscription($subscription->type),
+            'max_products' => SubscriptionService::getMaxProductsForSubscription($subscription->type),
+        ]);
+    }
+
 }
 
 
