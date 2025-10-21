@@ -302,17 +302,78 @@
                 ]
             }
         },
-        "/api/test": {
+        "/api/search": {
             "get": {
                 "tags": [
-                    "Test"
+                    "Búsquedas"
                 ],
-                "summary": "Endpoint de prueba Swagger",
-                "description": "Retorna un mensaje de prueba",
-                "operationId": "dfefa80802e82df09cb2effaea3538bf",
+                "summary": "Búsqueda global de negocios y productos",
+                "description": "Busca tanto en negocios como productos según el término ingresado. Permite filtrar por ubicación y radio.",
+                "operationId": "90d4505b4c8f3ae19c7bd38f5486dd55",
+                "parameters": [
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "description": "Texto de búsqueda",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "description": "Latitud del usuario",
+                        "schema": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    {
+                        "name": "lng",
+                        "in": "query",
+                        "description": "Longitud del usuario",
+                        "schema": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Radio de búsqueda en metros (por defecto 10000)",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "Resultados encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "businesses": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "products": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "No se envió query de búsqueda"
                     }
                 }
             }
@@ -482,8 +543,8 @@
             "description": "Categorías de Productos"
         },
         {
-            "name": "Test",
-            "description": "Test"
+            "name": "Búsquedas",
+            "description": "Búsquedas"
         },
         {
             "name": "Autenticación",

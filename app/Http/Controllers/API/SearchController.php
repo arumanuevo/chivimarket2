@@ -8,8 +8,30 @@ use Illuminate\Http\Request;
 class SearchController extends Controller
 {
     /**
-     * Búsqueda global de negocios y productos.
+     * @OA\Get(
+     *     path="/api/search",
+     *     summary="Búsqueda global de negocios y productos",
+     *     description="Busca tanto en negocios como productos según el término ingresado. Permite filtrar por ubicación y radio.",
+     *     tags={"Búsquedas"},
+     *     @OA\Parameter(name="query", in="query", required=true, description="Texto de búsqueda", @OA\Schema(type="string")),
+     *     @OA\Parameter(name="lat", in="query", description="Latitud del usuario", @OA\Schema(type="number", format="float")),
+     *     @OA\Parameter(name="lng", in="query", description="Longitud del usuario", @OA\Schema(type="number", format="float")),
+     *     @OA\Parameter(name="radius", in="query", description="Radio de búsqueda en metros (por defecto 10000)", @OA\Schema(type="integer")),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Resultados encontrados",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="businesses", type="array", @OA\Items(type="object")),
+     *             @OA\Property(property="products", type="array", @OA\Items(type="object"))
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="No se envió query de búsqueda"
+     *     )
+     * )
      */
+
     public function globalSearch(Request $request)
     {
         $query = $request->get('query');
