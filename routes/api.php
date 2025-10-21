@@ -8,6 +8,7 @@ use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\SubscriptionController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\SearchController; // Nuevo controlador para búsquedas globales
+use App\Http\Controllers\Api\TestSwaggerController;
 
 /*
 // =============================================
@@ -150,6 +151,8 @@ Route::patch('businesses/{business}/images/{image}', [\App\Http\Controllers\API\
 
 // Búsqueda de negocios (PÚBLICA)
 Route::get('businesses/{business}', [BusinessController::class, 'show']);
+
+Route::get('/test', [TestSwaggerController::class, 'index']);
 
 
 
