@@ -8,70 +8,18 @@ use Illuminate\Support\Facades\Validator;
 class CategoryController extends Controller
 {
     /**
- * @OA\Get(
- *     path="/api/business-categories",
- *     summary="Listar categorías de negocios",
- *     description="Devuelve todas las categorías disponibles para los negocios.",
- *     tags={"Categorías de Negocios"},
- *     @OA\Response(
- *         response=200,
- *         description="Listado de categorías",
- *         @OA\JsonContent(type="array", @OA\Items(type="object"))
- *     )
- * )
- */
-
-/**
- * @OA\Get(
- *     path="/api/business-categories/{id}",
- *     summary="Mostrar categoría de negocio",
- *     description="Devuelve los datos de una categoría específica.",
- *     tags={"Categorías de Negocios"},
- *     @OA\Parameter(
- *         name="id",
- *         in="path",
- *         required=true,
- *         description="ID de la categoría",
- *         @OA\Schema(type="integer")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Categoría encontrada",
- *         @OA\JsonContent(type="object")
- *     ),
- *     @OA\Response(
- *         response=404,
- *         description="Categoría no encontrada"
- *     )
- * )
- */
-
-/**
- * @OA\Post(
- *     path="/api/business-categories",
- *     summary="Crear nueva categoría de negocio",
- *     description="Permite crear una nueva categoría. Requiere autenticación.",
- *     tags={"Categorías de Negocios"},
- *     security={{"bearerAuth":{}}},
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\JsonContent(
- *             required={"name"},
- *             @OA\Property(property="name", type="string", example="Restaurantes"),
- *             @OA\Property(property="description", type="string", example="Negocios gastronómicos")
- *         )
- *     ),
- *     @OA\Response(
- *         response=201,
- *         description="Categoría creada correctamente",
- *         @OA\JsonContent(type="object")
- *     ),
- *     @OA\Response(
- *         response=422,
- *         description="Error de validación"
- *     )
- * )
- */
+     * @OA\Get(
+     *     path="/api/business-categories",
+     *     summary="Listar categorías de negocios",
+     *     description="Devuelve todas las categorías disponibles para los negocios.",
+     *     tags={"Categorías de Negocios"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Listado de categorías",
+     *         @OA\JsonContent(type="array", @OA\Items(type="object"))
+     *     )
+     * )
+     */
 
     // Listar categorías (público)
     public function index()
@@ -79,6 +27,30 @@ class CategoryController extends Controller
         return response()->json(BusinessCategory::all());
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/business-categories/{id}",
+     *     summary="Mostrar categoría de negocio",
+     *     description="Devuelve los datos de una categoría específica.",
+     *     tags={"Categorías de Negocios"},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la categoría",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Categoría encontrada",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Categoría no encontrada"
+     *     )
+     * )
+     */
     // Mostrar una categoría (público)
     public function show(BusinessCategory $businessCategory)
     {

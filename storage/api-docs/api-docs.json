@@ -13,39 +13,52 @@
     ],
     "paths": {
         "/api/business-categories": {
-            "post": {
+            "get": {
                 "tags": [
                     "Categorías de Negocios"
                 ],
-                "summary": "Crear nueva categoría de negocio",
-                "description": "Permite crear una nueva categoría. Requiere autenticación.",
-                "operationId": "c5bd6243f9384a54d5ff7c3f12c99e37",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "name"
-                                ],
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Restaurantes"
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "example": "Negocios gastronómicos"
+                "summary": "Listar categorías de negocios",
+                "description": "Devuelve todas las categorías disponibles para los negocios.",
+                "operationId": "a8205350d76e6a46295e66883d941d6b",
+                "responses": {
+                    "200": {
+                        "description": "Listado de categorías",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
                                     }
-                                },
-                                "type": "object"
+                                }
                             }
                         }
                     }
-                },
+                }
+            }
+        },
+        "/api/business-categories/{id}": {
+            "get": {
+                "tags": [
+                    "Categorías de Negocios"
+                ],
+                "summary": "Mostrar categoría de negocio",
+                "description": "Devuelve los datos de una categoría específica.",
+                "operationId": "1c2b05d0f487bad9d21321b12f0b0d51",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la categoría",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
                 "responses": {
-                    "201": {
-                        "description": "Categoría creada correctamente",
+                    "200": {
+                        "description": "Categoría encontrada",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -54,15 +67,10 @@
                             }
                         }
                     },
-                    "422": {
-                        "description": "Error de validación"
+                    "404": {
+                        "description": "Categoría no encontrada"
                     }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
+                }
             }
         },
         "/api/test": {
