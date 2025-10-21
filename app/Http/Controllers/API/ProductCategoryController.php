@@ -54,9 +54,7 @@ class ProductCategoryController extends Controller
      *     )
      * )
      */
-    /**
-     * Crear una nueva categoría de producto.
-     */
+   
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -98,9 +96,7 @@ class ProductCategoryController extends Controller
      *     )
      * )
      */
-    /**
-     * Mostrar una categoría específica.
-     */
+   
     public function show($id)
     {
         $category = ProductCategory::with(['children', 'parent'])->findOrFail($id);
@@ -131,9 +127,7 @@ class ProductCategoryController extends Controller
      *     )
      * )
      */
-    /**
-     * Actualizar una categoría.
-     */
+   
     public function update(Request $request, $id)
     {
         $category = ProductCategory::findOrFail($id);
@@ -170,9 +164,7 @@ class ProductCategoryController extends Controller
      *     )
      * )
      */
-    /**
-     * Eliminar una categoría.
-     */
+    
     public function destroy($id)
     {
         $category = ProductCategory::findOrFail($id);

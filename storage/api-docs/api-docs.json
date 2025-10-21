@@ -147,6 +147,159 @@
                         }
                     }
                 }
+            },
+            "post": {
+                "tags": [
+                    "Categorías de Productos"
+                ],
+                "summary": "Crear categoría de producto",
+                "description": "Permite crear una nueva categoría de productos. Requiere autenticación.",
+                "operationId": "d69ad648a077f65a03af6ba67d0ec97d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Electrónica"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Dispositivos y accesorios tecnológicos"
+                                    },
+                                    "parent_id": {
+                                        "type": "integer",
+                                        "example": null
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Categoría creada correctamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/product-categories/{id}": {
+            "get": {
+                "tags": [
+                    "Categorías de Productos"
+                ],
+                "summary": "Mostrar categoría de producto",
+                "description": "Obtiene una categoría de producto con su jerarquía completa.",
+                "operationId": "33b65b6a03e881faaaf063ed6a4bbc95",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la categoría",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Categoría encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Categoría no encontrada"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Categorías de Productos"
+                ],
+                "summary": "Actualizar categoría de producto",
+                "description": "Modifica los datos de una categoría existente.",
+                "operationId": "30f66eb8e21af090f749ef3493f1977a",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Electrodomésticos"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Artículos para el hogar"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categoría actualizada correctamente"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Categorías de Productos"
+                ],
+                "summary": "Eliminar categoría de producto",
+                "description": "Elimina una categoría si no tiene productos asociados.",
+                "operationId": "23ffcb62480e8b37f45858d4e0b270f6",
+                "responses": {
+                    "200": {
+                        "description": "Categoría eliminada correctamente"
+                    },
+                    "409": {
+                        "description": "No se puede eliminar: tiene productos asociados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/test": {
