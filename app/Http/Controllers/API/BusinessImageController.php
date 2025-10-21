@@ -57,7 +57,46 @@ class BusinessImageController extends Controller
 
 
     /**
-     * Subir una imagen para un negocio.
+     * @OA\Post(
+     *     path="/api/businesses/{business}/images",
+     *     summary="Subir una imagen para un negocio",
+     *     description="Sube una imagen asociada a un negocio específico. Solo el dueño del negocio puede subir imágenes.",
+     *     tags={"Imágenes de Negocio"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="business",
+     *         in="path",
+     *         required=true,
+     *         description="ID del negocio",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Imagen y datos adicionales",
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"image"},
+     *                 @OA\Property(property="image", type="string", format="binary", description="Archivo de imagen (JPEG, PNG, JPG, GIF)"),
+     *                 @OA\Property(property="is_primary", type="boolean", description="Indica si la imagen es la principal del negocio", example=false),
+     *                 @OA\Property(property="description", type="string", description="Descripción opcional de la imagen", example="Fachada de la panadería")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Imagen subida correctamente",
+     *         @OA\JsonContent(ref="#/components/schemas/BusinessImage")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="No autorizado para subir imágenes a este negocio"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Error de validación de los datos enviados"
+     *     )
+     * )
      */
     public function store(Request $request, Business $business)
     {
@@ -96,7 +135,39 @@ class BusinessImageController extends Controller
     
     
     /**
-     * Eliminar una imagen de un negocio.
+     * @OA\Delete(
+     *     path="/api/businesses/{business}/images/{image}",
+     *     summary="Eliminar una imagen de un negocio",
+     *     description="Elimina una imagen específica de un negocio. Solo el dueño del negocio puede eliminar imágenes.",
+     *     tags={"Imágenes de Negocio"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="business",
+     *         in="path",
+     *         required=true,
+     *         description="ID del negocio",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="image",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la imagen",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Imagen eliminada correctamente",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Imagen eliminada correctamente")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="No autorizado para eliminar imágenes de este negocio"
+     *     )
+     * )
      */
     public function destroy(Business $business, BusinessImage $image)
     {
@@ -113,6 +184,49 @@ class BusinessImageController extends Controller
 
         return response()->json(['message' => 'Imagen eliminada correctamente']);
     }
+    /**
+     * @OA\Put(
+     *     path="/api/businesses/{business}/images/{image}",
+     *     summary="Actualizar la descripción de una imagen de un negocio",
+     *     description="Actualiza la descripción de una imagen específica de un negocio. Solo el dueño del negocio puede actualizar imágenes.",
+     *     tags={"Imágenes de Negocio"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="business",
+     *         in="path",
+     *         required=true,
+     *         description="ID del negocio",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="image",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la imagen",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="description", type="string", example="Nueva descripción de la imagen")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Imagen actualizada correctamente",
+     *         @OA\JsonContent(ref="#/components/schemas/BusinessImage")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="No autorizado para actualizar imágenes de este negocio"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Error de validación de los datos enviados"
+     *     )
+     * )
+     */
     public function update(Request $request, Business $business, BusinessImage $image)
     {
         $this->authorize('update', $business);

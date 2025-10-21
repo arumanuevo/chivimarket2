@@ -587,6 +587,204 @@
                 }
             }
         },
+        "/api/businesses/{business}/images": {
+            "post": {
+                "tags": [
+                    "Imágenes de Negocio"
+                ],
+                "summary": "Subir una imagen para un negocio",
+                "description": "Sube una imagen asociada a un negocio específico. Solo el dueño del negocio puede subir imágenes.",
+                "operationId": "6814b7ce77344cd0bf3b67337440d226",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Imagen y datos adicionales",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "image"
+                                ],
+                                "properties": {
+                                    "image": {
+                                        "description": "Archivo de imagen (JPEG, PNG, JPG, GIF)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "is_primary": {
+                                        "description": "Indica si la imagen es la principal del negocio",
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "description": {
+                                        "description": "Descripción opcional de la imagen",
+                                        "type": "string",
+                                        "example": "Fachada de la panadería"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Imagen subida correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BusinessImage"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para subir imágenes a este negocio"
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/businesses/{business}/images/{image}": {
+            "put": {
+                "tags": [
+                    "Imágenes de Negocio"
+                ],
+                "summary": "Actualizar la descripción de una imagen de un negocio",
+                "description": "Actualiza la descripción de una imagen específica de un negocio. Solo el dueño del negocio puede actualizar imágenes.",
+                "operationId": "336077514c1636fc23a61ad7ee034b73",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "image",
+                        "in": "path",
+                        "description": "ID de la imagen",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Nueva descripción de la imagen"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Imagen actualizada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BusinessImage"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para actualizar imágenes de este negocio"
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Imágenes de Negocio"
+                ],
+                "summary": "Eliminar una imagen de un negocio",
+                "description": "Elimina una imagen específica de un negocio. Solo el dueño del negocio puede eliminar imágenes.",
+                "operationId": "26215df562e8206d3136936dac90aad1",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "image",
+                        "in": "path",
+                        "description": "ID de la imagen",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Imagen eliminada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Imagen eliminada correctamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para eliminar imágenes de este negocio"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/categories": {
             "get": {
                 "tags": [
@@ -1612,6 +1810,47 @@
                 },
                 "type": "object"
             },
+            "BusinessImage": {
+                "required": [
+                    "id",
+                    "business_id",
+                    "url"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "business_id": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "url": {
+                        "type": "string",
+                        "example": "business_images/abc123.jpg"
+                    },
+                    "is_primary": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Fachada de la panadería",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:45:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:50:00Z"
+                    }
+                },
+                "type": "object"
+            },
             "Business": {
                 "required": [
                     "id",
@@ -1980,6 +2219,10 @@
         {
             "name": "Negocios",
             "description": "Negocios"
+        },
+        {
+            "name": "Imágenes de Negocio",
+            "description": "Imágenes de Negocio"
         },
         {
             "name": "Categorías",
