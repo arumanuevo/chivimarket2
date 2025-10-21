@@ -9,6 +9,32 @@ use App\Models\User;
 
 class AuthController extends Controller
 {
+    /**
+     * @OA\Post(
+     *     path="/api/login",
+     *     summary="Iniciar sesión de usuario",
+     *     description="Autentica al usuario y retorna un token Bearer (Sanctum)",
+     *     tags={"Autenticación"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"email","password"},
+     *             @OA\Property(property="email", type="string", example="usuario@correo.com"),
+     *             @OA\Property(property="password", type="string", example="password123")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Inicio de sesión exitoso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="user", type="object"),
+     *             @OA\Property(property="token", type="string", example="1|abcde12345token")
+     *         )
+     *     ),
+     *     @OA\Response(response=422, description="Credenciales incorrectas")
+     * )
+     */
+    
     public function login(Request $request)
     {
         $request->validate([
