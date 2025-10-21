@@ -4,7 +4,7 @@ namespace App\Swagger;
 
 /**
  * @OA\Info(
- *     title="API del Marketplace",
+ *     title="API preliminar del Marketplace",
  *     version="1.0.0",
  *     description="Documentación generada con L5-Swagger para la API del Marketplace Orientado a la ciudad de Chivilcoy.",
  *     @OA\Contact(

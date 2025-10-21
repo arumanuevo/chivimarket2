@@ -1,7 +1,7 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "API del Marketplace",
+        "title": "API preliminar del Marketplace",
         "description": "Documentación generada con L5-Swagger para la API del Marketplace Orientado a la ciudad de Chivilcoy.",
         "contact": {
             "name": "Santiago Castellano",
