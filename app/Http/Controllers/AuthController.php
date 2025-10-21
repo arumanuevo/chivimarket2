@@ -65,6 +65,22 @@ class AuthController extends Controller
             'token' => $token,
         ]);
     }
+    /**
+     * @OA\Post(
+     *     path="/api/logout",
+     *     summary="Cerrar sesión",
+     *     description="Invalida el token actual del usuario autenticado.",
+     *     tags={"Autenticación"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Sesión cerrada correctamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Sesión cerrada")
+     *         )
+     *     )
+     * )
+     */
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
