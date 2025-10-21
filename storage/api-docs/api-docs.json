@@ -12,6 +12,59 @@
         }
     ],
     "paths": {
+        "/api/business-categories": {
+            "post": {
+                "tags": [
+                    "Categorías de Negocios"
+                ],
+                "summary": "Crear nueva categoría de negocio",
+                "description": "Permite crear una nueva categoría. Requiere autenticación.",
+                "operationId": "c5bd6243f9384a54d5ff7c3f12c99e37",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Restaurantes"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Negocios gastronómicos"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Categoría creada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/test": {
             "get": {
                 "tags": [
@@ -183,6 +236,10 @@
         }
     },
     "tags": [
+        {
+            "name": "Categorías de Negocios",
+            "description": "Categorías de Negocios"
+        },
         {
             "name": "Test",
             "description": "Test"
