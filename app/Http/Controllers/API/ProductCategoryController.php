@@ -20,9 +20,7 @@ class ProductCategoryController extends Controller
      *     )
      * )
      */
-    /**
-     * Listar todas las categorías de productos.
-     */
+   
     public function index()
     {
         $categories = ProductCategory::with('children')->whereNull('parent_id')->get();

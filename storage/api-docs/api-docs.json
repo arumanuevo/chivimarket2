@@ -124,6 +124,31 @@
                 }
             }
         },
+        "/api/product-categories": {
+            "get": {
+                "tags": [
+                    "Categorías de Productos"
+                ],
+                "summary": "Listar categorías de productos",
+                "description": "Devuelve todas las categorías de productos activas, con sus subcategorías.",
+                "operationId": "fe28bcf484f6ac601457842c89754862",
+                "responses": {
+                    "200": {
+                        "description": "Listado de categorías",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/test": {
             "get": {
                 "tags": [
@@ -298,6 +323,10 @@
         {
             "name": "Categorías de Negocios",
             "description": "Categorías de Negocios"
+        },
+        {
+            "name": "Categorías de Productos",
+            "description": "Categorías de Productos"
         },
         {
             "name": "Test",
