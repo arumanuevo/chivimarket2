@@ -38,52 +38,7 @@ class AuthController extends Controller
      * )
      */
 
-    /**
-     * @OA\Post(
-     *     path="/api/register",
-     *     summary="Registrar nuevo usuario",
-     *     description="Crea un nuevo usuario con rol 'user' y suscripción gratuita.",
-     *     tags={"Autenticación"},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             required={"name","email","password"},
-     *             @OA\Property(property="name", type="string", example="Juan Pérez"),
-     *             @OA\Property(property="email", type="string", example="usuario@ejemplo.com"),
-     *             @OA\Property(property="password", type="string", example="12345678")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Usuario creado correctamente",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Usuario creado"),
-     *             @OA\Property(property="user", type="object")
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Datos inválidos"
-     *     )
-     * )
-     */
-
-    /**
-     * @OA\Post(
-     *     path="/api/logout",
-     *     summary="Cerrar sesión",
-     *     description="Invalida el token actual del usuario autenticado.",
-     *     tags={"Autenticación"},
-     *     security={{"bearerAuth":{}}},
-     *     @OA\Response(
-     *         response=200,
-     *         description="Sesión cerrada correctamente",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Sesión cerrada")
-     *         )
-     *     )
-     * )
-     */
+    
 
     public function login(Request $request)
     {

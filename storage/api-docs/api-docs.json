@@ -27,37 +27,62 @@
                 }
             }
         },
-        "/api/logout": {
+        "/api/login": {
             "post": {
                 "tags": [
                     "Autenticación"
                 ],
-                "summary": "Cerrar sesión",
-                "description": "Invalida el token actual del usuario autenticado.",
-                "operationId": "9ba8a2861a64bf05c991d2d907e7b7a4",
+                "summary": "Iniciar sesión de usuario",
+                "description": "Autentica al usuario con email y contraseña, devolviendo el token de acceso y sus datos.",
+                "operationId": "a3b306d14572d1f4bd6c064b3233e7b8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "usuario@ejemplo.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "12345678"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "Sesión cerrada correctamente",
+                        "description": "Inicio de sesión exitoso",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "message": {
+                                        "user": {
+                                            "type": "object"
+                                        },
+                                        "token": {
                                             "type": "string",
-                                            "example": "Sesión cerrada"
+                                            "example": "1|eyJ0eXAiOiJKV1Qi..."
                                         }
                                     },
                                     "type": "object"
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "description": "Credenciales incorrectas"
                     }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
+                }
             }
         }
     },
