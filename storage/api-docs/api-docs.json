@@ -35,6 +35,57 @@
                         }
                     }
                 }
+            },
+            "post": {
+                "tags": [
+                    "Categorías de Negocios"
+                ],
+                "summary": "Crear nueva categoría de negocio",
+                "description": "Permite crear una nueva categoría. Requiere autenticación.",
+                "operationId": "520159e7c59e3c10d7cd8d4a578ec11a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Restaurantes"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Negocios gastronómicos"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Categoría creada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/business-categories/{id}": {

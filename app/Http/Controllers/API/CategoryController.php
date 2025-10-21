@@ -57,6 +57,32 @@ class CategoryController extends Controller
         return response()->json($businessCategory);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/business-categories",
+     *     summary="Crear nueva categoría de negocio",
+     *     description="Permite crear una nueva categoría. Requiere autenticación.",
+     *     tags={"Categorías de Negocios"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name"},
+     *             @OA\Property(property="name", type="string", example="Restaurantes"),
+     *             @OA\Property(property="description", type="string", example="Negocios gastronómicos")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Categoría creada correctamente",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Error de validación"
+     *     )
+     * )
+     */
     // Crear categoría (protegido)
     public function store(Request $request)
     {
