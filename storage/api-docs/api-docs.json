@@ -2,15 +2,17 @@
     "openapi": "3.0.0",
     "info": {
         "title": "API del Marketplace",
-        "description": "Documentación generada con L5-Swagger para la API del Marketplace.eeeeee",
+        "description": "Documentación generada con L5-Swagger para la API del Marketplace Orientado a la ciudad de Chivilcoy.",
+        "contact": {
+            "name": "Santiago Castellano",
+            "email": "scastellano10@gmail.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
         "version": "1.0.0"
     },
-    "servers": [
-        {
-            "url": "http://my-default-host.com",
-            "description": "Servidor principal"
-        }
-    ],
     "paths": {
         "/api/businesses": {
             "get": {
