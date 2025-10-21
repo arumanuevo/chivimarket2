@@ -12,23 +12,598 @@
         }
     ],
     "paths": {
-        "/api/business-categories": {
+        "/api/businesses": {
             "get": {
                 "tags": [
-                    "Categorías de Negocios"
+                    "Negocios"
                 ],
-                "summary": "Listar categorías de negocios",
-                "description": "Devuelve todas las categorías disponibles para los negocios.",
-                "operationId": "a8205350d76e6a46295e66883d941d6b",
+                "summary": "Listar negocios del usuario autenticado",
+                "description": "Devuelve todos los negocios asociados al usuario autenticado, incluyendo sus categorías e imágenes.",
+                "operationId": "b47cb8f8dbb2224c2cc513bab2da85d8",
                 "responses": {
                     "200": {
-                        "description": "Listado de categorías",
+                        "description": "Lista de negocios del usuario",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "type": "object"
+                                        "$ref": "#/components/schemas/Business"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Crear un nuevo negocio",
+                "description": "Crea un nuevo negocio asociado al usuario autenticado. Valida el límite de negocios según la suscripción del usuario.",
+                "operationId": "09636680657c34a3c34227aa276605d1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Panadería San Jorge"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Panadería artesanal con más de 20 años de experiencia"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Calle Falsa 123"
+                                    },
+                                    "latitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -34.6037,
+                                        "nullable": true
+                                    },
+                                    "longitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -58.3816,
+                                        "nullable": true
+                                    },
+                                    "categories": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Negocio creado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Business"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para crear más negocios según su suscripción"
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/businesses/{business}": {
+            "get": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Mostrar un negocio específico",
+                "description": "Devuelve la información detallada de un negocio por su ID. Si el usuario autenticado es el dueño, también incluye los productos del negocio.",
+                "operationId": "feb0cf913a78b75503617b23b3a7d154",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalle del negocio",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Business"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Actualizar un negocio",
+                "description": "Actualiza la información de un negocio. Solo el dueño del negocio puede actualizarlo.",
+                "operationId": "cd3ec13e27b92b89bb83a6dc56aafd20",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Panadería San Jorge (Actualizado)"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Panadería artesanal con más de 25 años de experiencia"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Calle Falsa 456"
+                                    },
+                                    "latitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -34.6037,
+                                        "nullable": true
+                                    },
+                                    "longitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -58.3816,
+                                        "nullable": true
+                                    },
+                                    "categories": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Negocio actualizado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Business"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para actualizar este negocio"
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Eliminar un negocio",
+                "description": "Elimina un negocio existente. Solo el dueño del negocio puede eliminarlo.",
+                "operationId": "1ba49b80ee03bbaf297a4bd08e88982f",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Negocio eliminado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Negocio eliminado correctamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para eliminar este negocio"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/businesses/{business}/categories/{category}": {
+            "delete": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Eliminar una categoría de un negocio",
+                "description": "Elimina una categoría específica de un negocio. Solo el dueño del negocio puede realizar esta acción.",
+                "operationId": "cc9d36e893b6b97a015c6eca4f79d12d",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "ID de la categoría",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Categoría eliminada del negocio correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Categoría eliminada del negocio correctamente"
+                                        },
+                                        "business": {
+                                            "$ref": "#/components/schemas/Business"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para eliminar categorías de este negocio"
+                    },
+                    "404": {
+                        "description": "El negocio no tiene asignada esta categoría"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/businesses/{business}/categories": {
+            "put": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Actualizar las categorías de un negocio",
+                "description": "Actualiza todas las categorías asociadas a un negocio. Solo el dueño del negocio puede realizar esta acción.",
+                "operationId": "72531511fb2d2c1ac929a6fa06b7a9cc",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "categories": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categorías actualizadas correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Categorías actualizadas correctamente"
+                                        },
+                                        "business": {
+                                            "$ref": "#/components/schemas/Business"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para actualizar categorías de este negocio"
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/businesses/search": {
+            "get": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Buscar negocios",
+                "description": "Busca negocios por nombre, categoría o ubicación.",
+                "operationId": "69c06fceafc425283c96de9a39ce3856",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Nombre del negocio",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "description": "ID de la categoría",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "description": "Latitud para búsqueda por ubicación",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    {
+                        "name": "lng",
+                        "in": "query",
+                        "description": "Longitud para búsqueda por ubicación",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Radio de búsqueda en metros",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de negocios encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Business"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/businesses/nearby": {
+            "get": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Negocios cercanos",
+                "description": "Devuelve los negocios cercanos a una ubicación específica, dentro de un radio determinado.",
+                "operationId": "b219f678dc17a7124cf73b3486990c4d",
+                "parameters": [
+                    {
+                        "name": "lat",
+                        "in": "query",
+                        "description": "Latitud",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    {
+                        "name": "lng",
+                        "in": "query",
+                        "description": "Longitud",
+                        "required": true,
+                        "schema": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    {
+                        "name": "radius",
+                        "in": "query",
+                        "description": "Radio de búsqueda en metros (por defecto: 10000)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de negocios cercanos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Business"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación de los parámetros de ubicación"
+                    }
+                }
+            }
+        },
+        "/api/businesses/category/{category}": {
+            "get": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Negocios por categoría",
+                "description": "Devuelve todos los negocios que pertenecen a una categoría específica.",
+                "operationId": "c93e77cccccb4496c85d445a635b1cf1",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "ID de la categoría",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de negocios en la categoría",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Business"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/categories": {
+            "get": {
+                "tags": [
+                    "Categorías"
+                ],
+                "summary": "Listar todas las categorías de negocios",
+                "description": "Devuelve un listado de todas las categorías de negocios registradas.",
+                "operationId": "8e17a9627dbed245cf032f867569cf11",
+                "responses": {
+                    "200": {
+                        "description": "Lista de categorías",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/BusinessCategory"
                                     }
                                 }
                             }
@@ -38,19 +613,16 @@
             },
             "post": {
                 "tags": [
-                    "Categorías de Negocios"
+                    "Categorías"
                 ],
-                "summary": "Crear nueva categoría de negocio",
-                "description": "Permite crear una nueva categoría. Requiere autenticación.",
-                "operationId": "520159e7c59e3c10d7cd8d4a578ec11a",
+                "summary": "Crear una nueva categoría",
+                "description": "Crea una nueva categoría de negocio.",
+                "operationId": "2140f330d926c3e118cab9391dc4ff42",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "required": [
-                                    "name"
-                                ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
@@ -72,33 +644,28 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/BusinessCategory"
                                 }
                             }
                         }
                     },
                     "422": {
-                        "description": "Error de validación"
+                        "description": "Error de validación de los datos enviados"
                     }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
+                }
             }
         },
-        "/api/business-categories/{id}": {
+        "/api/categories/{businessCategory}": {
             "get": {
                 "tags": [
-                    "Categorías de Negocios"
+                    "Categorías"
                 ],
-                "summary": "Mostrar categoría de negocio",
-                "description": "Devuelve los datos de una categoría específica.",
-                "operationId": "1c2b05d0f487bad9d21321b12f0b0d51",
+                "summary": "Mostrar una categoría específica",
+                "description": "Devuelve la información detallada de una categoría por su ID.",
+                "operationId": "d7cc7db22f5c7a73ee20100b737a489b",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "businessCategory",
                         "in": "path",
                         "description": "ID de la categoría",
                         "required": true,
@@ -109,11 +676,11 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Categoría encontrada",
+                        "description": "Detalle de la categoría",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "object"
+                                    "$ref": "#/components/schemas/BusinessCategory"
                                 }
                             }
                         }
@@ -293,6 +860,499 @@
                     },
                     "409": {
                         "description": "No se puede eliminar: tiene productos asociados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/businesses/{business}/products": {
+            "get": {
+                "tags": [
+                    "Productos"
+                ],
+                "summary": "Listar productos de un negocio",
+                "description": "Devuelve todos los productos asociados a un negocio específico.",
+                "operationId": "3b35a2a18c19c7411b78f64b06860d06",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de productos del negocio",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Product"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para ver este negocio"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Productos"
+                ],
+                "summary": "Crear un nuevo producto",
+                "description": "Crea un nuevo producto asociado a un negocio. Solo el dueño del negocio puede crear productos.",
+                "operationId": "f86b82f901f67c383e58233d1cd806ff",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Pan integral artesanal"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Pan casero con semillas de lino"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 320.5
+                                    },
+                                    "stock": {
+                                        "type": "integer",
+                                        "example": 40
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "is_active": {
+                                        "type": "boolean, example=true"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Producto creado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Product"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para crear productos en este negocio o límite de productos alcanzado"
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/search": {
+            "get": {
+                "tags": [
+                    "Productos"
+                ],
+                "summary": "Buscar productos",
+                "description": "Busca productos por nombre, descripción, categoría, negocio o rango de precios.",
+                "operationId": "131a3b23ed0ecb009a18b85cc2d55ba2",
+                "parameters": [
+                    {
+                        "name": "query",
+                        "in": "query",
+                        "description": "Término general de búsqueda",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Nombre del producto",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "description",
+                        "in": "query",
+                        "description": "Descripción del producto",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "category",
+                        "in": "query",
+                        "description": "ID de la categoría",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "business",
+                        "in": "query",
+                        "description": "ID del negocio",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "min_price",
+                        "in": "query",
+                        "description": "Precio mínimo",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    {
+                        "name": "max_price",
+                        "in": "query",
+                        "description": "Precio máximo",
+                        "required": false,
+                        "schema": {
+                            "type": "number",
+                            "format": "float"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Campo para ordenar (price, name, created_at)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "order",
+                        "in": "query",
+                        "description": "Orden (asc o desc)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de productos encontrada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Product"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/category/{category}": {
+            "get": {
+                "tags": [
+                    "Productos"
+                ],
+                "summary": "Listar productos por categoría",
+                "description": "Devuelve todos los productos pertenecientes a una categoría específica.",
+                "operationId": "2bb9f728cfeea86d4fecf5cbb679f487",
+                "parameters": [
+                    {
+                        "name": "category",
+                        "in": "path",
+                        "description": "ID de la categoría",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de productos en la categoría",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Product"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Categoría no encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/business/{business}": {
+            "get": {
+                "tags": [
+                    "Productos"
+                ],
+                "summary": "Listar productos por negocio",
+                "description": "Obtiene los productos asociados a un negocio específico.",
+                "operationId": "290255c24e58d241dbe5f009706cda3c",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de productos del negocio",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Product"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Negocio no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/{product}": {
+            "get": {
+                "tags": [
+                    "Productos"
+                ],
+                "summary": "Mostrar un producto específico",
+                "description": "Devuelve la información detallada de un producto por su ID.",
+                "operationId": "b81526f9d1e382fc48b3a150f7ffae13",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID del producto",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalle del producto",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Product"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Producto no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Productos"
+                ],
+                "summary": "Actualizar un producto existente",
+                "description": "Permite modificar los datos de un producto. Solo el propietario del negocio puede actualizarlo.",
+                "operationId": "d18ab82eb18e3d1edbfb573c8a63da67",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID del producto a actualizar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Pan integral artesanal"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Pan casero con semillas de lino"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 320.5
+                                    },
+                                    "stock": {
+                                        "type": "integer",
+                                        "example": 40
+                                    },
+                                    "category_id": {
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Producto actualizado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Product"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para actualizar este producto"
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Productos"
+                ],
+                "summary": "Eliminar un producto",
+                "description": "Elimina un producto existente. Solo el propietario del negocio puede realizar esta acción.",
+                "operationId": "6b585b56bcc292f37b5376d7e5e3e9df",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID del producto a eliminar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Producto eliminado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Producto eliminado correctamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para eliminar este producto"
+                    },
+                    "404": {
+                        "description": "Producto no encontrado"
                     }
                 },
                 "security": [
@@ -533,14 +1593,405 @@
             }
         }
     },
+    "components": {
+        "schemas": {
+            "BusinessCategory": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Restaurantes"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Negocios gastronómicos"
+                    }
+                },
+                "type": "object"
+            },
+            "Business": {
+                "required": [
+                    "id",
+                    "user_id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Panadería San Jorge"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Panadería artesanal con más de 20 años de experiencia",
+                        "nullable": true
+                    },
+                    "address": {
+                        "type": "string",
+                        "example": "Calle Falsa 123",
+                        "nullable": true
+                    },
+                    "latitude": {
+                        "type": "number",
+                        "format": "float",
+                        "example": -34.6037,
+                        "nullable": true
+                    },
+                    "longitude": {
+                        "type": "number",
+                        "format": "float",
+                        "example": -58.3816,
+                        "nullable": true
+                    },
+                    "phone": {
+                        "type": "string",
+                        "example": "+54 11 1234-5678",
+                        "nullable": true
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "contacto@panaderiasanjorge.com",
+                        "nullable": true
+                    },
+                    "website": {
+                        "type": "string",
+                        "example": "https://panaderiasanjorge.com",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:45:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:50:00Z"
+                    },
+                    "products": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Product"
+                        }
+                    },
+                    "categories": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BusinessCategory"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ProductCategory": {
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Panadería"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Productos de panadería y repostería",
+                        "nullable": true
+                    },
+                    "parent_id": {
+                        "type": "integer",
+                        "example": 2,
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:45:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:50:00Z"
+                    },
+                    "children": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ProductCategory"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "ProductImage": {
+                "required": [
+                    "id",
+                    "product_id",
+                    "url"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "product_id": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "url": {
+                        "type": "string",
+                        "example": "https://cdn.example.com/images/pan.jpg"
+                    },
+                    "is_primary": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Imagen principal del pan integral",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:45:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:50:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "Product": {
+                "required": [
+                    "id",
+                    "name",
+                    "price",
+                    "stock"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Pan artesanal integral"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Pan con harina integral y semillas",
+                        "nullable": true
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 350.5
+                    },
+                    "stock": {
+                        "type": "integer",
+                        "example": 20
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "category_id": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "business_id": {
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "category": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 3
+                            },
+                            "name": {
+                                "type": "string",
+                                "example": "Panadería"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "business": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 5
+                            },
+                            "name": {
+                                "type": "string",
+                                "example": "Panadería San Jorge"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "images": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "url": {
+                                    "type": "string",
+                                    "example": "https://cdn.chivimarket.arumasoft.com/pan.jpg"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "Subscription": {
+                "required": [
+                    "id",
+                    "user_id",
+                    "type",
+                    "product_limit",
+                    "is_active"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "premium"
+                    },
+                    "product_limit": {
+                        "type": "integer",
+                        "example": 100
+                    },
+                    "starts_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:45:00Z"
+                    },
+                    "ends_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2026-10-20T13:45:00Z",
+                        "nullable": true
+                    },
+                    "is_active": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "status": {
+                        "type": "string",
+                        "example": "active"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:45:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:50:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "required": [
+                    "id",
+                    "name",
+                    "email"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Juan Pérez"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email",
+                        "example": "juan@example.com"
+                    },
+                    "email_verified_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:45:00Z",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:45:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-20T13:50:00Z"
+                    },
+                    "businesses": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Business"
+                        }
+                    },
+                    "subscription": {
+                        "$ref": "#/components/schemas/Subscription"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
     "tags": [
         {
-            "name": "Categorías de Negocios",
-            "description": "Categorías de Negocios"
+            "name": "Negocios",
+            "description": "Negocios"
+        },
+        {
+            "name": "Categorías",
+            "description": "Categorías"
         },
         {
             "name": "Categorías de Productos",
             "description": "Categorías de Productos"
+        },
+        {
+            "name": "Productos",
+            "description": "Productos"
         },
         {
             "name": "Búsquedas",

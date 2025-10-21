@@ -15,6 +15,7 @@ return [
                 'api' => 'api/documentation',
             ],
             'paths' => [
+             
                 /*
                  * Edit to include full URL in ui for assets
                  */
@@ -44,7 +45,9 @@ return [
                  * Absolute paths to directory containing the swagger annotations are stored.
                  */
                 'annotations' => [
-                    base_path('app'),
+                    base_path('app/Http/Controllers'), // o base_path('app') si quieres escanear todo app/
+                    base_path('app/Documentation'),    // ← esto ya incluye Schemas/ recursivamente
+                 
                 ],
             ],
         ],

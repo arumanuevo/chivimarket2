@@ -1,40 +1,42 @@
 <?php
+
 namespace App\Http\Controllers\API;
+
 use App\Http\Controllers\Controller;
-use App\Models\BusinessCategory; // Modelo para categorías de negocios
+use App\Models\BusinessCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
-    /**
+ 
+        /**
      * @OA\Get(
-     *     path="/api/business-categories",
-     *     summary="Listar categorías de negocios",
-     *     description="Devuelve todas las categorías disponibles para los negocios.",
-     *     tags={"Categorías de Negocios"},
+     *     path="/api/categories",
+     *     summary="Listar todas las categorías de negocios",
+     *     description="Devuelve un listado de todas las categorías de negocios registradas.",
+     *     tags={"Categorías"},
      *     @OA\Response(
      *         response=200,
-     *         description="Listado de categorías",
-     *         @OA\JsonContent(type="array", @OA\Items(type="object"))
+     *         description="Lista de categorías",
+     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/BusinessCategory"))
      *     )
      * )
      */
-
-    // Listar categorías (público)
     public function index()
     {
         return response()->json(BusinessCategory::all());
     }
 
-    /**
+
+      /**
      * @OA\Get(
-     *     path="/api/business-categories/{id}",
-     *     summary="Mostrar categoría de negocio",
-     *     description="Devuelve los datos de una categoría específica.",
-     *     tags={"Categorías de Negocios"},
+     *     path="/api/categories/{businessCategory}",
+     *     summary="Mostrar una categoría específica",
+     *     description="Devuelve la información detallada de una categoría por su ID.",
+     *     tags={"Categorías"},
      *     @OA\Parameter(
-     *         name="id",
+     *         name="businessCategory",
      *         in="path",
      *         required=true,
      *         description="ID de la categoría",
@@ -42,32 +44,28 @@ class CategoryController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Categoría encontrada",
-     *         @OA\JsonContent(type="object")
+     *         description="Detalle de la categoría",
+     *         @OA\JsonContent(ref="#/components/schemas/BusinessCategory")
      *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Categoría no encontrada"
-     *     )
+     *     @OA\Response(response=404, description="Categoría no encontrada")
      * )
      */
-    // Mostrar una categoría (público)
+
     public function show(BusinessCategory $businessCategory)
     {
         return response()->json($businessCategory);
     }
 
-    /**
+        /**
      * @OA\Post(
-     *     path="/api/business-categories",
-     *     summary="Crear nueva categoría de negocio",
-     *     description="Permite crear una nueva categoría. Requiere autenticación.",
-     *     tags={"Categorías de Negocios"},
-     *     security={{"bearerAuth":{}}},
+     *     path="/api/categories",
+     *     summary="Crear una nueva categoría",
+     *     description="Crea una nueva categoría de negocio.",
+     *     tags={"Categorías"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             required={"name"},
+     *             type="object",
      *             @OA\Property(property="name", type="string", example="Restaurantes"),
      *             @OA\Property(property="description", type="string", example="Negocios gastronómicos")
      *         )
@@ -75,15 +73,15 @@ class CategoryController extends Controller
      *     @OA\Response(
      *         response=201,
      *         description="Categoría creada correctamente",
-     *         @OA\JsonContent(type="object")
+     *         @OA\JsonContent(ref="#/components/schemas/BusinessCategory")
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Error de validación"
+     *         description="Error de validación de los datos enviados"
      *     )
      * )
      */
-    // Crear categoría (protegido)
+  
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -99,4 +97,3 @@ class CategoryController extends Controller
         return response()->json($category, 201);
     }
 }
-
