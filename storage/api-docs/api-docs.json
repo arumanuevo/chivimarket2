@@ -1636,6 +1636,301 @@
                 }
             }
         },
+        "/api/subscription": {
+            "get": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Obtener suscripción actual",
+                "description": "Devuelve la suscripción actual del usuario autenticado. Si no tiene suscripción, crea una por defecto (plan 'free').",
+                "operationId": "03430c7a696aa2c8bcd5cb67d41d9698",
+                "responses": {
+                    "200": {
+                        "description": "Suscripción del usuario",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Subscription"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/subscription/upgrade": {
+            "put": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Actualizar suscripción",
+                "description": "Actualiza el plan de suscripción del usuario autenticado. Si el plan no es 'free', se requiere un método de pago.",
+                "operationId": "a9e08eb64a7fbaa6f1ef73d1d81df786",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "plan": {
+                                        "type": "string",
+                                        "enum": [
+                                            "free",
+                                            "basic",
+                                            "premium",
+                                            "enterprise"
+                                        ],
+                                        "example": "premium"
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "mercadopago",
+                                            "transferencia",
+                                            "tarjeta"
+                                        ],
+                                        "example": "mercadopago",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Suscripción actualizada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "¡Suscripción actualizada a Premium! Ahora puedes tener hasta 10 negocios y 500 productos."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/subscription/check-business-creation": {
+            "get": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Verificar si puede crear un negocio",
+                "description": "Verifica si el usuario autenticado puede crear un nuevo negocio según su suscripción actual.",
+                "operationId": "154077471cae1564db30a04b69450305",
+                "responses": {
+                    "200": {
+                        "description": "Resultado de la verificación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "can_create": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Puedes crear un nuevo negocio."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/subscription/check-product-creation/{business}": {
+            "get": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Verificar si puede crear un producto",
+                "description": "Verifica si el usuario autenticado puede crear un nuevo producto en un negocio específico según su suscripción actual.",
+                "operationId": "d3150f5303ba51983178a25fb5bcd12a",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Resultado de la verificación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "can_create": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Puedes crear un nuevo producto en este negocio."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/subscription/change-plan": {
+            "put": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Cambiar plan de suscripción",
+                "description": "Cambia el plan de suscripción de un usuario específico. Solo accesible para administradores.",
+                "operationId": "222e77b08b8bf391b7896e4e32e3fdaa",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "new_plan": {
+                                        "type": "string",
+                                        "enum": [
+                                            "free",
+                                            "basic",
+                                            "premium",
+                                            "enterprise"
+                                        ],
+                                        "example": "premium"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Plan de suscripción cambiado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Suscripción cambiada a Premium correctamente. Algunos negocios o productos pueden haber sido desactivados si excedían los límites del nuevo plan."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/subscription/status": {
+            "get": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Estado de la suscripción",
+                "description": "Devuelve el estado actual de la suscripción del usuario autenticado, incluyendo límites de negocios y productos según el plan.",
+                "operationId": "e193a7c32456b6711e44251bc5df6272",
+                "responses": {
+                    "200": {
+                        "description": "Estado de la suscripción",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "type": {
+                                            "type": "string",
+                                            "example": "premium"
+                                        },
+                                        "product_limit": {
+                                            "type": "integer",
+                                            "example": 500
+                                        },
+                                        "is_active": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "status": {
+                                            "type": "string",
+                                            "example": "active"
+                                        },
+                                        "max_businesses": {
+                                            "type": "integer",
+                                            "example": 10
+                                        },
+                                        "max_products": {
+                                            "type": "integer",
+                                            "example": 500
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/login": {
             "post": {
                 "tags": [
@@ -2127,11 +2422,17 @@
                     },
                     "type": {
                         "type": "string",
+                        "enum": [
+                            "free",
+                            "basic",
+                            "premium",
+                            "enterprise"
+                        ],
                         "example": "premium"
                     },
                     "product_limit": {
                         "type": "integer",
-                        "example": 100
+                        "example": 500
                     },
                     "starts_at": {
                         "type": "string",
@@ -2239,6 +2540,10 @@
         {
             "name": "Búsquedas",
             "description": "Búsquedas"
+        },
+        {
+            "name": "Suscripciones",
+            "description": "Suscripciones"
         },
         {
             "name": "Autenticación",
