@@ -39,4 +39,12 @@ class BusinessImage extends Model
        // return env('APP_URL') . '/' . $this->url;
        return rtrim(env('APP_URL'), '/') . '/' . $this->url;
     }
+
+    public function scopePrimary($query)
+    {
+        return $query->where('is_primary', true);
+    }
+   
+
+
 }

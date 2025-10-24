@@ -595,7 +595,7 @@
                     "Imágenes de Negocio"
                 ],
                 "summary": "Subir una imagen para un negocio",
-                "description": "Sube una imagen asociada a un negocio específico. Solo el dueño del negocio puede subir imágenes.",
+                "description": "Sube una imagen asociada a un negocio específico. Solo el dueño del negocio puede subir imágenes. Si se marca como principal, se desmarcará automáticamente la imagen principal actual.",
                 "operationId": "6814b7ce77344cd0bf3b67337440d226",
                 "parameters": [
                     {
@@ -665,79 +665,12 @@
             }
         },
         "/api/businesses/{business}/images/{image}": {
-            "put": {
-                "tags": [
-                    "Imágenes de Negocio"
-                ],
-                "summary": "Actualizar la descripción de una imagen de un negocio",
-                "description": "Actualiza la descripción de una imagen específica de un negocio. Solo el dueño del negocio puede actualizar imágenes.",
-                "operationId": "336077514c1636fc23a61ad7ee034b73",
-                "parameters": [
-                    {
-                        "name": "business",
-                        "in": "path",
-                        "description": "ID del negocio",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    },
-                    {
-                        "name": "image",
-                        "in": "path",
-                        "description": "ID de la imagen",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "description": {
-                                        "type": "string",
-                                        "example": "Nueva descripción de la imagen"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Imagen actualizada correctamente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BusinessImage"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "No autorizado para actualizar imágenes de este negocio"
-                    },
-                    "422": {
-                        "description": "Error de validación de los datos enviados"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
             "delete": {
                 "tags": [
                     "Imágenes de Negocio"
                 ],
                 "summary": "Eliminar una imagen de un negocio",
-                "description": "Elimina una imagen específica de un negocio. Solo el dueño del negocio puede eliminar imágenes.",
+                "description": "Elimina una imagen específica de un negocio. Solo el dueño del negocio puede eliminar imágenes. Si la imagen eliminada era la principal, se asignará automáticamente otra imagen como principal (si existe).",
                 "operationId": "26215df562e8206d3136936dac90aad1",
                 "parameters": [
                     {
@@ -778,6 +711,79 @@
                     },
                     "403": {
                         "description": "No autorizado para eliminar imágenes de este negocio"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "patch": {
+                "tags": [
+                    "Imágenes de Negocio"
+                ],
+                "summary": "Actualizar una imagen de un negocio",
+                "description": "Actualiza la descripción o el estado de principal de una imagen específica de un negocio. Solo el dueño del negocio puede actualizar imágenes. Si se marca como principal, se desmarcará automáticamente la imagen principal actual.",
+                "operationId": "b1fd6ec91a6e0cb47158deaa0e8a8a83",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "image",
+                        "in": "path",
+                        "description": "ID de la imagen",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "is_primary": {
+                                        "description": "Indica si la imagen debe ser la principal",
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "description": {
+                                        "description": "Nueva descripción de la imagen",
+                                        "type": "string",
+                                        "example": "Fachada renovada de la panadería"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Imagen actualizada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BusinessImage"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para actualizar imágenes de este negocio"
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
                     }
                 },
                 "security": [

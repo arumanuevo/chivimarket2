@@ -6,61 +6,17 @@ use App\Models\BusinessImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests; 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BusinessImageController extends Controller
 {
     use AuthorizesRequests;
-    /**
-     * Subir una imagen para un negocio.
-     */
-  /*  public function store(Request $request, Business $business)
-{
-    $this->authorize('update', $business);
-
-    // Validar que el negocio no tenga más de 2 imágenes en total
-    $currentImagesCount = $business->images()->count();
-    $imagesToUpload = count($request->file('images', []));
-
-    if ($currentImagesCount + $imagesToUpload > 2) {
-        return response()->json([
-            'message' => 'No puedes tener más de 2 imágenes por negocio.'
-        ], 403);
-    }
-
-    $validator = Validator::make($request->all(), [
-        'images' => 'required|array|max:2',
-        'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:1024', // Máximo 1MB por imagen
-        'is_primary' => 'boolean',
-        'description' => 'nullable|string'
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 422);
-    }
-
-    $uploadedImages = [];
-
-    foreach ($request->file('images') as $index => $image) {
-        $path = $image->store('business_images', 'public');
-
-        $uploadedImages[] = $business->images()->create([
-            'url' => $path,
-            'is_primary' => $index === 0, // La primera imagen será la principal
-            'description' => $request->description
-        ]);
-    }
-
-    return response()->json($uploadedImages, 201);
-}*/
-
-
 
     /**
      * @OA\Post(
      *     path="/api/businesses/{business}/images",
      *     summary="Subir una imagen para un negocio",
-     *     description="Sube una imagen asociada a un negocio específico. Solo el dueño del negocio puede subir imágenes.",
+     *     description="Sube una imagen asociada a un negocio específico. Solo el dueño del negocio puede subir imágenes. Si se marca como principal, se desmarcará automáticamente la imagen principal actual.",
      *     tags={"Imágenes de Negocio"},
      *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
@@ -100,45 +56,44 @@ class BusinessImageController extends Controller
      */
     public function store(Request $request, Business $business)
     {
-        $user = $request->user();
-    
-        if ((int)$user->id !== (int)$business->user_id) {
-            return response()->json(['message' => 'No tienes permiso para actualizar este negocio.'], 403);
-        }
-    
-        $isPrimary = filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN);
-    
+        $this->authorize('update', $business);
+
         $validator = Validator::make($request->all(), [
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:1024',
+            'is_primary' => 'boolean',
             'description' => 'nullable|string'
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
         }
-    
+
+        // Si se marca como principal, desmarcar la actual
+        if ($request->has('is_primary') && filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN)) {
+            BusinessImage::where('business_id', $business->id)
+                ->where('is_primary', true)
+                ->update(['is_primary' => false]);
+        }
+
         // Guardar la imagen en public/business_images
         $imageFile = $request->file('image');
         $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
         $imageFile->move(public_path('business_images'), $filename);
-    
+
         $image = $business->images()->create([
             'url' => 'business_images/' . $filename,
-            'is_primary' => $isPrimary,
+            'is_primary' => $request->has('is_primary') ? filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN) : false,
             'description' => $request->description
         ]);
-    
+
         return response()->json($image, 201);
     }
-    
-    
-    
-    
+
     /**
      * @OA\Delete(
      *     path="/api/businesses/{business}/images/{image}",
      *     summary="Eliminar una imagen de un negocio",
-     *     description="Elimina una imagen específica de un negocio. Solo el dueño del negocio puede eliminar imágenes.",
+     *     description="Elimina una imagen específica de un negocio. Solo el dueño del negocio puede eliminar imágenes. Si la imagen eliminada era la principal, se asignará automáticamente otra imagen como principal (si existe).",
      *     tags={"Imágenes de Negocio"},
      *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
@@ -173,6 +128,16 @@ class BusinessImageController extends Controller
     {
         $this->authorize('update', $business);
 
+        // Si es la imagen principal, asignar otra como principal (si existe)
+        if ($image->is_primary) {
+            $newPrimary = BusinessImage::where('business_id', $business->id)
+                ->where('id', '!=', $image->id)
+                ->first();
+            if ($newPrimary) {
+                $newPrimary->update(['is_primary' => true]);
+            }
+        }
+
         // Eliminar la imagen del directorio public/business_images
         $imagePath = public_path($image->url);
         if (file_exists($imagePath)) {
@@ -184,11 +149,12 @@ class BusinessImageController extends Controller
 
         return response()->json(['message' => 'Imagen eliminada correctamente']);
     }
+
     /**
-     * @OA\Put(
+     * @OA\Patch(
      *     path="/api/businesses/{business}/images/{image}",
-     *     summary="Actualizar la descripción de una imagen de un negocio",
-     *     description="Actualiza la descripción de una imagen específica de un negocio. Solo el dueño del negocio puede actualizar imágenes.",
+     *     summary="Actualizar una imagen de un negocio",
+     *     description="Actualiza la descripción o el estado de principal de una imagen específica de un negocio. Solo el dueño del negocio puede actualizar imágenes. Si se marca como principal, se desmarcará automáticamente la imagen principal actual.",
      *     tags={"Imágenes de Negocio"},
      *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
@@ -209,7 +175,8 @@ class BusinessImageController extends Controller
      *         required=true,
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="description", type="string", example="Nueva descripción de la imagen")
+     *             @OA\Property(property="is_primary", type="boolean", description="Indica si la imagen debe ser la principal", example=true),
+     *             @OA\Property(property="description", type="string", description="Nueva descripción de la imagen", example="Fachada renovada de la panadería")
      *         )
      *     ),
      *     @OA\Response(
@@ -232,6 +199,7 @@ class BusinessImageController extends Controller
         $this->authorize('update', $business);
 
         $validator = Validator::make($request->all(), [
+            'is_primary' => 'boolean',
             'description' => 'nullable|string'
         ]);
 
@@ -239,14 +207,20 @@ class BusinessImageController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
+        // Si se marca como principal, desmarcar la actual
+        if ($request->has('is_primary') && filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN)) {
+            BusinessImage::where('business_id', $business->id)
+                ->where('is_primary', true)
+                ->update(['is_primary' => false]);
+        }
+
         $image->update([
-            'description' => $request->description
+            'is_primary' => $request->has('is_primary') ? filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN) : $image->is_primary,
+            'description' => $request->description ?? $image->description
         ]);
 
-        return response()->json($image, 200);
+        return response()->json($image);
     }
-
-
 }
 
 

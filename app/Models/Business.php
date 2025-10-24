@@ -59,4 +59,9 @@ public function categories(): BelongsToMany
     {
         return $this->hasMany(BusinessImage::class);
     }
+
+    public function primaryImage()
+    {
+        return $this->images()->where('is_primary', true)->first();
+    }
 }
