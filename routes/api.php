@@ -10,6 +10,7 @@ use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\SearchController; // Nuevo controlador para búsquedas globales
 use App\Http\Controllers\Api\TestSwaggerController;
 use App\Http\Controllers\API\BusinessLogoController;
+use App\Http\Controllers\API\ProductImageController;
 
 /*
 // =============================================
@@ -163,6 +164,11 @@ Route::patch('businesses/{business}/images/reset-primary', [BusinessImageControl
 
 Route::post('businesses/{business}/logo', [BusinessLogoController::class, 'store'])->middleware('auth:sanctum');
 Route::delete('businesses/{business}/logo', [BusinessLogoController::class, 'destroy'])->middleware('auth:sanctum');
+
+Route::post('products/{product}/images', [ProductImageController::class, 'store'])->middleware('auth:sanctum');
+Route::get('products/{product}/images', [ProductImageController::class, 'index']);
+Route::delete('products/{product}/images/{image}', [ProductImageController::class, 'destroy'])->middleware('auth:sanctum');
+Route::patch('products/{product}/images/{image}/set-primary', [ProductImageController::class, 'setPrimary'])->middleware('auth:sanctum');
 
 
 

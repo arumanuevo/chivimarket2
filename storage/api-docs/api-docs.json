@@ -1769,6 +1769,233 @@
                 ]
             }
         },
+        "/api/products/{product}/images": {
+            "get": {
+                "tags": [
+                    "ProductImages"
+                ],
+                "summary": "Listar imágenes de un producto",
+                "description": "Devuelve todas las imágenes asociadas a un producto.",
+                "operationId": "96163fbbc224a3a5c3b99238219e0941",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID del producto",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de imágenes del producto",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/ProductImage"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "ProductImages"
+                ],
+                "summary": "Subir una imagen para un producto",
+                "description": "Sube una imagen y la asocia a un producto. Solo el dueño del negocio puede subir imágenes.",
+                "operationId": "906134c47d2049bc1bf106cc9ccd415d",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID del producto",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Imagen a subir (form-data)",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "image"
+                                ],
+                                "properties": {
+                                    "image": {
+                                        "description": "Archivo de imagen",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "is_primary": {
+                                        "description": "Si es la imagen principal",
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "description": {
+                                        "description": "Descripción de la imagen",
+                                        "type": "string",
+                                        "example": "Foto del producto desde el frente"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Imagen subida correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ProductImage"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para subir imágenes a este producto"
+                    },
+                    "422": {
+                        "description": "Error de validación (ej: archivo no es una imagen)"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/{product}/images/{image}": {
+            "delete": {
+                "tags": [
+                    "ProductImages"
+                ],
+                "summary": "Eliminar una imagen de un producto",
+                "description": "Elimina una imagen específica de un producto. Solo el dueño del negocio puede hacerlo.",
+                "operationId": "5a73295f3ceed517e0897a26280ae563",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID del producto",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "image",
+                        "in": "path",
+                        "description": "ID de la imagen",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Imagen eliminada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Imagen eliminada correctamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para eliminar esta imagen"
+                    },
+                    "404": {
+                        "description": "Imagen no encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/products/{product}/images/{image}/set-primary": {
+            "patch": {
+                "tags": [
+                    "ProductImages"
+                ],
+                "summary": "Establecer una imagen como principal",
+                "description": "Marca una imagen como la principal del producto. Solo el dueño del negocio puede hacerlo.",
+                "operationId": "d8ea953ad0800e505e34d00ede92631a",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID del producto",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "image",
+                        "in": "path",
+                        "description": "ID de la imagen",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Imagen establecida como principal",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Imagen principal actualizada correctamente"
+                                        },
+                                        "image": {
+                                            "$ref": "#/components/schemas/ProductImage"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para modificar este producto"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/search": {
             "get": {
                 "tags": [
@@ -2726,6 +2953,10 @@
         }
     },
     "tags": [
+        {
+            "name": "ProductImages",
+            "description": "API para gestionar imágenes de productos"
+        },
         {
             "name": "Negocios",
             "description": "Negocios"
