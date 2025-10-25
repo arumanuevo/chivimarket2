@@ -36,7 +36,7 @@ class ProductImage extends Model
      */
     public function getFullUrlAttribute(): string
     {
-        return asset($this->url);
+        return asset('product_images/' . basename($this->url));
     }
 }
 
