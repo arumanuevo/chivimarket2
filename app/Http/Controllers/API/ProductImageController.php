@@ -61,62 +61,70 @@ class ProductImageController extends Controller
      * )
      */
     public function store(Request $request, Product $product)
-    {
-        \Log::info('Solicitud para subir imagen de producto', [
-            'product_id' => $product->id,
-            'request_all' => $request->all(),
-            'has_file' => $request->hasFile('image'),
-            'file_error' => $request->file('image') ? $request->file('image')->getError() : 'No file',
-        ]);
-    
-        $this->authorize('update', $product->business);
-    
-        $validator = Validator::make($request->all(), [
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_primary' => 'boolean',
-            'description' => 'nullable|string|max:255'
-        ]);
-    
-        if ($validator->fails()) {
-            \Log::error('Errores de validación al subir imagen de producto:', [
-                'errors' => $validator->errors()->toArray()
-            ]);
-            return response()->json([
-                'message' => 'Error de validación',
-                'errors' => $validator->errors()
-            ], 422);
+{
+    \Log::info('Solicitud para subir imagen de producto', [
+        'product_id' => $product->id,
+        'request_all' => $request->all(),
+        'has_file' => $request->hasFile('image'),
+        'is_primary_raw' => $request->is_primary,
+    ]);
+
+    $this->authorize('update', $product->business);
+
+    // Convertir is_primary a booleano explícitamente
+    $isPrimary = filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN);
+
+    $validator = Validator::make($request->all(), [
+        'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'is_primary' => 'boolean',
+        'description' => 'nullable|string|max:255'
+    ]);
+
+    // 👇 Usar el valor convertido en la validación
+    $validator->after(function ($validator) use ($isPrimary) {
+        if ($validator->errors()->has('is_primary')) {
+            $validator->errors()->forget('is_primary');
         }
-    
-        try {
-            $path = $request->file('image')->store('product_images', 'public');
-    
-            // Si se marca como principal, desmarcar las demás
-            if ($request->is_primary) {
-                $product->images()->update(['is_primary' => false]);
-            }
-    
-            $image = $product->images()->create([
-                'url' => $path,
-                'is_primary' => $request->is_primary ?? false,
-                'description' => $request->description
-            ]);
-    
-            return response()->json([
-                'message' => 'Imagen subida correctamente',
-                'image' => $image
-            ], 201);
-    
-        } catch (\Exception $e) {
-            \Log::error('Error al subir imagen de producto:', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            return response()->json([
-                'message' => 'Error al procesar la imagen',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+    });
+
+    if ($validator->fails()) {
+        \Log::error('Errores de validación:', $validator->errors()->toArray());
+        return response()->json([
+            'message' => 'Error de validación',
+            'errors' => $validator->errors()
+        ], 422);
     }
+
+    try {
+        $path = $request->file('image')->store('product_images', 'public');
+
+        // Usar el valor booleano convertido
+        if ($isPrimary) {
+            $product->images()->update(['is_primary' => false]);
+        }
+
+        $image = $product->images()->create([
+            'url' => $path,
+            'is_primary' => $isPrimary,
+            'description' => $request->description
+        ]);
+
+        return response()->json([
+            'message' => 'Imagen subida correctamente',
+            'image' => $image
+        ], 201);
+
+    } catch (\Exception $e) {
+        \Log::error('Error al subir imagen:', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json([
+            'message' => 'Error al procesar la imagen',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
     /**
      * @OA\Get(
      *     path="/api/products/{product}/images",
