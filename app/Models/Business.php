@@ -18,7 +18,7 @@ class Business extends Model
     ];
     
     protected $fillable = [
-        'user_id', // <-- Asegúrate de que esté incluido
+        'user_id', 
         'name',
         'description',
         'address',
