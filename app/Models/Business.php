@@ -27,7 +27,8 @@ class Business extends Model
         'phone',
         'email',
         'website',
-        'is_active'
+        'is_active',
+        'logo_url',
     ];
     
 
@@ -63,5 +64,10 @@ public function categories(): BelongsToMany
     public function primaryImage()
     {
         return $this->images()->where('is_primary', true)->first();
+    }
+
+    public function getLogoUrlAttribute($value)
+    {
+        return $value ? rtrim(env('APP_URL'), '/') . '/' . $value : null;
     }
 }

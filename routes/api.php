@@ -9,6 +9,7 @@ use App\Http\Controllers\API\SubscriptionController;
 use App\Http\Controllers\API\CategoryController;
 use App\Http\Controllers\API\SearchController; // Nuevo controlador para búsquedas globales
 use App\Http\Controllers\Api\TestSwaggerController;
+use App\Http\Controllers\API\BusinessLogoController;
 
 /*
 // =============================================
@@ -155,6 +156,14 @@ Route::get('businesses/{business}', [BusinessController::class, 'show']);
 Route::get('/test', [TestSwaggerController::class, 'index']);
 
 Route::patch('businesses/{business}/images/reset-primary', [BusinessImageController::class, 'resetPrimary'])->middleware('auth:sanctum');
+
+// Rutas para el logo del negocio (protegidas)
+//Route::post('businesses/{business}/logo', [BusinessLogoController::class, 'store'])->middleware('auth:sanctum');
+//Route::delete('businesses/{business}/logo', [BusinessLogoController::class, 'destroy'])->middleware('auth:sanctum');
+
+Route::post('businesses/{business}/logo', [BusinessLogoController::class, 'store'])->middleware('auth:sanctum');
+Route::delete('businesses/{business}/logo', [BusinessLogoController::class, 'destroy'])->middleware('auth:sanctum');
+
 
 
 
