@@ -195,32 +195,33 @@ class BusinessImageController extends Controller
      * )
      */
     public function update(Request $request, Business $business, BusinessImage $image)
-{
-    $this->authorize('update', $business);
+    {
+    
+        $this->authorize('update', $business);
+dd('ododod');
+        $validator = Validator::make($request->all(), [
+            'is_primary' => 'boolean',
+            'description' => 'nullable|string'
+        ]);
 
-    $validator = Validator::make($request->all(), [
-        'is_primary' => 'boolean',
-        'description' => 'nullable|string'
-    ]);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
 
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 422);
+        // Si se marca como principal, desmarcar la actual
+        if ($request->has('is_primary') && filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN)) {
+            BusinessImage::where('business_id', $business->id)
+                ->where('is_primary', true)
+                ->update(['is_primary' => false]);
+        }
+
+        $image->update([
+            'is_primary' => $request->has('is_primary') ? filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN) : $image->is_primary,
+            'description' => $request->description ?? $image->description
+        ]);
+
+        return response()->json($image);
     }
-
-    // Si se marca como principal, desmarcar la actual
-    if ($request->has('is_primary') && filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN)) {
-        BusinessImage::where('business_id', $business->id)
-            ->where('id', '!=', $image->id)
-            ->update(['is_primary' => false]);
-    }
-
-    $image->update([
-        'is_primary' => $request->has('is_primary') ? filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN) : $image->is_primary,
-        'description' => $request->description ?? $image->description
-    ]);
-
-    return response()->json($image);
-}
 }
 
 
