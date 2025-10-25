@@ -153,7 +153,12 @@ public function store(Request $request, Product $product)
      */
     public function index(Product $product)
     {
-        return response()->json($product->images);
+        $images = $product->images()->get();
+        $images->each(function ($image) {
+            $image->full_url; // Forzar la carga del acceso
+        });
+
+        return response()->json($images);
     }
 
     /**
