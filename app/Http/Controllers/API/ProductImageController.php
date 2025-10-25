@@ -62,31 +62,61 @@ class ProductImageController extends Controller
      */
     public function store(Request $request, Product $product)
     {
-        $this->authorize('update', $product->business); // Verificar que el usuario sea dueño del negocio
-
+        \Log::info('Solicitud para subir imagen de producto', [
+            'product_id' => $product->id,
+            'request_all' => $request->all(),
+            'has_file' => $request->hasFile('image'),
+            'file_error' => $request->file('image') ? $request->file('image')->getError() : 'No file',
+        ]);
+    
+        $this->authorize('update', $product->business);
+    
         $validator = Validator::make($request->all(), [
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Máx. 2MB
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_primary' => 'boolean',
             'description' => 'nullable|string|max:255'
         ]);
-
+    
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            \Log::error('Errores de validación al subir imagen de producto:', [
+                'errors' => $validator->errors()->toArray()
+            ]);
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
         }
-
-        // Subir la imagen al storage
-        $path = $request->file('image')->store('product_images', 'public');
-
-        // Crear el registro en la base de datos
-        $image = $product->images()->create([
-            'url' => $path,
-            'is_primary' => $request->is_primary ?? false,
-            'description' => $request->description
-        ]);
-
-        return response()->json($image, 201);
+    
+        try {
+            $path = $request->file('image')->store('product_images', 'public');
+    
+            // Si se marca como principal, desmarcar las demás
+            if ($request->is_primary) {
+                $product->images()->update(['is_primary' => false]);
+            }
+    
+            $image = $product->images()->create([
+                'url' => $path,
+                'is_primary' => $request->is_primary ?? false,
+                'description' => $request->description
+            ]);
+    
+            return response()->json([
+                'message' => 'Imagen subida correctamente',
+                'image' => $image
+            ], 201);
+    
+        } catch (\Exception $e) {
+            \Log::error('Error al subir imagen de producto:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => 'Error al procesar la imagen',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
-
     /**
      * @OA\Get(
      *     path="/api/products/{product}/images",
