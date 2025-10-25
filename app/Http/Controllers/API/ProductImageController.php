@@ -90,12 +90,14 @@ public function store(Request $request, Product $product)
     }
 
     try {
-        // Subir la imagen
-        $path = $request->file('image')->store('product_images', 'public');
+        // Guardar directamente en public/product_images
+        $path = $request->file('image')->move(public_path('product_images'), time() . '.' . $request->file('image')->getClientOriginalExtension());
 
-        // Crear el registro en la base de datos
+        // Obtener solo el nombre del archivo (sin la ruta completa)
+        $relativePath = 'product_images/' . basename($path);
+
         $image = $product->images()->create([
-            'url' => $path,
+            'url' => $relativePath,  // Guardar solo la ruta relativa
             'is_primary' => $isPrimary,
             'description' => $request->description
         ]);
@@ -105,7 +107,7 @@ public function store(Request $request, Product $product)
             'image' => $image
         ], 201);
 
-    } catch (\Illuminate\Database\QueryException $e) {
+    } catch (\Exception $e) {
         \Log::error('Error de base de datos al subir imagen:', [
             'error' => $e->getMessage(),
             'sql' => $e->getSql(),
