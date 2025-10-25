@@ -60,18 +60,19 @@ class ProductImageController extends Controller
      *     )
      * )
      */
-    public function store(Request $request, Product $product)
+  // En ProductImageController.php
+public function store(Request $request, Product $product)
 {
     \Log::info('Solicitud para subir imagen de producto', [
         'product_id' => $product->id,
-        'request_all' => $request->all(),
         'has_file' => $request->hasFile('image'),
-        'is_primary_raw' => $request->is_primary,
+        'is_primary' => $request->is_primary,
+        'description' => $request->description,
     ]);
 
     $this->authorize('update', $product->business);
 
-    // Convertir is_primary a booleano explícitamente
+    // Convertir is_primary a booleano
     $isPrimary = filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN);
 
     $validator = Validator::make($request->all(), [
@@ -79,13 +80,6 @@ class ProductImageController extends Controller
         'is_primary' => 'boolean',
         'description' => 'nullable|string|max:255'
     ]);
-
-    // 👇 Usar el valor convertido en la validación
-    $validator->after(function ($validator) use ($isPrimary) {
-        if ($validator->errors()->has('is_primary')) {
-            $validator->errors()->forget('is_primary');
-        }
-    });
 
     if ($validator->fails()) {
         \Log::error('Errores de validación:', $validator->errors()->toArray());
@@ -96,13 +90,10 @@ class ProductImageController extends Controller
     }
 
     try {
+        // Subir la imagen
         $path = $request->file('image')->store('product_images', 'public');
 
-        // Usar el valor booleano convertido
-        if ($isPrimary) {
-            $product->images()->update(['is_primary' => false]);
-        }
-
+        // Crear el registro en la base de datos
         $image = $product->images()->create([
             'url' => $path,
             'is_primary' => $isPrimary,
@@ -113,6 +104,18 @@ class ProductImageController extends Controller
             'message' => 'Imagen subida correctamente',
             'image' => $image
         ], 201);
+
+    } catch (\Illuminate\Database\QueryException $e) {
+        \Log::error('Error de base de datos al subir imagen:', [
+            'error' => $e->getMessage(),
+            'sql' => $e->getSql(),
+            'bindings' => $e->getBindings()
+        ]);
+        return response()->json([
+            'message' => 'Error de base de datos: columna no encontrada',
+            'error' => $e->getMessage(),
+            'hint' => 'Asegúrate de que la columna "description" exista en la tabla product_images'
+        ], 500);
 
     } catch (\Exception $e) {
         \Log::error('Error al subir imagen:', [
@@ -125,6 +128,7 @@ class ProductImageController extends Controller
         ], 500);
     }
 }
+
     /**
      * @OA\Get(
      *     path="/api/products/{product}/images",
