@@ -222,6 +222,34 @@ class BusinessImageController extends Controller
     return response()->json($image);
 }
 
+/**
+ * @OA\Patch(
+ *     path="/api/businesses/{business}/images/reset-primary",
+ *     summary="Restablecer imágenes principales de un negocio",
+ *     description="Restablece todas las imágenes de un negocio para que ninguna sea principal. Solo el dueño del negocio puede realizar esta acción.",
+ *     tags={"Imágenes de Negocio"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Parameter(
+ *         name="business",
+ *         in="path",
+ *         required=true,
+ *         description="ID del negocio",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Imágenes restablecidas correctamente",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="message", type="string", example="Imágenes restablecidas")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="No autorizado para restablecer imágenes de este negocio"
+ *     )
+ * )
+ */
 public function resetPrimary(Business $business)
 {
     $this->authorize('update', $business);

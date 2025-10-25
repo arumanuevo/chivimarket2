@@ -793,6 +793,53 @@
                 ]
             }
         },
+        "/api/businesses/{business}/images/reset-primary": {
+            "patch": {
+                "tags": [
+                    "Imágenes de Negocio"
+                ],
+                "summary": "Restablecer imágenes principales de un negocio",
+                "description": "Restablece todas las imágenes de un negocio para que ninguna sea principal. Solo el dueño del negocio puede realizar esta acción.",
+                "operationId": "87d3139529478f4a75b3e996fc438d0d",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Imágenes restablecidas correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Imágenes restablecidas"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para restablecer imágenes de este negocio"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/categories": {
             "get": {
                 "tags": [
