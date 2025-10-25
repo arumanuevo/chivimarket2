@@ -221,6 +221,13 @@ class BusinessImageController extends Controller
 
     return response()->json($image);
 }
+
+public function resetPrimary(Business $business)
+{
+    $this->authorize('update', $business);
+    BusinessImage::where('business_id', $business->id)->update(['is_primary' => false]);
+    return response()->json(['message' => 'Imágenes restablecidas']);
+}
 }
 
 

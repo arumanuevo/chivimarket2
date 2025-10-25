@@ -154,6 +154,9 @@ Route::get('businesses/{business}', [BusinessController::class, 'show']);
 
 Route::get('/test', [TestSwaggerController::class, 'index']);
 
+Route::patch('businesses/{business}/images/reset-primary', [BusinessImageController::class, 'resetPrimary'])->middleware('auth:sanctum');
+
+
 
 
     
