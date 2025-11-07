@@ -170,6 +170,19 @@ Route::get('products/{product}/images', [ProductImageController::class, 'index']
 Route::delete('products/{product}/images/{image}', [ProductImageController::class, 'destroy'])->middleware('auth:sanctum');
 Route::patch('products/{product}/images/{image}/set-primary', [ProductImageController::class, 'setPrimary'])->middleware('auth:sanctum');
 
+// Rutas para calificaciones de negocios
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('businesses/{business}/ratings', [BusinessRatingController::class, 'store']);
+    Route::get('businesses/{business}/ratings', [BusinessRatingController::class, 'index']);
+});
+
+// Rutas para calificaciones de productos
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('products/{product}/ratings', [ProductRatingController::class, 'store']);
+    Route::get('products/{product}/ratings', [ProductRatingController::class, 'index']);
+});
+
+
 
 
 

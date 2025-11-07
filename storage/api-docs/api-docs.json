@@ -994,6 +994,166 @@
                 ]
             }
         },
+        "/api/businesses/{business}/ratings": {
+            "get": {
+                "tags": [
+                    "BusinessRatings"
+                ],
+                "summary": "Listar calificaciones de un negocio",
+                "description": "Devuelve todas las calificaciones de un negocio, incluyendo el promedio y el total.",
+                "operationId": "9e53f6d598bb536960e8da4313b1897b",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de calificaciones y promedio",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ratings": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/BusinessRating"
+                                            }
+                                        },
+                                        "average_rating": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 4.5
+                                        },
+                                        "total_ratings": {
+                                            "type": "integer",
+                                            "example": 10
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "BusinessRatings"
+                ],
+                "summary": "Calificar un negocio",
+                "description": "Permite a un usuario calificar la calidad del servicio de un negocio (1-5 estrellas).",
+                "operationId": "9b27d228eee3b471f17139e9941ce85f",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio a calificar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "service_quality"
+                                ],
+                                "properties": {
+                                    "service_quality": {
+                                        "description": "Calificación (1-5 estrellas)",
+                                        "type": "integer",
+                                        "example": 5
+                                    },
+                                    "comment": {
+                                        "description": "Comentario opcional",
+                                        "type": "string",
+                                        "example": "Excelente servicio y atención al cliente"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Calificación registrada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Calificación registrada correctamente"
+                                        },
+                                        "rating": {
+                                            "$ref": "#/components/schemas/BusinessRating"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado (ej: ya calificaste este negocio)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ya has calificado este negocio."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "service_quality": [
+                                                    "The service quality field is required."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/categories": {
             "get": {
                 "tags": [
@@ -2582,6 +2742,54 @@
                 },
                 "type": "object"
             },
+            "BusinessRating": {
+                "required": [
+                    "id",
+                    "business_id",
+                    "user_id",
+                    "service_quality",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "business_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "service_quality": {
+                        "description": "Calificación (1-5)",
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "comment": {
+                        "description": "Comentario opcional",
+                        "type": "string",
+                        "example": "Excelente servicio"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-26T12:34:56.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-26T12:34:56.000000Z"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                },
+                "type": "object"
+            },
             "Business": {
                 "required": [
                     "id",
@@ -2752,6 +2960,54 @@
                         "type": "string",
                         "format": "date-time",
                         "example": "2025-10-20T13:50:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "ProductRating": {
+                "required": [
+                    "id",
+                    "product_id",
+                    "user_id",
+                    "quality",
+                    "created_at",
+                    "updated_at"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "product_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "quality": {
+                        "description": "Calificación (1-5)",
+                        "type": "integer",
+                        "example": 4
+                    },
+                    "comment": {
+                        "description": "Comentario opcional",
+                        "type": "string",
+                        "example": "Producto de buena calidad"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-26T12:34:56.000000Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-26T12:34:56.000000Z"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
                     }
                 },
                 "type": "object"
@@ -2953,6 +3209,10 @@
         }
     },
     "tags": [
+        {
+            "name": "BusinessRatings",
+            "description": "API para gestionar calificaciones de negocios"
+        },
         {
             "name": "ProductImages",
             "description": "API para gestionar imágenes de productos"

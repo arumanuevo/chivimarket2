@@ -70,4 +70,8 @@ public function categories(): BelongsToMany
     {
         return $value ? rtrim(env('APP_URL'), '/') . '/' . $value : null;
     }
+    public function ratings()
+    {
+        return $this->hasMany(BusinessRating::class);
+    }
 }
