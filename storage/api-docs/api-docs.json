@@ -2156,6 +2156,166 @@
                 ]
             }
         },
+        "/api/products/{product}/ratings": {
+            "get": {
+                "tags": [
+                    "ProductRatings"
+                ],
+                "summary": "Listar calificaciones de un producto",
+                "description": "Devuelve todas las calificaciones de un producto, incluyendo el promedio y el total.",
+                "operationId": "caf8c13cc6b71a98d4374763a29c0bf0",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID del producto",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de calificaciones y promedio",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "ratings": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/ProductRating"
+                                            }
+                                        },
+                                        "average_rating": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 4.2
+                                        },
+                                        "total_ratings": {
+                                            "type": "integer",
+                                            "example": 5
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "ProductRatings"
+                ],
+                "summary": "Calificar un producto",
+                "description": "Permite a un usuario calificar la calidad de un producto (1-5 estrellas).",
+                "operationId": "73019aae4cfa260c9b518f49922e9e19",
+                "parameters": [
+                    {
+                        "name": "product",
+                        "in": "path",
+                        "description": "ID del producto a calificar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "quality"
+                                ],
+                                "properties": {
+                                    "quality": {
+                                        "description": "Calificación (1-5 estrellas)",
+                                        "type": "integer",
+                                        "example": 4
+                                    },
+                                    "comment": {
+                                        "description": "Comentario opcional",
+                                        "type": "string",
+                                        "example": "Producto de buena calidad, cumple con lo prometido"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Calificación registrada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Calificación registrada correctamente"
+                                        },
+                                        "rating": {
+                                            "$ref": "#/components/schemas/ProductRating"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado (ej: ya calificaste este producto)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ya has calificado este producto."
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "quality": [
+                                                    "The quality field is required."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/search": {
             "get": {
                 "tags": [
@@ -3216,6 +3376,10 @@
         {
             "name": "ProductImages",
             "description": "API para gestionar imágenes de productos"
+        },
+        {
+            "name": "ProductRatings",
+            "description": "API para gestionar calificaciones de productos"
         },
         {
             "name": "Negocios",
