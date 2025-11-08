@@ -1258,6 +1258,579 @@
                 }
             }
         },
+        "/api/track-contact": {
+            "post": {
+                "tags": [
+                    "Contacts"
+                ],
+                "summary": "Registrar un contacto con un negocio o producto",
+                "description": "Registra cuando un usuario realiza una acción que indica interés en un negocio o producto (ej: ver teléfono, hacer clic en sitio web, etc.)",
+                "operationId": "7d1ed8cef9f59a54e1af72f58aab2668",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Contact"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Contacto registrado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Contacto registrado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Negocio no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Negocio no encontrado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/businesses/{business}/contact-stats": {
+            "get": {
+                "tags": [
+                    "Contacts"
+                ],
+                "summary": "Obtener estadísticas de contactos para un negocio",
+                "description": "Devuelve estadísticas de contactos para un negocio específico en los últimos 30 días",
+                "operationId": "7826a17d4e175cf03d278e57edfd9002",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Estadísticas de contactos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "last_30_days": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "date": {
+                                                        "type": "string",
+                                                        "format": "date",
+                                                        "example": "2025-10-26"
+                                                    },
+                                                    "count": {
+                                                        "type": "integer",
+                                                        "example": 5
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "by_type": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "contact_type": {
+                                                        "type": "string",
+                                                        "example": "phone_view"
+                                                    },
+                                                    "count": {
+                                                        "type": "integer",
+                                                        "example": 3
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "total": {
+                                            "type": "integer",
+                                            "example": 42
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No autorizado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Negocio no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Negocio no encontrado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/businesses/{business}/discount-tokens": {
+            "post": {
+                "tags": [
+                    "DiscountTokens"
+                ],
+                "summary": "Generar un token de descuento para un negocio",
+                "description": "Genera un token de descuento que el usuario puede presentar al negocio",
+                "operationId": "4d2b95e3c3c29b842c7ecd55bfdfb22f",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "discount_type",
+                                    "discount_value",
+                                    "valid_days"
+                                ],
+                                "properties": {
+                                    "product_id": {
+                                        "description": "ID del producto (opcional)",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "discount_type": {
+                                        "description": "Tipo de descuento",
+                                        "type": "string",
+                                        "enum": [
+                                            "percentage",
+                                            "fixed"
+                                        ],
+                                        "example": "percentage"
+                                    },
+                                    "discount_value": {
+                                        "description": "Valor del descuento (10 para 10% o 5.00 para $5)",
+                                        "type": "number",
+                                        "example": 10
+                                    },
+                                    "min_purchase": {
+                                        "description": "Mínimo de compra requerido (opcional)",
+                                        "type": "number",
+                                        "example": 50
+                                    },
+                                    "valid_days": {
+                                        "description": "Días de validez desde hoy",
+                                        "type": "integer",
+                                        "example": 7
+                                    },
+                                    "description": {
+                                        "description": "Descripción del descuento",
+                                        "type": "string",
+                                        "example": "10% de descuento en tu próxima compra"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Token generado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DiscountToken"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No autorizado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/users/me/discount-tokens": {
+            "get": {
+                "tags": [
+                    "DiscountTokens"
+                ],
+                "summary": "Listar tokens de descuento del usuario",
+                "description": "Devuelve todos los tokens de descuento generados por el usuario actual",
+                "operationId": "ebc1d30f3541ece907f61ef92ae6d3a9",
+                "responses": {
+                    "200": {
+                        "description": "Lista de tokens de descuento",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/DiscountToken"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/discount-tokens/{token}": {
+            "get": {
+                "tags": [
+                    "DiscountTokens"
+                ],
+                "summary": "Ver detalles de un token de descuento",
+                "description": "Devuelve los detalles de un token de descuento usando su código",
+                "operationId": "77a66771b139b2d09619525c4ba49de1",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "description": "Código del token de descuento",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalles del token",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DiscountToken"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Token no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token no encontrado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/discount-tokens/{token}/use": {
+            "post": {
+                "tags": [
+                    "DiscountTokens"
+                ],
+                "summary": "Usar un token de descuento",
+                "description": "Registra el uso de un token de descuento por parte de un cliente",
+                "operationId": "ed6260f9054946a962e74a79abe0f112",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "description": "Código del token de descuento",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token usado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token usado exitosamente"
+                                        },
+                                        "confirmation_code": {
+                                            "description": "Código para que el negocio confirme el uso",
+                                            "type": "string",
+                                            "example": "ABCD1234"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Token no válido o ya usado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token no válido o ya usado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Token no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token no encontrado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/discount-tokens/{token}/confirm": {
+            "post": {
+                "tags": [
+                    "DiscountTokens"
+                ],
+                "summary": "Confirmar uso de un token de descuento",
+                "description": "Permite al negocio confirmar que el token fue usado correctamente",
+                "operationId": "e8c2048a4384557c188abc11dc4c148a",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "description": "Código del token de descuento",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "confirmation_code"
+                                ],
+                                "properties": {
+                                    "confirmation_code": {
+                                        "description": "Código de confirmación generado al usar el token",
+                                        "type": "string",
+                                        "example": "ABCD1234"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Uso del token confirmado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Uso del token confirmado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Código de confirmación inválido",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Código de confirmación inválido"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado (el usuario no es dueño del negocio)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No autorizado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Token no encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Token no encontrado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/product-categories": {
             "get": {
                 "tags": [
@@ -3036,6 +3609,110 @@
                 },
                 "type": "object"
             },
+            "DiscountToken": {
+                "title": "Token de Descuento",
+                "description": "Token de descuento generado por un usuario para un negocio o producto",
+                "properties": {
+                    "id": {
+                        "description": "ID del token",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "code": {
+                        "description": "Código único del token",
+                        "type": "string",
+                        "example": "ABCD-1234"
+                    },
+                    "business_id": {
+                        "description": "ID del negocio",
+                        "type": "integer",
+                        "example": 21
+                    },
+                    "product_id": {
+                        "description": "ID del producto (nullable)",
+                        "type": "integer",
+                        "example": 5
+                    },
+                    "user_id": {
+                        "description": "ID del usuario que generó el token",
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "discount_type": {
+                        "description": "Tipo de descuento",
+                        "type": "string",
+                        "enum": [
+                            "percentage",
+                            "fixed"
+                        ],
+                        "example": "percentage"
+                    },
+                    "discount_value": {
+                        "description": "Valor del descuento (10 para 10% o 5.00 para $5)",
+                        "type": "number",
+                        "example": 10
+                    },
+                    "min_purchase": {
+                        "description": "Mínimo de compra requerido (nullable)",
+                        "type": "number",
+                        "example": 50
+                    },
+                    "max_uses": {
+                        "description": "Número máximo de usos",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "uses_count": {
+                        "description": "Número de veces que se ha usado",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "valid_from": {
+                        "description": "Fecha desde cuando es válido",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-26T00:00:00.000000Z"
+                    },
+                    "valid_until": {
+                        "description": "Fecha hasta cuando es válido",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-11-02T00:00:00.000000Z"
+                    },
+                    "description": {
+                        "description": "Descripción del descuento",
+                        "type": "string",
+                        "example": "10% de descuento en tu próxima compra"
+                    },
+                    "is_active": {
+                        "description": "Si el cupón está activo",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-26T12:34:56.000000Z"
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-26T12:34:56.000000Z"
+                    },
+                    "business": {
+                        "$ref": "#/components/schemas/Business"
+                    },
+                    "product": {
+                        "$ref": "#/components/schemas/Product"
+                    },
+                    "user": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                },
+                "type": "object"
+            },
             "ProductCategory": {
                 "required": [
                     "id",
@@ -3365,6 +4042,73 @@
                     }
                 },
                 "type": "object"
+            },
+            "Contact": {
+                "required": [
+                    "contactable_type",
+                    "contactable_id",
+                    "contact_type"
+                ],
+                "properties": {
+                    "user_id": {
+                        "description": "ID del usuario (nullable si no está autenticado)",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "contactable_type": {
+                        "description": "Tipo de entidad contactada",
+                        "type": "string",
+                        "enum": [
+                            "business",
+                            "product"
+                        ],
+                        "example": "business"
+                    },
+                    "contactable_id": {
+                        "description": "ID de la entidad contactada",
+                        "type": "integer",
+                        "example": 21
+                    },
+                    "contact_type": {
+                        "description": "Tipo de contacto",
+                        "type": "string",
+                        "enum": [
+                            "phone_view",
+                            "email_view",
+                            "address_view",
+                            "website_click",
+                            "social_click",
+                            "copy_contact",
+                            "favorite",
+                            "share",
+                            "map_view",
+                            "catalog_download"
+                        ],
+                        "example": "phone_view"
+                    },
+                    "ip": {
+                        "description": "IP del visitante",
+                        "type": "string",
+                        "example": "192.168.1.1"
+                    },
+                    "user_agent": {
+                        "description": "User agent del navegador",
+                        "type": "string",
+                        "example": "Mozilla/5.0"
+                    },
+                    "referer": {
+                        "description": "URL de referencia",
+                        "type": "string",
+                        "example": "https://chivimarket.arumasoft.com"
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-10-26T12:34:56.000000Z"
+                    }
+                },
+                "type": "object"
             }
         }
     },
@@ -3372,6 +4116,10 @@
         {
             "name": "BusinessRatings",
             "description": "API para gestionar calificaciones de negocios"
+        },
+        {
+            "name": "Contacts",
+            "description": "API para registrar y gestionar contactos con negocios/productos"
         },
         {
             "name": "ProductImages",
@@ -3396,6 +4144,10 @@
         {
             "name": "Categorías",
             "description": "Categorías"
+        },
+        {
+            "name": "DiscountTokens",
+            "description": "DiscountTokens"
         },
         {
             "name": "Categorías de Productos",

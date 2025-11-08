@@ -11,6 +11,8 @@ use App\Http\Controllers\API\SearchController; // Nuevo controlador para búsque
 use App\Http\Controllers\Api\TestSwaggerController;
 use App\Http\Controllers\API\BusinessLogoController;
 use App\Http\Controllers\API\ProductImageController;
+use App\Http\Controllers\API\ContactController;
+use App\Http\Controllers\API\DiscountTokenController;
 
 /*
 // =============================================
@@ -134,6 +136,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/subscription/check-product/{business}', [SubscriptionController::class, 'checkProductCreation']);
     Route::post('/subscription/change-plan', [SubscriptionController::class, 'changePlan']);
     Route::get('/subscription/status', [SubscriptionController::class, 'status']);
+
+    Route::post('/track-contact', [ContactController::class, 'trackContact']);
+
+    // Generar tokens de descuento
+    Route::post('businesses/{business}/discount-tokens', [DiscountTokenController::class, 'store']);
+    Route::get('users/me/discount-tokens', [DiscountTokenController::class, 'index']);
+ 
+    // Usar y confirmar tokens
+    Route::post('discount-tokens/{token}/use', [DiscountTokenController::class, 'useToken']);
+    Route::post('discount-tokens/{token}/confirm', [DiscountTokenController::class, 'confirmUse']);
+
 });
 
 Route::get('/check-business/{business}', function (Request $request, Business $business) {

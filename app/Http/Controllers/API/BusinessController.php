@@ -488,4 +488,32 @@ class BusinessController extends Controller
 
         return response()->json($businesses);
     }
+
+    public function contactStats(Business $business)
+    {
+        $this->authorize('view', $business);
+
+        $last30Days = DB::table('contacts')
+            ->where('contactable_type', 'business')
+            ->where('contactable_id', $business->id)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        $byType = DB::table('contacts')
+            ->where('contactable_type', 'business')
+            ->where('contactable_id', $business->id)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->select('contact_type', DB::raw('COUNT(*) as count'))
+            ->groupBy('contact_type')
+            ->get();
+
+        return response()->json([
+            'last_30_days' => $last30Days,
+            'by_type' => $byType,
+            'total' => $last30Days->sum('count')
+        ]);
+    }
 }
