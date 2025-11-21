@@ -13,6 +13,7 @@ use App\Http\Controllers\API\BusinessLogoController;
 use App\Http\Controllers\API\ProductImageController;
 use App\Http\Controllers\API\ContactController;
 use App\Http\Controllers\API\DiscountTokenController;
+use App\Http\Controllers\API\TestPusherController;
 
 /*
 // =============================================
@@ -207,6 +208,8 @@ Route::get('/test-broadcast-config', function() {
         ]
     ];
 });
+
+Route::post('/test-pusher/send', [TestPusherController::class, 'sendTestMessage']);
 
 
 
