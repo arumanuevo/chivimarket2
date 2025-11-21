@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Pusher\Pusher;
 use App\Models\User;
+use App\Notifications\NewMessageNotification;
 
 /**
  * @OA\Tag(
