@@ -14,6 +14,7 @@ use App\Http\Controllers\API\ProductImageController;
 use App\Http\Controllers\API\ContactController;
 use App\Http\Controllers\API\DiscountTokenController;
 use App\Http\Controllers\API\TestPusherController;
+use App\Http\Controllers\API\MessageController;
 
 /*
 // =============================================
@@ -148,6 +149,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('discount-tokens/{token}/use', [DiscountTokenController::class, 'useToken']);
     Route::post('discount-tokens/{token}/confirm', [DiscountTokenController::class, 'confirmUse']);
 
+    Route::post('/conversations/start', [MessageController::class, 'startConversation']);
+
+    // Enviar mensaje
+    Route::post('/messages', [MessageController::class, 'sendMessage']);
+
+    // Listar mensajes de una conversación
+    Route::get('/conversations/{conversation}/messages', [MessageController::class, 'listMessages']);
+
+    // Listar conversaciones del usuario
+    Route::get('/conversations', [MessageController::class, 'listConversations']);
 });
 
 Route::get('/check-business/{business}', function (Request $request, Business $business) {
@@ -210,6 +221,8 @@ Route::get('/test-broadcast-config', function() {
 });
 
 Route::post('/test-pusher/send', [TestPusherController::class, 'sendTestMessage']);
+
+
 
 
 
