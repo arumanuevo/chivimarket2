@@ -196,6 +196,20 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
+Route::get('/test-broadcast-config', function() {
+    return [
+        'default' => config('broadcasting.default'),
+        'pusher_config' => config('broadcasting.connections.pusher'),
+        'env_check' => [
+            'app_id' => env('PUSHER_APP_ID'),
+            'app_key' => env('PUSHER_APP_KEY'),
+            'app_cluster' => env('PUSHER_APP_CLUSTER')
+        ]
+    ];
+});
+
+
+
 
 
 
