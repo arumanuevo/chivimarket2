@@ -1831,6 +1831,318 @@
                 ]
             }
         },
+        "/api/conversations/start": {
+            "post": {
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Iniciar una conversación",
+                "description": "Inicia una conversación con otro usuario o devuelve una existente",
+                "operationId": "76522312ae79d375e923822f2fb6c2c2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "user_id"
+                                ],
+                                "properties": {
+                                    "user_id": {
+                                        "description": "ID del otro usuario",
+                                        "type": "integer",
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Conversación iniciada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Conversación iniciada"
+                                        },
+                                        "conversation": {
+                                            "$ref": "#/components/schemas/Conversation"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/messages": {
+            "post": {
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Enviar un mensaje",
+                "description": "Envía un mensaje a una conversación existente",
+                "operationId": "a31857923721e1a9da93f76f72a8b668",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "conversation_id",
+                                    "message"
+                                ],
+                                "properties": {
+                                    "conversation_id": {
+                                        "description": "ID de la conversación",
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "message": {
+                                        "description": "Contenido del mensaje",
+                                        "type": "string",
+                                        "example": "Hola, ¿cómo estás?"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Mensaje enviado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Mensaje enviado exitosamente"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Message"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error de validación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Error de validación"
+                                        },
+                                        "errors": {
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No autorizado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/conversations/{conversation}/messages": {
+            "get": {
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Listar mensajes de una conversación",
+                "description": "Devuelve todos los mensajes de una conversación específica",
+                "operationId": "b6ea6f46dfce44f28214ff956927c977",
+                "parameters": [
+                    {
+                        "name": "conversation",
+                        "in": "path",
+                        "description": "ID de la conversación",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de mensajes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Message"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "No autorizado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/conversations": {
+            "get": {
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Listar conversaciones del usuario",
+                "description": "Devuelve todas las conversaciones del usuario autenticado",
+                "operationId": "d9d572db8a0fb56b74a9fece20bc2757",
+                "responses": {
+                    "200": {
+                        "description": "Lista de conversaciones",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "user1_id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "user2_id": {
+                                                "type": "integer",
+                                                "example": 2
+                                            },
+                                            "other_user": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "María Gómez"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "last_message": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 5
+                                                    },
+                                                    "message": {
+                                                        "type": "string",
+                                                        "example": "Hola, ¿cómo estás?"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-11-21T18:01:00.000000Z"
+                                                    },
+                                                    "is_read": {
+                                                        "type": "boolean",
+                                                        "example": true
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "unread_count": {
+                                                "type": "integer",
+                                                "example": 1
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/product-categories": {
             "get": {
                 "tags": [
@@ -3609,6 +3921,84 @@
                 },
                 "type": "object"
             },
+            "Conversation": {
+                "required": [
+                    "user1_id",
+                    "user2_id"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "ID de la conversación",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user1_id": {
+                        "description": "ID del primer usuario",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user2_id": {
+                        "description": "ID del segundo usuario",
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-11-21T18:00:00.000000Z"
+                    },
+                    "updated_at": {
+                        "description": "Fecha de última actualización",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-11-21T18:00:00.000000Z"
+                    },
+                    "other_user": {
+                        "description": "Datos del otro usuario en la conversación",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 2
+                            },
+                            "name": {
+                                "type": "string",
+                                "example": "María Gómez"
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "last_message": {
+                        "description": "Último mensaje de la conversación",
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 5
+                            },
+                            "message": {
+                                "type": "string",
+                                "example": "Hola, ¿cómo estás?"
+                            },
+                            "created_at": {
+                                "type": "string",
+                                "format": "date-time",
+                                "example": "2025-11-21T18:01:00.000000Z"
+                            },
+                            "is_read": {
+                                "type": "boolean",
+                                "example": true
+                            }
+                        },
+                        "type": "object"
+                    },
+                    "unread_count": {
+                        "description": "Número de mensajes no leídos",
+                        "type": "integer",
+                        "example": 1
+                    }
+                },
+                "type": "object"
+            },
             "DiscountToken": {
                 "title": "Token de Descuento",
                 "description": "Token de descuento generado por un usuario para un negocio o producto",
@@ -3709,6 +4099,63 @@
                     },
                     "user": {
                         "$ref": "#/components/schemas/User"
+                    }
+                },
+                "type": "object"
+            },
+            "Message": {
+                "required": [
+                    "conversation_id",
+                    "sender_id",
+                    "message"
+                ],
+                "properties": {
+                    "id": {
+                        "description": "ID del mensaje",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "conversation_id": {
+                        "description": "ID de la conversación",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "sender_id": {
+                        "description": "ID del usuario que envió el mensaje",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "message": {
+                        "description": "Contenido del mensaje",
+                        "type": "string",
+                        "example": "Hola, ¿cómo estás?"
+                    },
+                    "is_read": {
+                        "description": "Indica si el mensaje ha sido leído",
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "created_at": {
+                        "description": "Fecha de creación del mensaje",
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-11-21T18:01:00.000000Z"
+                    },
+                    "sender": {
+                        "description": "Datos del usuario que envió el mensaje",
+                        "properties": {
+                            "id": {
+                                "description": "ID del usuario",
+                                "type": "integer",
+                                "example": 1
+                            },
+                            "name": {
+                                "description": "Nombre del usuario",
+                                "type": "string",
+                                "example": "Juan Pérez"
+                            }
+                        },
+                        "type": "object"
                     }
                 },
                 "type": "object"
@@ -4120,6 +4567,10 @@
         {
             "name": "Contacts",
             "description": "API para registrar y gestionar contactos con negocios/productos"
+        },
+        {
+            "name": "Messaging",
+            "description": "API para el sistema de mensajería entre usuarios"
         },
         {
             "name": "ProductImages",

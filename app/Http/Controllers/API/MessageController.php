@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Pusher\Pusher;
 
+/**
+ * @OA\Tag(
+ *     name="Messaging",
+ *     description="API para el sistema de mensajería entre usuarios"
+ * )
+ */
 class MessageController extends Controller
 {
     protected $pusher;
@@ -27,7 +33,38 @@ class MessageController extends Controller
         );
     }
 
-    // Iniciar una conversación
+    /**
+     * @OA\Post(
+     *     path="/api/conversations/start",
+     *     summary="Iniciar una conversación",
+     *     description="Inicia una conversación con otro usuario o devuelve una existente",
+     *     tags={"Messaging"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"user_id"},
+     *             @OA\Property(property="user_id", type="integer", example=2, description="ID del otro usuario")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Conversación iniciada",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Conversación iniciada"),
+     *             @OA\Property(property="conversation", ref="#/components/schemas/Conversation")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Error de validación",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Error de validación"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     )
+     * )
+     */
     public function startConversation(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -60,7 +97,46 @@ class MessageController extends Controller
         ]);
     }
 
-    // Enviar un mensaje
+    /**
+     * @OA\Post(
+     *     path="/api/messages",
+     *     summary="Enviar un mensaje",
+     *     description="Envía un mensaje a una conversación existente",
+     *     tags={"Messaging"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"conversation_id", "message"},
+     *             @OA\Property(property="conversation_id", type="integer", example=1, description="ID de la conversación"),
+     *             @OA\Property(property="message", type="string", example="Hola, ¿cómo estás?", description="Contenido del mensaje")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Mensaje enviado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Mensaje enviado exitosamente"),
+     *             @OA\Property(property="data", ref="#/components/schemas/Message")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Error de validación",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Error de validación"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="No autorizado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="No autorizado")
+     *         )
+     *     )
+     * )
+     */
     public function sendMessage(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -106,7 +182,34 @@ class MessageController extends Controller
         ], 201);
     }
 
-    // Listar mensajes de una conversación
+    /**
+     * @OA\Get(
+     *     path="/api/conversations/{conversation}/messages",
+     *     summary="Listar mensajes de una conversación",
+     *     description="Devuelve todos los mensajes de una conversación específica",
+     *     tags={"Messaging"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="conversation",
+     *         in="path",
+     *         required=true,
+     *         description="ID de la conversación",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de mensajes",
+     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Message"))
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="No autorizado",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="No autorizado")
+     *         )
+     *     )
+     * )
+     */
     public function listMessages(Conversation $conversation)
     {
         if (!in_array(Auth::id(), [$conversation->user1_id, $conversation->user2_id])) {
@@ -129,7 +232,42 @@ class MessageController extends Controller
         return response()->json($messages);
     }
 
-    // Listar conversaciones del usuario
+/**
+ * @OA\Get(
+ *     path="/api/conversations",
+ *     summary="Listar conversaciones del usuario",
+ *     description="Devuelve todas las conversaciones del usuario autenticado",
+ *     tags={"Messaging"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Response(
+ *         response=200,
+ *         description="Lista de conversaciones",
+ *         @OA\JsonContent(
+ *             type="array",
+ *             @OA\Items(
+ *                 @OA\Property(property="id", type="integer", example=1),
+ *                 @OA\Property(property="user1_id", type="integer", example=1),
+ *                 @OA\Property(property="user2_id", type="integer", example=2),
+ *                 @OA\Property(
+ *                     property="other_user",
+ *                     type="object",
+ *                     @OA\Property(property="id", type="integer", example=2),
+ *                     @OA\Property(property="name", type="string", example="María Gómez")
+ *                 ),
+ *                 @OA\Property(
+ *                     property="last_message",
+ *                     type="object",
+ *                     @OA\Property(property="id", type="integer", example=5),
+ *                     @OA\Property(property="message", type="string", example="Hola, ¿cómo estás?"),
+ *                     @OA\Property(property="created_at", type="string", format="date-time", example="2025-11-21T18:01:00.000000Z"),
+ *                     @OA\Property(property="is_read", type="boolean", example=true)
+ *                 ),
+ *                 @OA\Property(property="unread_count", type="integer", example=1)
+ *             )
+ *         )
+ *     )
+ * )
+ */
     public function listConversations()
     {
         $userId = Auth::id();
