@@ -162,6 +162,8 @@ class MessageController extends Controller
         // Obtener el otro usuario en la conversación
         $otherUserId = $conversation->user1_id == Auth::id() ? $conversation->user2_id : $conversation->user1_id;
 
+        $otherUser = User::find($otherUserId);
+
         // Enviar notificación en tiempo real con Pusher
         $this->pusher->trigger(
             "user-{$otherUserId}",
@@ -177,7 +179,12 @@ class MessageController extends Controller
         );
 
          // Enviar notificación persistente (base de datos)
-        $otherUserId->notify(new NewMessageNotification($message)); 
+        try {
+            $otherUser->notify(new NewMessageNotification($message));
+        } catch (\Exception $e) {
+            \Log::error("Error al enviar notificación: " . $e->getMessage());
+            // El mensaje aún se guarda en la base de datos y se envía por Pusher
+        } 
 
         return response()->json([
             'message' => 'Mensaje enviado exitosamente',
