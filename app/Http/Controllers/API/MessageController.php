@@ -177,7 +177,7 @@ class MessageController extends Controller
         );
 
          // Enviar notificación persistente (base de datos)
-        $otherUser->notify(new NewMessageNotification($message)); 
+        $otherUserId->notify(new NewMessageNotification($message)); 
 
         return response()->json([
             'message' => 'Mensaje enviado exitosamente',
