@@ -176,6 +176,9 @@ class MessageController extends Controller
             ]
         );
 
+         // Enviar notificación persistente (base de datos)
+        $otherUser->notify(new NewMessageNotification($message)); 
+
         return response()->json([
             'message' => 'Mensaje enviado exitosamente',
             'data' => $message
@@ -304,5 +307,74 @@ class MessageController extends Controller
 
         return response()->json($conversations);
     }
+
+/**
+ * @OA\Get(
+ *     path="/api/notifications",
+ *     summary="Listar notificaciones del usuario",
+ *     description="Devuelve las notificaciones no leídas del usuario autenticado",
+ *     tags={"Messaging"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Response(
+ *         response=200,
+ *         description="Lista de notificaciones",
+ *         @OA\JsonContent(
+ *             type="array",
+ *             @OA\Items(
+ *                 @OA\Property(property="id", type="string", example="uuid-notification-id"),
+ *                 @OA\Property(property="type", type="string", example="App\Notifications\NewMessageNotification"),
+ *                 @OA\Property(
+ *                     property="data",
+ *                     type="object",
+ *                     @OA\Property(property="message_id", type="integer", example=1),
+ *                     @OA\Property(property="conversation_id", type="integer", example=1),
+ *                     @OA\Property(property="sender_id", type="integer", example=2),
+ *                     @OA\Property(property="sender_name", type="string", example="Juan Pérez"),
+ *                     @OA\Property(property="message", type="string", example="Hola, ¿cómo estás?"),
+ *                     @OA\Property(property="created_at", type="string", format="date-time", example="2025-11-21T18:01:00.000000Z")
+ *                 ),
+ *                 @OA\Property(property="read_at", type="string", format="date-time", example=null)
+ *             )
+ *         )
+ *     )
+ * )
+ */
+    public function listNotifications()
+    {
+        $notifications = Auth::user()->unreadNotifications;
+
+        return response()->json($notifications);
+    }
+
+    /**
+ * @OA\Post(
+ *     path="/api/notifications/{notification}/read",
+ *     summary="Marcar notificación como leída",
+ *     description="Marca una notificación como leída",
+ *     tags={"Messaging"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Parameter(
+ *         name="notification",
+ *         in="path",
+ *         required=true,
+ *         description="ID de la notificación",
+ *         @OA\Schema(type="string")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Notificación marcada como leída",
+ *         @OA\JsonContent(
+ *             @OA\Property(property="message", type="string", example="Notificación marcada como leída")
+ *         )
+ *     )
+ * )
+ */
+    public function markAsRead($notificationId)
+    {
+        Auth::user()->notifications()->where('id', $notificationId)->first()->markAsRead();
+
+        return response()->json(['message' => 'Notificación marcada como leída']);
+    }
+
 }
 

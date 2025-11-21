@@ -222,6 +222,12 @@ Route::get('/test-broadcast-config', function() {
 
 Route::post('/test-pusher/send', [TestPusherController::class, 'sendTestMessage']);
 
+Route::get('/notifications', [MessageController::class, 'listNotifications'])
+    ->middleware('auth:sanctum');
+
+Route::post('/notifications/{notification}/read', [MessageController::class, 'markAsRead'])
+    ->middleware('auth:sanctum');
+
 
 
 

@@ -2143,6 +2143,125 @@
                 ]
             }
         },
+        "/api/notifications": {
+            "get": {
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Listar notificaciones del usuario",
+                "description": "Devuelve las notificaciones no leídas del usuario autenticado",
+                "operationId": "cde09f4470d63cbaea8b927664120d34",
+                "responses": {
+                    "200": {
+                        "description": "Lista de notificaciones",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "string",
+                                                "example": "uuid-notification-id"
+                                            },
+                                            "type": {
+                                                "type": "string",
+                                                "example": "App\\Notifications\\NewMessageNotification"
+                                            },
+                                            "data": {
+                                                "properties": {
+                                                    "message_id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "conversation_id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "sender_id": {
+                                                        "type": "integer",
+                                                        "example": 2
+                                                    },
+                                                    "sender_name": {
+                                                        "type": "string",
+                                                        "example": "Juan Pérez"
+                                                    },
+                                                    "message": {
+                                                        "type": "string",
+                                                        "example": "Hola, ¿cómo estás?"
+                                                    },
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2025-11-21T18:01:00.000000Z"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            },
+                                            "read_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": null
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/notifications/{notification}/read": {
+            "post": {
+                "tags": [
+                    "Messaging"
+                ],
+                "summary": "Marcar notificación como leída",
+                "description": "Marca una notificación como leída",
+                "operationId": "3a53b6b434edcf8bb60e9acbf22e3105",
+                "parameters": [
+                    {
+                        "name": "notification",
+                        "in": "path",
+                        "description": "ID de la notificación",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notificación marcada como leída",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Notificación marcada como leída"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/product-categories": {
             "get": {
                 "tags": [
