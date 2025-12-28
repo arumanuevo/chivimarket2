@@ -48,10 +48,9 @@ class AuthController extends Controller
         ]);
 
         if (!Auth::attempt($request->only('email', 'password'))) {
-            // Devolver un JSON con código 422 en lugar de lanzar una excepción
-            return response()->json([
-                'message' => 'Credenciales incorrectas',
-            ], 422); // Código HTTP 422 para errores de validación
+            throw ValidationException::withMessages([
+                'email' => ['Credenciales incorrectas'],
+            ]);
         }
 
         $user = Auth::user();
