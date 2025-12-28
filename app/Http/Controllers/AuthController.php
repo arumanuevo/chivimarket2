@@ -48,22 +48,48 @@ class AuthController extends Controller
         ]);
 
         if (!Auth::attempt($request->only('email', 'password'))) {
-            // Devolver un JSON con código 422 en lugar de lanzar una excepción
-            return response()->json([
-                'message' => 'Credenciales incorrectas',
-            ], 422); // Código HTTP 422 para errores de validación
+            throw ValidationException::withMessages([
+                'email' => ['Credenciales incorrectas'],
+            ]);
         }
 
         $user = Auth::user();
+
+        // 👇 Cargar roles y permisos
         $user->load('roles', 'permissions');
 
         $token = $user->createToken('auth-token')->plainTextToken;
 
         return response()->json([
             'user' => $user,
-            'token' => token,
+            'token' => $token,
         ]);
     }
+
+ /*   public function login(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required',
+    ]);
+
+    if (!Auth::attempt($request->only('email', 'password'))) {
+        // Devolver un JSON con código 422 en lugar de lanzar una excepción
+        return response()->json([
+            'message' => 'Credenciales incorrectas',
+        ], 422); // Código HTTP 422 para errores de validación
+    }
+
+    $user = Auth::user();
+    $user->load('roles', 'permissions');
+
+    $token = $user->createToken('auth-token')->plainTextToken;
+
+    return response()->json([
+        'user' => $user,
+        'token' => token,
+    ]);
+}*/
     /**
      * @OA\Post(
      *     path="/api/logout",
