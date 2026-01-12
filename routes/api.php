@@ -15,6 +15,7 @@ use App\Http\Controllers\API\ContactController;
 use App\Http\Controllers\API\DiscountTokenController;
 use App\Http\Controllers\API\TestPusherController;
 use App\Http\Controllers\API\MessageController;
+use App\Http\Resources\SubscriptionResource;
 
 /*
 // =============================================
@@ -103,9 +104,20 @@ Route::get('businesses/category/{category}', [BusinessController::class, 'byCate
 Route::middleware('auth:sanctum')->group(function () {
     // Autenticación
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user', function (Request $request) {
+    /*Route::get('/user', function (Request $request) {
         return $request->user()->load(['roles', 'permissions', 'businesses', 'subscription']);
+    });*/
+    Route::get('/user', function (Request $request) {
+        $user = $request->user()->load(['roles', 'permissions', 'businesses', 'subscription']);
+    
+        // Si hay suscripción, formatearla con el Resource
+        if ($user->subscription) {
+            $user->subscription = new SubscriptionResource($user->subscription);
+        }
+    
+        return $user;
     });
+    
 
     // Usuarios (con permisos Spatie)
     Route::middleware('permission:create-users')->post('/users', [UserController::class, 'store']);
