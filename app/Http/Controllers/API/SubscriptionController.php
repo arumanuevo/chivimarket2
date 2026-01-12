@@ -72,9 +72,13 @@ class SubscriptionController extends Controller
      */
     public function upgrade(Request $request)
     {
+        
+
         $validator = Validator::make($request->all(), [
-            'plan' => 'required|in:free,basic,premium,enterprise',
-            'payment_method' => $request->plan !== 'free' ? 'required|string|in:mercadopago,transferencia,tarjeta' : 'nullable'
+            'plan' => ['required', 'in:Free,Basic,Premium,Enterprise,free,basic,premium,enterprise'],
+            'payment_method' => $request->plan !== 'free' ?
+                ['required', 'string', 'in:MercadoPago,Transferencia,Tarjeta,mercadopago,transferencia,tarjeta'] :
+                'nullable'
         ]);
 
         if ($validator->fails()) {
