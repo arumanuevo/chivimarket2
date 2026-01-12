@@ -16,6 +16,8 @@ use App\Http\Controllers\API\DiscountTokenController;
 use App\Http\Controllers\API\TestPusherController;
 use App\Http\Controllers\API\MessageController;
 use App\Http\Resources\SubscriptionResource;
+use App\Http\Resources\UserResource;
+
 
 /*
 // =============================================
