@@ -109,13 +109,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });*/
     Route::get('/user', function (Request $request) {
         $user = $request->user()->load(['roles', 'permissions', 'businesses', 'subscription']);
-    
-        // Si hay suscripción, formatearla con el Resource
-        if ($user->subscription) {
-            $user->subscription = new SubscriptionResource($user->subscription);
-        }
-    
-        return $user;
+        return new UserResource($user);
     });
     
 
