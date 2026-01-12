@@ -12,21 +12,22 @@ class SubscriptionService
     /**
      * Obtener los límites de negocios según el tipo de suscripción.
      */
-    public static function getMaxBusinessesForSubscription($subscriptionType)
+    public static function getMaxProductsForSubscription(string $plan): int
     {
         $limits = [
-            'free' => 1,
-            'basic' => 3,
-            'premium' => 10,
-            'enterprise' => 50
+            'free' => 10,
+            'basic' => 100,
+            'premium' => 500,
+            'enterprise' => 1000
         ];
-        return $limits[$subscriptionType] ?? 1;
+
+        return $limits[strtolower($plan)] ?? 0;
     }
 
     /**
      * Obtener los límites de productos según el tipo de suscripción.
      */
-    public static function getMaxProductsForSubscription($subscriptionType)
+   /* public static function getMaxProductsForSubscription($subscriptionType)
     {
         $limits = [
             'free' => 10,
@@ -35,6 +36,18 @@ class SubscriptionService
             'enterprise' => 5000
         ];
         return $limits[$subscriptionType] ?? 10;
+    }*/
+
+    public static function getMaxBusinessesForSubscription(string $plan): int
+    {
+        $limits = [
+            'free' => 1,
+            'basic' => 5,
+            'premium' => 10,
+            'enterprise' => 20
+        ];
+
+        return $limits[strtolower($plan)] ?? 0;
     }
 
     /**
@@ -147,6 +160,8 @@ class SubscriptionService
     
         return true;
     }
+
+    
     
 }
 

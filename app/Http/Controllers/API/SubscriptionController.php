@@ -33,6 +33,11 @@ class SubscriptionController extends Controller
             'product_limit' => SubscriptionService::getMaxProductsForSubscription('free'),
             'is_active' => true
         ]);
+
+        // Cargar los accessors
+        $subscription->load('user');
+        $subscription->append(['formatted_type', 'formatted_starts_at', 'formatted_ends_at']);
+
         return response()->json($subscription);
     }
 
@@ -78,6 +83,7 @@ class SubscriptionController extends Controller
 
         $user = Auth::user();
         $plan = $request->plan;
+        $formattedPlan = ucfirst($plan); // Capitalizar primera letra
 
         if ($plan !== 'free') {
             $user->subscription()->updateOrCreate(
@@ -91,14 +97,13 @@ class SubscriptionController extends Controller
                 ]
             );
         } else {
-            // Si es degradación a free, usar la lógica de degradación
             SubscriptionService::changePlan($user, $plan);
         }
 
         return response()->json([
             'message' => sprintf(
                 '¡Suscripción actualizada a %s! Ahora puedes tener hasta %d negocios y %d productos.',
-                ucfirst($plan),
+                $formattedPlan,
                 SubscriptionService::getMaxBusinessesForSubscription($plan),
                 SubscriptionService::getMaxProductsForSubscription($plan)
             )
@@ -202,13 +207,14 @@ class SubscriptionController extends Controller
 
         $user = User::find($request->user_id);
         $newPlan = $request->new_plan;
+        $formattedNewPlan = ucfirst($newPlan); // Capitalizar primera letra
 
         SubscriptionService::changePlan($user, $newPlan);
 
         return response()->json([
             'message' => sprintf(
                 'Suscripción cambiada a %s correctamente. Algunos negocios o productos pueden haber sido desactivados si excedían los límites del nuevo plan.',
-                ucfirst($newPlan)
+                $formattedNewPlan
             )
         ]);
     }
@@ -240,13 +246,21 @@ class SubscriptionController extends Controller
         $user = Auth::user();
         $subscription = $user->subscription ?? SubscriptionService::createDefaultSubscription($user);
 
+        // Añadir los accessors al response
+        $subscription->append(['formatted_type', 'formatted_starts_at', 'formatted_ends_at']);
+
         return response()->json([
             'type' => $subscription->type,
+            'formatted_type' => $subscription->formatted_type,
             'product_limit' => $subscription->product_limit,
             'is_active' => $subscription->is_active,
             'status' => $subscription->status,
             'max_businesses' => SubscriptionService::getMaxBusinessesForSubscription($subscription->type),
             'max_products' => SubscriptionService::getMaxProductsForSubscription($subscription->type),
+            'starts_at' => $subscription->starts_at,
+            'formatted_starts_at' => $subscription->formatted_starts_at,
+            'ends_at' => $subscription->ends_at,
+            'formatted_ends_at' => $subscription->formatted_ends_at,
         ]);
     }
 
