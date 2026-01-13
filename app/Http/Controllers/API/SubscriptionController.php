@@ -96,7 +96,7 @@ class SubscriptionController extends Controller
                     'type' => $plan,
                     'product_limit' => SubscriptionService::getMaxProductsForSubscription($plan),
                     'starts_at' => now(),
-                    'ends_at' => now()->addYear(),
+                    'ends_at' => now()->addMonth(),
                     'is_active' => true
                 ]
             );
