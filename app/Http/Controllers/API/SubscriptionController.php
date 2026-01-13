@@ -70,49 +70,52 @@ class SubscriptionController extends Controller
      *     )
      * )
      */
-    public function upgrade(Request $request)
-    {
-        
+    // En SubscriptionController.php, método upgrade()
+public function upgrade(Request $request)
+{
+    // Normalizar el plan a minúsculas para la lógica
+    $plan = strtolower($request->input('plan', ''));
 
-        $validator = Validator::make($request->all(), [
-            'plan' => ['required', 'in:Free,Basic,Premium,Enterprise,free,basic,premium,enterprise'],
-            'payment_method' => $request->plan !== 'free' ?
-                ['required', 'string', 'in:MercadoPago,Transferencia,Tarjeta,mercadopago,transferencia,tarjeta'] :
-                'nullable'
-        ]);
+    $validator = Validator::make($request->all(), [
+        'plan' => ['required', 'in:free,basic,premium,enterprise'],
+        'payment_method' => $plan !== 'free' ?
+            ['required', 'string', 'in:mercadopago,transferencia,tarjeta'] :
+            'nullable'
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $user = Auth::user();
-        $plan = $request->plan;
-        $formattedPlan = ucfirst($plan); // Capitalizar primera letra
-
-        if ($plan !== 'free') {
-            $user->subscription()->updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'type' => $plan,
-                    'product_limit' => SubscriptionService::getMaxProductsForSubscription($plan),
-                    'starts_at' => now(),
-                    'ends_at' => now()->addYear(),
-                    'is_active' => true
-                ]
-            );
-        } else {
-            SubscriptionService::changePlan($user, $plan);
-        }
-
-        return response()->json([
-            'message' => sprintf(
-                '¡Suscripción actualizada a %s! Ahora puedes tener hasta %d negocios y %d productos.',
-                $formattedPlan,
-                SubscriptionService::getMaxBusinessesForSubscription($plan),
-                SubscriptionService::getMaxProductsForSubscription($plan)
-            )
-        ]);
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
     }
+
+    $user = Auth::user();
+    $plan = strtolower($request->plan); // Normalizar a minúsculas
+    $formattedPlan = ucfirst($plan); // Capitalizar para el mensaje
+
+    if ($plan !== 'free') {
+        $user->subscription()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'type' => $plan,
+                'product_limit' => SubscriptionService::getMaxProductsForSubscription($plan),
+                'payment_method' => strtolower($request->payment_method), // Normalizar a minúsculas
+                'starts_at' => now(),
+                'ends_at' => now()->addYear(),
+                'is_active' => true
+            ]
+        );
+    } else {
+        SubscriptionService::changePlan($user, $plan);
+    }
+
+    return response()->json([
+        'message' => sprintf(
+            '¡Suscripción actualizada a %s! Ahora puedes tener hasta %d negocios y %d productos.',
+            $formattedPlan,
+            SubscriptionService::getMaxBusinessesForSubscription($plan),
+            SubscriptionService::getMaxProductsForSubscription($plan)
+        )
+    ]);
+}
 
     /**
      * @OA\Get(

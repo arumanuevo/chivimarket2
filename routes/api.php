@@ -146,6 +146,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/subscription/check-product/{business}', [SubscriptionController::class, 'checkProductCreation']);
     Route::post('/subscription/change-plan', [SubscriptionController::class, 'changePlan']);
     Route::get('/subscription/status', [SubscriptionController::class, 'status']);
+    Route::put('/subscription/upgrade', [SubscriptionController::class, 'upgrade']);
 
     Route::post('/track-contact', [ContactController::class, 'trackContact']);
 
