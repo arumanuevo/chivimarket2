@@ -70,7 +70,7 @@ class SubscriptionController extends Controller
      *     )
      * )
      */
-    public function upgrade(Request $request)
+   /* public function upgrade(Request $request)
     {
         
 
@@ -112,7 +112,81 @@ class SubscriptionController extends Controller
                 SubscriptionService::getMaxProductsForSubscription($plan)
             )
         ]);
+    }*/
+
+    // En SubscriptionController.php
+    public function upgrade(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'plan' => ['required', 'in:free,basic,premium,enterprise'],
+            'payment_method' => $request->plan !== 'free' ?
+                ['required', 'string', 'in:mercadopago,transferencia,tarjeta'] :
+                'nullable'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $user = Auth::user();
+        $currentSubscription = $user->subscription ?? SubscriptionService::createDefaultSubscription($user);
+        $newPlan = strtolower($request->plan);
+        $isDowngrade = in_array($currentSubscription->type, ['premium', 'enterprise', 'basic']) &&
+                    in_array($newPlan, ['free', 'basic']) &&
+                    $currentSubscription->type !== $newPlan;
+
+        // Bloquear downgrade si no está permitido
+        if ($isDowngrade && !$currentSubscription->can_downgrade) {
+            return response()->json([
+                'error' => sprintf(
+                    'No puedes hacer downgrade hasta el %s. Tu suscripción actual vence el %s.',
+                    $currentSubscription->downgrade_lock_until?->format('d-m-Y'),
+                    $currentSubscription->next_payment_due?->format('d-m-Y')
+                )
+            ], 403);
+        }
+
+        // Procesar upgrade/downgrade
+        if ($newPlan !== 'free') {
+            $paymentDue = now()->addMonth(); // Próximo vencimiento
+            $user->subscription()->updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'type' => $newPlan,
+                    'product_limit' => SubscriptionService::getMaxProductsForSubscription($newPlan),
+                    'payment_method' => $request->payment_method ? strtolower($request->payment_method) : null,
+                    'last_payment_date' => now(),
+                    'next_payment_due' => $paymentDue,
+                    'can_downgrade' => false, // Bloquear downgrade hasta próximo pago
+                    'downgrade_lock_until' => $paymentDue,
+                    'payment_status' => 'paid',
+                    'starts_at' => now(),
+                    'ends_at' => $paymentDue,
+                    'is_active' => true
+                ]
+            );
+        } else {
+            // Downgrade a free (sin bloqueos)
+            SubscriptionService::changePlan($user, $newPlan);
+            $user->subscription()->update([
+                'can_downgrade' => true,
+                'downgrade_lock_until' => null,
+                'payment_status' => 'cancelled'
+            ]);
+        }
+
+        return response()->json([
+            'message' => sprintf(
+                '¡Suscripción actualizada a %s! Ahora puedes tener hasta %d negocios y %d productos.',
+                ucfirst($newPlan),
+                SubscriptionService::getMaxBusinessesForSubscription($newPlan),
+                SubscriptionService::getMaxProductsForSubscription($newPlan)
+            ),
+            'next_payment_due' => $newPlan !== 'free' ? now()->addMonth()->format('d-m-Y') : null,
+            'can_downgrade' => $newPlan === 'free' ? true : false
+        ]);
     }
+
 
     /**
      * @OA\Get(
@@ -267,6 +341,68 @@ class SubscriptionController extends Controller
             'formatted_ends_at' => $subscription->formatted_ends_at,
         ]);
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/subscription/register-payment",
+     *     summary="Registrar pago de suscripción",
+     *     description="Registra un pago exitoso para la suscripción actual del usuario.",
+     *     tags={"Suscripciones"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="payment_method", type="string", enum={"mercadopago", "transferencia", "tarjeta"}, example="mercadopago"),
+     *             @OA\Property(property="transaction_id", type="string", example="MP123456789", description="ID de la transacción")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Pago registrado correctamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Pago registrado. Tu suscripción está activa hasta el 13-02-2026."),
+     *             @OA\Property(property="next_payment_due", type="string", example="13-02-2026")
+     *         )
+     *     )
+     * )
+     */
+    public function registerPayment(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'payment_method' => ['required', 'string', 'in:mercadopago,transferencia,tarjeta'],
+            'transaction_id' => ['required', 'string']
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $user = Auth::user();
+        $subscription = $user->subscription;
+
+        if (!$subscription || $subscription->type === 'free') {
+            return response()->json(['error' => 'No tienes una suscripción que requiera pago.'], 400);
+        }
+
+        // Actualizar suscripción
+        $nextDue = now()->addMonth();
+        $subscription->update([
+            'last_payment_date' => now(),
+            'next_payment_due' => $nextDue,
+            'can_downgrade' => true, // Permitir downgrade hasta próximo vencimiento
+            'downgrade_lock_until' => $nextDue,
+            'payment_status' => 'paid'
+        ]);
+
+        return response()->json([
+            'message' => sprintf(
+                'Pago registrado. Tu suscripción está activa hasta el %s.',
+                $nextDue->format('d-m-Y')
+            ),
+            'next_payment_due' => $nextDue->format('d-m-Y')
+        ]);
+    }
+
 
 }
 
