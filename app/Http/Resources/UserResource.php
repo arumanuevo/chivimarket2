@@ -30,12 +30,14 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use App\Services\SubscriptionService;
 
 class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        // Guardar el modelo User original en una variable para usarlo en los métodos
+        $userModel = $this->resource; // <-- Esto es el modelo User original
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -44,7 +46,7 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
-            // Datos de suscripción (si existe)
+            // Datos de suscripción
             'subscription' => $this->subscription ? new SubscriptionResource($this->subscription) : null,
 
             // Roles y permisos
@@ -53,15 +55,16 @@ class UserResource extends JsonResource
 
             // Negocios del usuario + conteo
             'businesses' => $this->businesses,
-            'businesses_count' => $this->businesses->count(),  // <-- Conteo de negocios
+            'businesses_count' => $this->businesses->count(),
 
             // Datos adicionales para evaluaciones posteriores
+            // Usar $userModel (el modelo User original) en lugar de $this
             'can_create_business' => $this->subscription ?
-                SubscriptionService::canCreateBusiness($this)['can_create'] :
+                SubscriptionService::canCreateBusiness($userModel)['can_create'] :  // <-- Usar $userModel
                 false,
 
             'can_create_product' => $this->subscription ?
-                SubscriptionService::canCreateProduct($this, $this->businesses->first()?->id)['can_create'] ?? false :
+                (SubscriptionService::canCreateProduct($userModel, $this->businesses->first()?->id)['can_create'] ?? false) :  // <-- Usar $userModel
                 false,
 
             // Límite de negocios según suscripción
