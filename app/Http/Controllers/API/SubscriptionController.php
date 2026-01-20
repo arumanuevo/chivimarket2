@@ -116,76 +116,79 @@ class SubscriptionController extends Controller
 
     // En SubscriptionController.php
     public function upgrade(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'plan' => ['required', 'in:free,basic,premium,enterprise'],
-            'payment_method' => $request->plan !== 'free' ?
-                ['required', 'string', 'in:mercadopago,transferencia,tarjeta'] :
-                'nullable'
-        ]);
+{
+    $validator = Validator::make($request->all(), [
+        'plan' => ['required', 'in:Free,Basic,Premium,Enterprise,free,basic,premium,enterprise'],
+        'payment_method' => $request->plan !== 'free' ?
+            ['required', 'string', 'in:MercadoPago,Transferencia,Tarjeta,mercadopago,transferencia,tarjeta'] :
+            'nullable'
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+    }
 
-        $user = Auth::user();
-        $currentSubscription = $user->subscription ?? SubscriptionService::createDefaultSubscription($user);
-        $newPlan = strtolower($request->plan);
-        $isDowngrade = in_array($currentSubscription->type, ['premium', 'enterprise', 'basic']) &&
-                    in_array($newPlan, ['free', 'basic']) &&
-                    $currentSubscription->type !== $newPlan;
+    $user = Auth::user();
+    $plan = $request->plan; // Mantener el valor original (con mayúsculas si las tiene)
+    $formattedPlan = ucfirst(strtolower($plan)); // Normalizar a minúsculas y capitalizar primera letra
 
-        // Bloquear downgrade si no está permitido
-        if ($isDowngrade && !$currentSubscription->can_downgrade) {
+    // Lógica para bloquear downgrades no permitidos
+    $currentSubscription = $user->subscription ?? SubscriptionService::createDefaultSubscription($user);
+    $isDowngrade = in_array(strtolower($currentSubscription->type), ['premium', 'enterprise', 'basic']) &&
+                  in_array(strtolower($plan), ['free', 'basic']) &&
+                  strtolower($currentSubscription->type) !== strtolower($plan);
+
+    if ($isDowngrade) {
+        // Verificar si el usuario puede hacer downgrade
+        $canDowngrade = $currentSubscription->can_downgrade ?? true; // Por defecto, true si no existe el campo
+
+        if (!$canDowngrade) {
             return response()->json([
-                'error' => sprintf(
-                    'No puedes hacer downgrade hasta el %s. Tu suscripción actual vence el %s.',
-                    $currentSubscription->downgrade_lock_until?->format('d-m-Y'),
-                    $currentSubscription->next_payment_due?->format('d-m-Y')
-                )
+                'error' => 'No puedes hacer downgrade en este momento. Tu suscripción actual está activa hasta ' .
+                           ($currentSubscription->next_payment_due ?
+                            $currentSubscription->next_payment_due->format('d-m-Y') :
+                            'la próxima fecha de pago')
             ], 403);
         }
+    }
 
-        // Procesar upgrade/downgrade
-        if ($newPlan !== 'free') {
-            $paymentDue = now()->addMonth(); // Próximo vencimiento
-            $user->subscription()->updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'type' => $newPlan,
-                    'product_limit' => SubscriptionService::getMaxProductsForSubscription($newPlan),
-                    'payment_method' => $request->payment_method ? strtolower($request->payment_method) : null,
-                    'last_payment_date' => now(),
-                    'next_payment_due' => $paymentDue,
-                    'can_downgrade' => false, // Bloquear downgrade hasta próximo pago
-                    'downgrade_lock_until' => $paymentDue,
-                    'payment_status' => 'paid',
-                    'starts_at' => now(),
-                    'ends_at' => $paymentDue,
-                    'is_active' => true
-                ]
-            );
-        } else {
-            // Downgrade a free (sin bloqueos)
-            SubscriptionService::changePlan($user, $newPlan);
-            $user->subscription()->update([
-                'can_downgrade' => true,
-                'downgrade_lock_until' => null,
-                'payment_status' => 'cancelled'
-            ]);
-        }
-
-        return response()->json([
-            'message' => sprintf(
-                '¡Suscripción actualizada a %s! Ahora puedes tener hasta %d negocios y %d productos.',
-                ucfirst($newPlan),
-                SubscriptionService::getMaxBusinessesForSubscription($newPlan),
-                SubscriptionService::getMaxProductsForSubscription($newPlan)
-            ),
-            'next_payment_due' => $newPlan !== 'free' ? now()->addMonth()->format('d-m-Y') : null,
-            'can_downgrade' => $newPlan === 'free' ? true : false
+    // Procesar el upgrade/downgrade
+    if (strtolower($plan) !== 'free') {
+        $user->subscription()->updateOrCreate(
+            ['user_id' => $user->id],
+            [
+                'type' => strtolower($plan), // Guardar en minúsculas para consistencia
+                'product_limit' => SubscriptionService::getMaxProductsForSubscription($plan),
+                'payment_method' => $request->payment_method ? strtolower($request->payment_method) : null, // Guardar en minúsculas
+                'starts_at' => now(),
+                'ends_at' => now()->addMonth(), // Mantener tu lógica original
+                'is_active' => true,
+                'next_payment_due' => now()->addMonth(), // Añadido para tracking
+                'can_downgrade' => false, // Bloquear downgrades hasta próximo pago
+                'downgrade_lock_until' => now()->addMonth() // Desbloquear en próximo ciclo
+            ]
+        );
+    } else {
+        // Downgrade a free (sin bloqueos)
+        SubscriptionService::changePlan($user, strtolower($plan));
+        $user->subscription()->update([
+            'can_downgrade' => true,
+            'downgrade_lock_until' => null,
+            'next_payment_due' => null
         ]);
     }
+
+    return response()->json([
+        'message' => sprintf(
+            '¡Suscripción actualizada a %s! Ahora puedes tener hasta %d negocios y %d productos.',
+            $formattedPlan,
+            SubscriptionService::getMaxBusinessesForSubscription($plan),
+            SubscriptionService::getMaxProductsForSubscription($plan)
+        ),
+        'next_payment_due' => strtolower($plan) !== 'free' ? now()->addMonth()->format('d-m-Y') : null,
+        'can_downgrade' => strtolower($plan) === 'free' ? true : false
+    ]);
+}
 
 
     /**
