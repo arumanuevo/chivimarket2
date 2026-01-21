@@ -36,8 +36,8 @@ class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        // Guardar el modelo User original en una variable para usarlo en los métodos
-        $userModel = $this->resource; // <-- Esto es el modelo User original
+        // Guardar el modelo User original en una variable
+        $userModel = $this->resource;
 
         return [
             'id' => $this->id,
@@ -54,29 +54,28 @@ class UserResource extends JsonResource
             'roles' => $this->roles,
             'permissions' => $this->permissions,
 
-            // Negocios del usuario + conteo
+            // Negocios del usuario + conteo + existencia
             'businesses' => $this->businesses,
             'businesses_count' => $this->businesses->count(),
+            'has_business' => $this->businesses->isNotEmpty(),  // <-- Nuevo campo booleano
 
             // Datos adicionales para evaluaciones posteriores
-            // Usar $userModel (el modelo User original) en lugar de $this
             'can_create_business' => $this->subscription ?
-                SubscriptionService::canCreateBusiness($userModel)['can_create'] :  // <-- Usar $userModel
+                SubscriptionService::canCreateBusiness($userModel)['can_create'] :
                 false,
 
             'can_create_product' => $this->subscription ?
-                (SubscriptionService::canCreateProduct($userModel, $this->businesses->first()?->id)['can_create'] ?? false) :  // <-- Usar $userModel
+                (SubscriptionService::canCreateProduct($userModel, $this->businesses->first()?->id)['can_create'] ?? false) :
                 false,
 
-            // Límite de negocios según suscripción
+            // Límites según suscripción
             'max_businesses_allowed' => $this->subscription ?
                 SubscriptionService::getMaxBusinessesForSubscription($this->subscription->type) :
-                1,  // Default para suscripción 'free'
+                1,
 
-            // Límite de productos según suscripción
             'max_products_allowed' => $this->subscription ?
                 SubscriptionService::getMaxProductsForSubscription($this->subscription->type) :
-                10  // Default para suscripción 'free'
+                10
         ];
     }
 }
