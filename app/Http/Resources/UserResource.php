@@ -36,7 +36,6 @@ class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        // Guardar el modelo User original en una variable
         $userModel = $this->resource;
 
         return [
@@ -47,28 +46,27 @@ class UserResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
 
-            // Datos de suscripción
             'subscription' => $this->subscription ? new SubscriptionResource($this->subscription) : null,
-
-            // Roles y permisos
             'roles' => $this->roles,
             'permissions' => $this->permissions,
 
             // Negocios del usuario + conteo + existencia
             'businesses' => $this->businesses,
             'businesses_count' => $this->businesses->count(),
-            'has_business' => $this->businesses->isNotEmpty(),  // <-- Nuevo campo booleano
+            'has_business' => $this->businesses->isNotEmpty(),
 
             // Datos adicionales para evaluaciones posteriores
             'can_create_business' => $this->subscription ?
                 SubscriptionService::canCreateBusiness($userModel)['can_create'] :
                 false,
 
+            // Validar si existe al menos un negocio antes de llamar a canCreateProduct
             'can_create_product' => $this->subscription ?
-                (SubscriptionService::canCreateProduct($userModel, $this->businesses->first()?->id)['can_create'] ?? false) :
+                ($this->businesses->isNotEmpty() ?
+                    (SubscriptionService::canCreateProduct($userModel, $this->businesses->first()->id)['can_create'] ?? false) :
+                    false) :  // Si no hay negocios, no puede crear productos
                 false,
 
-            // Límites según suscripción
             'max_businesses_allowed' => $this->subscription ?
                 SubscriptionService::getMaxBusinessesForSubscription($this->subscription->type) :
                 1,
