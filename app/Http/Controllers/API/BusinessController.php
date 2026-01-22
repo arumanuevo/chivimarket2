@@ -519,35 +519,65 @@ class BusinessController extends Controller
         ]);
     }
 
- /**
+/**
  * @OA\Get(
  *     path="/api/businesses/top-rated",
  *     summary="Listar negocios por calificación",
- *     description="Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).",
+ *     description="Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).
+ *                  Incluye el promedio de calificaciones (`avg_rating`) y el total de calificaciones (`ratings_count`).
+ *                  Permite filtrar por categoría y limitar la cantidad de resultados.",
  *     tags={"Negocios"},
  *     @OA\Parameter(
  *         name="limit",
  *         in="query",
  *         description="Límite de negocios a devolver (opcional, por defecto: 10).",
- *         @OA\Schema(type="integer", default=10)
+ *         required=false,
+ *         @OA\Schema(type="integer", default=10, example=5)
  *     ),
  *     @OA\Parameter(
  *         name="category_id",
  *         in="query",
- *         description="Filtrar por categoría (opcional).",
- *         @OA\Schema(type="integer")
+ *         description="ID de la categoría para filtrar negocios (opcional).",
+ *         required=false,
+ *         @OA\Schema(type="integer", example=1)
  *     ),
  *     @OA\Response(
  *         response=200,
- *         description="Lista de negocios ordenados por calificación",
+ *         description="Lista de negocios ordenados por calificación (éxito).",
  *         @OA\JsonContent(
- *             type="array",
- *             @OA\Items(ref="#/components/schemas/Business")
+ *             type="object",
+ *             @OA\Property(
+ *                 property="data",
+ *                 type="array",
+ *                 @OA\Items(
+ *                     allOf={
+ *                         @OA\Schema(ref="#/components/schemas/Business"),
+ *                         @OA\Schema(
+ *                             @OA\Property(property="avg_rating", type="number", format="float", example=4.5, description="Promedio de calificaciones del negocio"),
+ *                             @OA\Property(property="ratings_count", type="integer", example=25, description="Cantidad total de calificaciones")
+ *                         )
+ *                     }
+ *                 )
+ *             ),
+ *             @OA\Property(
+ *                 property="links",
+ *                 type="object",
+ *                 description="Enlaces de paginación"
+ *             ),
+ *             @OA\Property(
+ *                 property="meta",
+ *                 type="object",
+ *                 description="Metadatos de la paginación (total, por página, etc.)"
+ *             )
  *         )
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="No se encontraron negocios con las condiciones especificadas."
  *     )
  * )
  */
-// En BusinessController.php
+
 // En BusinessController.php
 public function getTopRatedBusinesses(Request $request)
 {
