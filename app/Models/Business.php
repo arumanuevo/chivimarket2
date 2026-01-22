@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\BusinessRating;
 
 class Business extends Model
 {
@@ -74,4 +75,5 @@ public function categories(): BelongsToMany
     {
         return $this->hasMany(BusinessRating::class);
     }
+    
 }

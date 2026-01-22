@@ -10,6 +10,7 @@ class BusinessRating extends Model
     protected $fillable = [
         'business_id',
         'user_id',
+        'rating',
         'service_quality',
         'comment'
     ];
