@@ -589,6 +589,50 @@
                 }
             }
         },
+        "/api/businesses/top-rated": {
+            "get": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Listar negocios por calificación",
+                "description": "Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).",
+                "operationId": "76c4859233b4b156c6f86bf4fa0d3b6d",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Límite de negocios a devolver (opcional, por defecto: 10).",
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "category_id",
+                        "in": "query",
+                        "description": "Filtrar por categoría (opcional).",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de negocios ordenados por calificación",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Business"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/businesses/{business}/images": {
             "post": {
                 "tags": [
@@ -3676,6 +3720,69 @@
                                         "max_products": {
                                             "type": "integer",
                                             "example": 500
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/subscription/register-payment": {
+            "post": {
+                "tags": [
+                    "Suscripciones"
+                ],
+                "summary": "Registrar pago de suscripción",
+                "description": "Registra un pago exitoso para la suscripción actual del usuario.",
+                "operationId": "d1f2e0939bc8f9b9425018be99f31d28",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "payment_method": {
+                                        "type": "string",
+                                        "enum": [
+                                            "mercadopago",
+                                            "transferencia",
+                                            "tarjeta"
+                                        ],
+                                        "example": "mercadopago"
+                                    },
+                                    "transaction_id": {
+                                        "description": "ID de la transacción",
+                                        "type": "string",
+                                        "example": "MP123456789"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pago registrado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Pago registrado. Tu suscripción está activa hasta el 13-02-2026."
+                                        },
+                                        "next_payment_due": {
+                                            "type": "string",
+                                            "example": "13-02-2026"
                                         }
                                     },
                                     "type": "object"

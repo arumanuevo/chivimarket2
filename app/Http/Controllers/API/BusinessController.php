@@ -516,4 +516,56 @@ class BusinessController extends Controller
             'total' => $last30Days->sum('count')
         ]);
     }
+
+    
+
+    /**
+     * @OA\Get(
+     *     path="/api/businesses/top-rated",
+     *     summary="Listar negocios por calificación",
+     *     description="Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).",
+     *     tags={"Negocios"},
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Límite de negocios a devolver (opcional, por defecto: 10).",
+     *         @OA\Schema(type="integer", default=10)
+     *     ),
+     *     @OA\Parameter(
+     *         name="category_id",
+     *         in="query",
+     *         description="Filtrar por categoría (opcional).",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de negocios ordenados por calificación",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/Business")
+     *         )
+     *     )
+     * )
+     */
+    public function getTopRatedBusinesses(Request $request)
+    {
+        $limit = $request->input('limit', 10); // Default: 10 negocios
+        $categoryId = $request->input('category_id');
+
+        $query = Business::with(['user', 'category', 'ratings'])
+            ->withCount(['ratings as ratings_count'])
+            ->withAvg('ratings as avg_rating', 'rating');
+
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+
+        // Ordenar por calificación promedio (descendente)
+        $businesses = $query->orderBy('avg_rating', 'desc')
+            ->orderBy('ratings_count', 'desc') // En caso de empate, ordenar por cantidad de calificaciones
+            ->paginate($limit);
+
+        return response()->json($businesses);
+    }
+
 }

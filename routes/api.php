@@ -99,6 +99,7 @@ Route::get('products/{product}', [ProductController::class, 'show']);
 // Búsqueda de negocios (PÚBLICA)
 Route::get('businesses/search', [BusinessController::class, 'search']); // <-- Mover esta línea aquí
 Route::get('businesses/category/{category}', [BusinessController::class, 'byCategory']); // <-- También mover esta línea aquí
+Route::get('/businesses/top-rated', [BusinessController::class, 'getTopRatedBusinesses']);
 
 // =============================================
 // RUTAS PROTEGIDAS (requieren autenticación)
