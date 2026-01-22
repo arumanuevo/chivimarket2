@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Services\SubscriptionService;
+use Illuminate\Support\Facades\DB; 
 
 class BusinessController extends Controller
 {
@@ -517,8 +518,7 @@ class BusinessController extends Controller
         ]);
     }
 
-    
-/**
+ /**
  * @OA\Get(
  *     path="/api/businesses/top-rated",
  *     summary="Listar negocios por calificación",
@@ -576,6 +576,7 @@ public function getTopRatedBusinesses(Request $request)
 
     return response()->json($businesses);
 }
+
 
 
 }
