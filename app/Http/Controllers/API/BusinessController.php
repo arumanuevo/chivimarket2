@@ -518,54 +518,64 @@ class BusinessController extends Controller
     }
 
     
+/**
+ * @OA\Get(
+ *     path="/api/businesses/top-rated",
+ *     summary="Listar negocios por calificación",
+ *     description="Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).",
+ *     tags={"Negocios"},
+ *     @OA\Parameter(
+ *         name="limit",
+ *         in="query",
+ *         description="Límite de negocios a devolver (opcional, por defecto: 10).",
+ *         @OA\Schema(type="integer", default=10)
+ *     ),
+ *     @OA\Parameter(
+ *         name="category_id",
+ *         in="query",
+ *         description="Filtrar por categoría (opcional).",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Lista de negocios ordenados por calificación",
+ *         @OA\JsonContent(
+ *             type="array",
+ *             @OA\Items(ref="#/components/schemas/Business")
+ *         )
+ *     )
+ * )
+ */
+public function getTopRatedBusinesses(Request $request)
+{
+    $limit = $request->input('limit', 10); // Default: 10 negocios
+    $categoryId = $request->input('category_id');
 
-    /**
-     * @OA\Get(
-     *     path="/api/businesses/top-rated",
-     *     summary="Listar negocios por calificación",
-     *     description="Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).",
-     *     tags={"Negocios"},
-     *     @OA\Parameter(
-     *         name="limit",
-     *         in="query",
-     *         description="Límite de negocios a devolver (opcional, por defecto: 10).",
-     *         @OA\Schema(type="integer", default=10)
-     *     ),
-     *     @OA\Parameter(
-     *         name="category_id",
-     *         in="query",
-     *         description="Filtrar por categoría (opcional).",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Lista de negocios ordenados por calificación",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(ref="#/components/schemas/Business")
-     *         )
-     *     )
-     * )
-     */
-    public function getTopRatedBusinesses(Request $request)
-    {
-        $limit = $request->input('limit', 10); // Default: 10 negocios
-        $categoryId = $request->input('category_id');
+    // Subconsulta para calcular el promedio de calificaciones
+    $avgRatingSubQuery = BusinessRating::select('business_id', DB::raw('AVG(rating) as avg_rating'))
+        ->groupBy('business_id');
 
-        $query = Business::with(['user', 'category', 'ratings'])
-            ->withCount(['ratings as ratings_count'])
-            ->withAvg('ratings as avg_rating', 'rating');
+    $query = Business::query()
+        ->leftJoinSub($avgRatingSubQuery, 'avg_ratings', function($join) {
+            $join->on('businesses.id', '=', 'avg_ratings.business_id');
+        })
+        ->with(['user', 'categories', 'images'])
+        ->withCount(['ratings as ratings_count'])
+        ->select('businesses.*', DB::raw('COALESCE(avg_ratings.avg_rating, 0) as avg_rating'));
 
-        if ($categoryId) {
-            $query->where('category_id', $categoryId);
-        }
-
-        // Ordenar por calificación promedio (descendente)
-        $businesses = $query->orderBy('avg_rating', 'desc')
-            ->orderBy('ratings_count', 'desc') // En caso de empate, ordenar por cantidad de calificaciones
-            ->paginate($limit);
-
-        return response()->json($businesses);
+    if ($categoryId) {
+        $query->whereHas('categories', function($q) use ($categoryId) {
+            $q->where('business_category.category_id', $categoryId);
+        });
     }
+
+    // Ordenar por calificación promedio (descendente)
+    $businesses = $query->orderBy('avg_rating', 'desc')
+        ->orderBy('ratings_count', 'desc') // En caso de empate, ordenar por cantidad de calificaciones
+        ->paginate($limit);
+
+    return response()->json($businesses);
+}
+
 
 }
