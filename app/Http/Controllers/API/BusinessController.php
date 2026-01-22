@@ -548,21 +548,33 @@ class BusinessController extends Controller
  * )
  */
 // En BusinessController.php
+// En BusinessController.php
 public function getTopRatedBusinesses(Request $request)
 {
     $limit = $request->input('limit', 10);
     $categoryId = $request->input('category_id');
 
+    // Subconsulta para calcular el promedio de calificaciones
     $avgRatingSubQuery = \App\Models\BusinessRating::select('business_id', DB::raw('AVG(rating) as avg_rating'))
+        ->groupBy('business_id');
+
+    // Subconsulta para contar las calificaciones
+    $ratingsCountSubQuery = \App\Models\BusinessRating::select('business_id', DB::raw('COUNT(*) as ratings_count'))
         ->groupBy('business_id');
 
     $query = Business::query()
         ->leftJoinSub($avgRatingSubQuery, 'avg_ratings', function($join) {
             $join->on('businesses.id', '=', 'avg_ratings.business_id');
         })
+        ->leftJoinSub($ratingsCountSubQuery, 'ratings_counts', function($join) {
+            $join->on('businesses.id', '=', 'ratings_counts.business_id');
+        })
         ->with(['user', 'categories', 'images'])
-        ->withCount(['ratings as ratings_count'])
-        ->select('businesses.*', DB::raw('COALESCE(avg_ratings.avg_rating, 0) as avg_rating'));
+        ->select([
+            'businesses.*',
+            DB::raw('COALESCE(avg_ratings.avg_rating, 0) as avg_rating'),
+            DB::raw('COALESCE(ratings_counts.ratings_count, 0) as ratings_count')
+        ]);
 
     if ($categoryId) {
         $query->whereHas('categories', function($q) use ($categoryId) {
@@ -570,12 +582,14 @@ public function getTopRatedBusinesses(Request $request)
         });
     }
 
+    // Ordenar por calificación promedio (descendente) y cantidad de calificaciones (descendente)
     $businesses = $query->orderBy('avg_rating', 'desc')
         ->orderBy('ratings_count', 'desc')
         ->paginate($limit);
 
     return response()->json($businesses);
 }
+
 
 
 
