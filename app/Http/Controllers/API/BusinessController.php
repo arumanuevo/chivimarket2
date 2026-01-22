@@ -12,6 +12,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Services\SubscriptionService;
 use Illuminate\Support\Facades\DB; 
+use App\Models\BusinessRating;
 
 class BusinessController extends Controller
 {
@@ -552,7 +553,7 @@ public function getTopRatedBusinesses(Request $request)
     $categoryId = $request->input('category_id');
 
     // Subconsulta para calcular el promedio de calificaciones
-    $avgRatingSubQuery = BusinessRating::select('business_id', DB::raw('AVG(rating) as avg_rating'))
+    $avgRatingSubQuery = BusinessRating::select('business_id', DB::raw('AVG(service_quality) as avg_rating'))
         ->groupBy('business_id');
 
     $query = Business::query()
