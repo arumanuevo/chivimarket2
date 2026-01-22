@@ -547,13 +547,13 @@ class BusinessController extends Controller
  *     )
  * )
  */
+// En BusinessController.php
 public function getTopRatedBusinesses(Request $request)
 {
-    $limit = $request->input('limit', 10); // Default: 10 negocios
+    $limit = $request->input('limit', 10);
     $categoryId = $request->input('category_id');
 
-    // Subconsulta para calcular el promedio de calificaciones
-    $avgRatingSubQuery = BusinessRating::select('business_id', DB::raw('AVG(service_quality) as avg_rating'))
+    $avgRatingSubQuery = \App\Models\BusinessRating::select('business_id', DB::raw('AVG(rating) as avg_rating'))
         ->groupBy('business_id');
 
     $query = Business::query()
@@ -570,13 +570,13 @@ public function getTopRatedBusinesses(Request $request)
         });
     }
 
-    // Ordenar por calificación promedio (descendente)
     $businesses = $query->orderBy('avg_rating', 'desc')
-        ->orderBy('ratings_count', 'desc') // En caso de empate, ordenar por cantidad de calificaciones
+        ->orderBy('ratings_count', 'desc')
         ->paginate($limit);
 
     return response()->json($businesses);
 }
+
 
 
 
