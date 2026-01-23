@@ -69,7 +69,7 @@ class AuthController extends Controller
             'token' => $token,
         ])->header('Content-Type', 'application/json');
     }*/
-    public function login(Request $request)
+   /* public function login(Request $request)
 {
     // Depurar: Devuelve toda la información recibida en la solicitud
     return response()->json([
@@ -82,10 +82,10 @@ class AuthController extends Controller
         'password' => $request->input('password') ? '*****' : 'No recibido', // Contraseña (oculta por seguridad)
         'method' => $request->method(), // Método HTTP (GET, POST, etc.)
     ], 200);
-}
+}*/
 
 
- /*   public function login(Request $request)
+   public function login(Request $request)
 {
     $request->validate([
         'email' => 'required|email',
@@ -108,7 +108,7 @@ class AuthController extends Controller
         'user' => $user,
         'token' => token,
     ]);
-}*/
+}
     /**
      * @OA\Post(
      *     path="/api/logout",
