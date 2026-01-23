@@ -42,36 +42,37 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        // Verifica que la solicitud sea JSON (opcional)
+        if (!$request->isJson()) {
+            return response()->json(['message' => 'Solicitud no válida. Se espera JSON.'], 415);
+        }
+    
+        // Validación de datos
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
-
-        /*if (!Auth::attempt($request->only('email', 'password'))) {
-            throw ValidationException::withMessages([
-                'email' => ['Credenciales incorrectas'],
-            ]);
-        }*/
-
+    
+        // Intento de autenticación
         if (!Auth::attempt($request->only('email', 'password'))) {
-            // Devolver un JSON con código 422 en lugar de lanzar una excepción
             return response()->json([
                 'message' => 'Credenciales incorrectas',
-            ], 422); // Código HTTP 422 para errores de validación
+            ], 422); // 422 Unprocessable Entity
         }
-
+    
         $user = Auth::user();
-
-        // 👇 Cargar roles y permisos
-        $user->load('roles', 'permissions');
-
+        $user->load('roles', 'permissions'); // Carga relaciones
+    
+        // Genera el token
         $token = $user->createToken('auth-token')->plainTextToken;
-
+    
+        // Respuesta con headers explícitos
         return response()->json([
             'user' => $user,
             'token' => $token,
-        ]);
+        ])->header('Content-Type', 'application/json');
     }
+    
 
  /*   public function login(Request $request)
 {
