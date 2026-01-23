@@ -595,7 +595,7 @@
                     "Negocios"
                 ],
                 "summary": "Listar negocios por calificación",
-                "description": "Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).\n *                  Incluye el promedio de calificaciones (`avg_rating`) y el total de calificaciones (`ratings_count`).\n *                  Permite filtrar por categoría y limitar la cantidad de resultados.",
+                "description": "Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).\n *                  Incluye la primera imagen del negocio (o una imagen por defecto si no hay imágenes).",
                 "operationId": "76c4859233b4b156c6f86bf4fa0d3b6d",
                 "parameters": [
                     {
@@ -646,6 +646,11 @@
                                                                 "description": "Cantidad total de calificaciones",
                                                                 "type": "integer",
                                                                 "example": 25
+                                                            },
+                                                            "first_image_url": {
+                                                                "description": "URL de la primera imagen del negocio (o imagen por defecto si no hay imágenes)",
+                                                                "type": "string",
+                                                                "example": "http://tudominio.com/business_images/1.jpg"
                                                             }
                                                         },
                                                         "type": "object"
@@ -658,7 +663,7 @@
                                             "type": "object"
                                         },
                                         "meta": {
-                                            "description": "Metadatos de la paginación (total, por página, etc.)",
+                                            "description": "Metadatos de la paginación",
                                             "type": "object"
                                         }
                                     },
@@ -666,9 +671,6 @@
                                 }
                             }
                         }
-                    },
-                    "404": {
-                        "description": "No se encontraron negocios con las condiciones especificadas."
                     }
                 }
             }
