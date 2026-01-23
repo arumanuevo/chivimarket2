@@ -50,7 +50,7 @@ class AuthController extends Controller
         Log::info('Datos recibidos (all):', $request->all());
         Log::info('Email recibido:', [$request->input('email')]);
         Log::info('Password recibido:', $request->input('password') ? '*****' : 'No recibido');
-        Log::info('Contenido crudo:', [$request->getContent()]);
+       
     
         try {
             // Validar datos
