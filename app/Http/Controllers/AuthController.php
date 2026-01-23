@@ -43,9 +43,9 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         // Verifica que la solicitud sea JSON (opcional)
-        if (!$request->isJson()) {
+       /* if (!$request->isJson()) {
             return response()->json(['message' => 'Solicitud no válida. Se espera JSON.'], 415);
-        }
+        }*/
     
         // Validación de datos
         $request->validate([
