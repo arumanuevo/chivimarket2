@@ -40,12 +40,9 @@ class AuthController extends Controller
 
     
 
-    public function login(Request $request)
+   /* public function login(Request $request)
     {
-        // Verifica que la solicitud sea JSON (opcional)
-       /* if (!$request->isJson()) {
-            return response()->json(['message' => 'Solicitud no válida. Se espera JSON.'], 415);
-        }*/
+       
     
         // Validación de datos
         $request->validate([
@@ -71,8 +68,22 @@ class AuthController extends Controller
             'user' => $user,
             'token' => $token,
         ])->header('Content-Type', 'application/json');
-    }
-    
+    }*/
+    public function login(Request $request)
+{
+    // Depurar: Devuelve toda la información recibida en la solicitud
+    return response()->json([
+        'message' => 'Depuración: Datos recibidos en el servidor',
+        'headers' => $request->header(), // Todos los headers de la solicitud
+        'content_type' => $request->getContentType(), // Tipo de contenido (ej.: application/json)
+        'is_json' => $request->isJson(), // ¿Es JSON?
+        'all_data' => $request->all(), // Todos los datos recibidos (parámetros, body, etc.)
+        'email' => $request->input('email'), // Email específico
+        'password' => $request->input('password') ? '*****' : 'No recibido', // Contraseña (oculta por seguridad)
+        'method' => $request->method(), // Método HTTP (GET, POST, etc.)
+    ], 200);
+}
+
 
  /*   public function login(Request $request)
 {
