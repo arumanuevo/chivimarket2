@@ -524,8 +524,7 @@ class BusinessController extends Controller
  *     path="/api/businesses/top-rated",
  *     summary="Listar negocios por calificación",
  *     description="Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).
- *                  Incluye el promedio de calificaciones (`avg_rating`) y el total de calificaciones (`ratings_count`).
- *                  Permite filtrar por categoría y limitar la cantidad de resultados.",
+ *                  Incluye la primera imagen del negocio (o una imagen por defecto si no hay imágenes).",
  *     tags={"Negocios"},
  *     @OA\Parameter(
  *         name="limit",
@@ -554,31 +553,18 @@ class BusinessController extends Controller
  *                         @OA\Schema(ref="#/components/schemas/Business"),
  *                         @OA\Schema(
  *                             @OA\Property(property="avg_rating", type="number", format="float", example=4.5, description="Promedio de calificaciones del negocio"),
- *                             @OA\Property(property="ratings_count", type="integer", example=25, description="Cantidad total de calificaciones")
+ *                             @OA\Property(property="ratings_count", type="integer", example=25, description="Cantidad total de calificaciones"),
+ *                             @OA\Property(property="first_image_url", type="string", example="http://tudominio.com/business_images/1.jpg", description="URL de la primera imagen del negocio (o imagen por defecto si no hay imágenes)")
  *                         )
  *                     }
  *                 )
  *             ),
- *             @OA\Property(
- *                 property="links",
- *                 type="object",
- *                 description="Enlaces de paginación"
- *             ),
- *             @OA\Property(
- *                 property="meta",
- *                 type="object",
- *                 description="Metadatos de la paginación (total, por página, etc.)"
- *             )
+ *             @OA\Property(property="links", type="object", description="Enlaces de paginación"),
+ *             @OA\Property(property="meta", type="object", description="Metadatos de la paginación")
  *         )
- *     ),
- *     @OA\Response(
- *         response=404,
- *         description="No se encontraron negocios con las condiciones especificadas."
  *     )
  * )
  */
-
-// En BusinessController.php
 public function getTopRatedBusinesses(Request $request)
 {
     $limit = $request->input('limit', 10);
@@ -599,7 +585,9 @@ public function getTopRatedBusinesses(Request $request)
         ->leftJoinSub($ratingsCountSubQuery, 'ratings_counts', function($join) {
             $join->on('businesses.id', '=', 'ratings_counts.business_id');
         })
-        ->with(['user', 'categories', 'images'])
+        ->with(['user', 'categories', 'images' => function($query) {
+            $query->orderBy('is_primary', 'desc')->limit(1); // Optimizar: cargar solo la primera imagen
+        }])
         ->select([
             'businesses.*',
             DB::raw('COALESCE(avg_ratings.avg_rating, 0) as avg_rating'),
@@ -612,10 +600,30 @@ public function getTopRatedBusinesses(Request $request)
         });
     }
 
-    // Ordenar por calificación promedio (descendente) y cantidad de calificaciones (descendente)
     $businesses = $query->orderBy('avg_rating', 'desc')
         ->orderBy('ratings_count', 'desc')
         ->paginate($limit);
+
+    // Añadir la primera imagen (o imagen por defecto) a cada negocio
+    $businesses->getCollection()->transform(function ($business) {
+        $firstImageUrl = null;
+
+        // Si el negocio tiene imágenes, usar la primera
+        if ($business->images->isNotEmpty()) {
+            $firstImage = $business->images->first();
+            $firstImageUrl = $firstImage->url;
+        }
+
+        // Si no tiene imágenes, usar una imagen por defecto
+        if (!$firstImageUrl) {
+            $firstImageUrl = 'https://via.placeholder.com/300x200?text=Sin+Imagen'; // Imagen por defecto
+        }
+
+        // Añadir la URL de la primera imagen al objeto raíz del negocio
+        $business->first_image_url = $firstImageUrl;
+
+        return $business;
+    });
 
     return response()->json($businesses);
 }
