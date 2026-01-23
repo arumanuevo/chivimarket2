@@ -49,8 +49,8 @@ class AuthController extends Controller
         Log::info('Método HTTP:', [$request->method()]);
         Log::info('Datos recibidos (all):', $request->all());
         Log::info('Email recibido:', [$request->input('email')]);
-        Log::info('Password recibido:', $request->input('password') ? '*****' : 'No recibido');
-       
+        Log::info('Password recibido:', [$request->input('password') ? '*****' : 'No recibido']);
+        Log::info('Contenido crudo:', [$request->getContent()]);
     
         try {
             // Validar datos
@@ -61,7 +61,7 @@ class AuthController extends Controller
     
             // Intentar autenticación
             if (!Auth::attempt($request->only('email', 'password'))) {
-                Log::warning('Credenciales incorrectas para email:', [$request->input('email')]);
+                Log::warning('Credenciales incorrectas para email:', ['email' => $request->input('email')]);
                 return response()->json([
                     'message' => 'Credenciales incorrectas',
                 ], 422);
