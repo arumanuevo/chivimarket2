@@ -85,6 +85,7 @@ Route::apiResource('product-categories', \App\Http\Controllers\API\ProductCatego
 // RUTAS PÚBLICAS (sin autenticación)
 // =============================================
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/acceso-usuario', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::get('/test', fn() => response()->json(['message' => '¡API funcionando!']));
 // Categorías (solo lectura para apps móviles)
