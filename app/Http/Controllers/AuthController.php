@@ -39,14 +39,12 @@ class AuthController extends Controller
      * )
      */
 
-    
-
     public function login(Request $request)
     {
         // Registrar información detallada en el log
         Log::info('=== INICIO DE SOLICITUD DE LOGIN ===');
         Log::info('Headers recibidos:', $request->header());
-        Log::info('Content-Type:', [$request->getContentType()]);
+        Log::info('Content-Type:', [$request->header('Content-Type')]);
         Log::info('¿Es JSON?', [$request->isJson()]);
         Log::info('Método HTTP:', [$request->method()]);
         Log::info('Datos recibidos (all):', $request->all());
@@ -54,31 +52,39 @@ class AuthController extends Controller
         Log::info('Password recibido:', $request->input('password') ? '*****' : 'No recibido');
         Log::info('Contenido crudo:', [$request->getContent()]);
     
-        // Validar datos
-        $request->validate([
-            'email' => 'required',
-            'password' => 'required',
-        ]);
+        try {
+            // Validar datos
+            $request->validate([
+                'email' => 'required',
+                'password' => 'required',
+            ]);
     
-        // Intentar autenticación
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            Log::warning('Credenciales incorrectas para email:', [$request->input('email')]);
+            // Intentar autenticación
+            if (!Auth::attempt($request->only('email', 'password'))) {
+                Log::warning('Credenciales incorrectas para email:', [$request->input('email')]);
+                return response()->json([
+                    'message' => 'Credenciales incorrectas',
+                ], 422);
+            }
+    
+            $user = Auth::user();
+            $user->load('roles', 'permissions');
+    
+            $token = $user->createToken('auth-token')->plainTextToken;
+    
+            Log::info('Login exitoso para usuario:', ['user_id' => $user->id, 'email' => $user->email]);
+    
             return response()->json([
-                'message' => 'Credenciales incorrectas',
-            ], 422);
+                'user' => $user,
+                'token' => $token,
+            ])->header('Content-Type', 'application/json');
+    
+        } catch (\Exception $e) {
+            Log::error('Error en login:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            return response()->json([
+                'message' => 'Error interno del servidor',
+            ], 500);
         }
-    
-        $user = Auth::user();
-        $user->load('roles', 'permissions');
-    
-        $token = $user->createToken('auth-token')->plainTextToken;
-    
-        Log::info('Login exitoso para usuario:', ['user_id' => $user->id, 'email' => $user->email]);
-    
-        return response()->json([
-            'user' => $user,
-            'token' => $token,
-        ])->header('Content-Type', 'application/json');
     }
    /* public function login(Request $request)
 {
