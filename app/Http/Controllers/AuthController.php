@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -42,28 +43,38 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-       
+        // Registrar información detallada en el log
+        Log::info('=== INICIO DE SOLICITUD DE LOGIN ===');
+        Log::info('Headers recibidos:', $request->header());
+        Log::info('Content-Type:', [$request->getContentType()]);
+        Log::info('¿Es JSON?', [$request->isJson()]);
+        Log::info('Método HTTP:', [$request->method()]);
+        Log::info('Datos recibidos (all):', $request->all());
+        Log::info('Email recibido:', [$request->input('email')]);
+        Log::info('Password recibido:', $request->input('password') ? '*****' : 'No recibido');
+        Log::info('Contenido crudo:', [$request->getContent()]);
     
-        // Validación de datos
+        // Validar datos
         $request->validate([
             'email' => 'required',
             'password' => 'required',
         ]);
     
-        // Intento de autenticación
+        // Intentar autenticación
         if (!Auth::attempt($request->only('email', 'password'))) {
+            Log::warning('Credenciales incorrectas para email:', [$request->input('email')]);
             return response()->json([
                 'message' => 'Credenciales incorrectas',
-            ], 422); // 422 Unprocessable Entity
+            ], 422);
         }
     
         $user = Auth::user();
-        $user->load('roles', 'permissions'); // Carga relaciones
+        $user->load('roles', 'permissions');
     
-        // Genera el token
         $token = $user->createToken('auth-token')->plainTextToken;
     
-        // Respuesta con headers explícitos
+        Log::info('Login exitoso para usuario:', ['user_id' => $user->id, 'email' => $user->email]);
+    
         return response()->json([
             'user' => $user,
             'token' => $token,
