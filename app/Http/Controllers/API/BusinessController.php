@@ -68,84 +68,99 @@ class BusinessController extends Controller
     }
 
     /**
-     * @OA\Post(
-     *     path="/api/businesses",
-     *     summary="Crear un nuevo negocio",
-     *     description="Crea un nuevo negocio asociado al usuario autenticado. Valida el límite de negocios según la suscripción del usuario.",
-     *     tags={"Negocios"},
-     *     security={{"bearerAuth": {}}},
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="name", type="string", example="Panadería San Jorge"),
-     *             @OA\Property(property="description", type="string", example="Panadería artesanal con más de 20 años de experiencia"),
-     *             @OA\Property(property="address", type="string", example="Calle Falsa 123"),
-     *             @OA\Property(property="latitude", type="number", format="float", nullable=true, example=-34.6037),
-     *             @OA\Property(property="longitude", type="number", format="float", nullable=true, example=-58.3816),
-     *             @OA\Property(property="categories", type="array", @OA\Items(type="integer", example=1))
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=201,
-     *         description="Negocio creado correctamente",
-     *         @OA\JsonContent(ref="#/components/schemas/Business")
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="No autorizado para crear más negocios según su suscripción"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Error de validación de los datos enviados"
-     *     )
-     * )
-     */
-    public function store(Request $request)
-    {
-        $user = Auth::user();
-        $subscriptionCheck = SubscriptionService::canCreateBusiness($user);
+ * @OA\Post(
+ *     path="/api/businesses",
+ *     summary="Crear un nuevo negocio",
+ *     description="Crear un nuevo negocio asociado al usuario autenticado. Valida el límite de negocios según la suscripción del usuario.",
+ *     tags={"Negocios"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\MediaType(
+ *             mediaType="multipart/form-data",
+ *             @OA\Schema(
+ *                 required={"name", "address"},
+ *                 @OA\Property(property="name", type="string", example="Panadería San Jorge"),
+ *                 @OA\Property(property="description", type="string", example="Panadería artesanal con más de 20 años de experiencia"),
+ *                 @OA\Property(property="address", type="string", example="Calle Falsa 123"),
+ *                 @OA\Property(property="latitude", type="number", format="float", nullable=true, example=-34.6037),
+ *                 @OA\Property(property="longitude", type="number", format="float", nullable=true, example=-58.3816),
+ *                 @OA\Property(property="categories", type="array", @OA\Items(type="integer", example=1)),
+ *                 @OA\Property(property="cover_image", type="string", format="binary", description="Imagen de portada del negocio")
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=201,
+ *         description="Negocio creado correctamente",
+ *         @OA\JsonContent(ref="#/components/schemas/Business")
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="No autorizado para crear más negocios según su suscripción"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Error de validación de los datos enviados"
+ *     )
+ * )
+ */
+public function store(Request $request)
+{
+    $user = Auth::user();
+    $subscriptionCheck = SubscriptionService::canCreateBusiness($user);
 
-        if (!$subscriptionCheck['can_create']) {
-            return response()->json([
-                'message' => $subscriptionCheck['message']
-            ], 403);
-        }
-
-        // Validación de datos del negocio
-        $validator = Validator::make($request->all(), [
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('businesses')->where(function ($query) use ($user) {
-                    return $query->where('user_id', $user->id);
-                })
-            ],
-            'description' => 'nullable|string',
-            'address' => 'required|string',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
-            'categories' => 'nullable|array',
-            'categories.*' => 'exists:business_categories,id'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        // Crear el negocio
-        $businessData = $request->except('categories');
-        $businessData['user_id'] = $user->id;
-        $business = Business::create($businessData);
-
-        // Asignar categorías si existen
-        if ($request->has('categories')) {
-            $business->categories()->attach($request->categories);
-        }
-
-        return response()->json($business->load('categories'), 201);
+    if (!$subscriptionCheck['can_create']) {
+        return response()->json([
+            'message' => $subscriptionCheck['message']
+        ], 403);
     }
+
+    // Validación de datos del negocio
+    $validator = Validator::make($request->all(), [
+        'name' => [
+            'required',
+            'string',
+            'max:255',
+            Rule::unique('businesses')->where(function ($query) use ($user) {
+                return $query->where('user_id', $user->id);
+            })
+        ],
+        'description' => 'nullable|string',
+        'address' => 'required|string',
+        'latitude' => 'nullable|numeric|between:-90,90',
+        'longitude' => 'nullable|numeric|between:-180,180',
+        'categories' => 'nullable|array',
+        'categories.*' => 'exists:business_categories,id',
+        'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validación para la imagen de portada
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+    }
+
+    // Crear el negocio
+    $businessData = $request->except('categories', 'cover_image');
+    $businessData['user_id'] = $user->id;
+    $business = Business::create($businessData);
+
+    // Asignar categorías si existen
+    if ($request->has('categories')) {
+        $business->categories()->attach($request->categories);
+    }
+
+    // Manejar la imagen de portada
+    if ($request->hasFile('cover_image')) {
+        $imageFile = $request->file('cover_image');
+        $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+        $imageFile->move(public_path('business_covers'), $filename);
+        $business->cover_image_url = 'business_covers/' . $filename;
+        $business->save();
+    }
+
+    return response()->json($business->load('categories'), 201);
+}
+
 
     /**
      * @OA\Put(
@@ -626,6 +641,77 @@ public function getTopRatedBusinesses(Request $request)
     });
 
     return response()->json($businesses);
+}
+
+/**
+ * @OA\Post(
+ *     path="/api/businesses/{business}/cover-image",
+ *     summary="Subir o actualizar la imagen de portada de un negocio",
+ *     description="Sube o actualiza la imagen de portada de un negocio específico. Solo el dueño del negocio puede subir imágenes.",
+ *     tags={"Negocios"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Parameter(
+ *         name="business",
+ *         in="path",
+ *         required=true,
+ *         description="ID del negocio",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         description="Imagen de portada",
+ *         @OA\MediaType(
+ *             mediaType="multipart/form-data",
+ *             @OA\Schema(
+ *                 required={"cover_image"},
+ *                 @OA\Property(property="cover_image", type="string", format="binary", description="Archivo de imagen de portada (JPEG, PNG, JPG, GIF)")
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Imagen de portada subida correctamente",
+ *         @OA\JsonContent(ref="#/components/schemas/Business")
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="No autorizado para subir imágenes a este negocio"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Error de validación de los datos enviados"
+ *     )
+ * )
+ */
+public function updateCoverImage(Request $request, Business $business)
+{
+    $this->authorize('update', $business);
+
+    $validator = Validator::make($request->all(), [
+        'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+    }
+
+    // Eliminar la imagen de portada anterior si existe
+    if ($business->cover_image_url) {
+        $oldImagePath = public_path($business->cover_image_url);
+        if (file_exists($oldImagePath)) {
+            unlink($oldImagePath);
+        }
+    }
+
+    // Guardar la nueva imagen de portada
+    $imageFile = $request->file('cover_image');
+    $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+    $imageFile->move(public_path('business_covers'), $filename);
+
+    $business->cover_image_url = 'business_covers/' . $filename;
+    $business->save();
+
+    return response()->json($business);
 }
 
 

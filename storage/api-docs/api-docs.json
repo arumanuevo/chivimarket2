@@ -48,13 +48,17 @@
                     "Negocios"
                 ],
                 "summary": "Crear un nuevo negocio",
-                "description": "Crea un nuevo negocio asociado al usuario autenticado. Valida el límite de negocios según la suscripción del usuario.",
+                "description": "Crear un nuevo negocio asociado al usuario autenticado. Valida el límite de negocios según la suscripción del usuario.",
                 "operationId": "09636680657c34a3c34227aa276605d1",
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
+                                "required": [
+                                    "name",
+                                    "address"
+                                ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
@@ -86,6 +90,11 @@
                                             "type": "integer",
                                             "example": 1
                                         }
+                                    },
+                                    "cover_image": {
+                                        "description": "Imagen de portada del negocio",
+                                        "type": "string",
+                                        "format": "binary"
                                     }
                                 },
                                 "type": "object"
@@ -673,6 +682,71 @@
                         }
                     }
                 }
+            }
+        },
+        "/api/businesses/{business}/cover-image": {
+            "post": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Subir o actualizar la imagen de portada de un negocio",
+                "description": "Sube o actualiza la imagen de portada de un negocio específico. Solo el dueño del negocio puede subir imágenes.",
+                "operationId": "e1a6069c0ae332486196886105fcda81",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "description": "Imagen de portada",
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "cover_image"
+                                ],
+                                "properties": {
+                                    "cover_image": {
+                                        "description": "Archivo de imagen de portada (JPEG, PNG, JPG, GIF)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Imagen de portada subida correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Business"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para subir imágenes a este negocio"
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/businesses/{business}/images": {

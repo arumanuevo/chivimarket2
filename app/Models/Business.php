@@ -30,6 +30,7 @@ class Business extends Model
         'website',
         'is_active',
         'logo_url',
+        'cover_image_url',
     ];
     
 
