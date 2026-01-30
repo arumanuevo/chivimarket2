@@ -647,7 +647,7 @@ public function getTopRatedBusinesses(Request $request)
  * @OA\Post(
  *     path="/api/businesses/{business}/cover-image",
  *     summary="Subir o actualizar la imagen de portada de un negocio",
- *     description="Sube o actualiza la imagen de portada de un negocio específico. Solo el dueño del negocio puede subir imágenes.",
+ *     description="Sube o actualiza la imagen de portada de un negocio específico. Solo el dueño del negocio puede subir imágenes. La imagen se redimensiona automáticamente a 1200x630 píxeles (proporción 16:9) para optimizar el almacenamiento y la visualización.",
  *     tags={"Negocios"},
  *     security={{"bearerAuth": {}}},
  *     @OA\Parameter(
@@ -664,7 +664,7 @@ public function getTopRatedBusinesses(Request $request)
  *             mediaType="multipart/form-data",
  *             @OA\Schema(
  *                 required={"cover_image"},
- *                 @OA\Property(property="cover_image", type="string", format="binary", description="Archivo de imagen de portada (JPEG, PNG, JPG, GIF)")
+ *                 @OA\Property(property="cover_image", type="string", format="binary", description="Archivo de imagen de portada (JPEG, PNG, JPG, GIF). Máximo 2MB.")
  *             )
  *         )
  *     ),
@@ -688,30 +688,53 @@ public function updateCoverImage(Request $request, Business $business)
     $this->authorize('update', $business);
 
     $validator = Validator::make($request->all(), [
-        'cover_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'cover_image' => 'required|image|mimes:jpeg,png,jpg|max:2048', // Eliminé GIF para evitar problemas de proporciones
     ]);
 
     if ($validator->fails()) {
         return response()->json($validator->errors(), 422);
     }
 
-    // Eliminar la imagen de portada anterior si existe
-    if ($business->cover_image_url) {
-        $oldImagePath = public_path($business->cover_image_url);
-        if (file_exists($oldImagePath)) {
-            unlink($oldImagePath);
+    try {
+        // Eliminar la imagen de portada anterior si existe
+        if ($business->cover_image_url) {
+            $oldImagePath = public_path($business->cover_image_url);
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
         }
+
+        // Procesar la nueva imagen de portada
+        $imageFile = $request->file('cover_image');
+
+        // Usar Intervention Image para redimensionar
+        $img = Image::make($imageFile->getRealPath());
+
+        // Redimensionar manteniendo la proporción 16:9 (1200x630)
+        $img->resize(1200, 630, function ($constraint) {
+            $constraint->aspectRatio(); // Mantener proporción
+            $constraint->upsize();     // Evitar que imágenes pequeñas se agranden
+        });
+
+        // Guardar la imagen procesada
+        $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+        $img->save(public_path('business_covers/' . $filename), 85); // Calidad 85%
+
+        // Actualizar el modelo Business con la nueva URL de la imagen
+        $business->cover_image_url = 'business_covers/' . $filename;
+        $business->save();
+
+        return response()->json([
+            'message' => 'Imagen de portada actualizada correctamente',
+            'business' => $business
+        ]);
+
+    } catch (\Exception $e) {
+        // Manejar errores inesperados
+        return response()->json([
+            'message' => 'Error al procesar la imagen: ' . $e->getMessage()
+        ], 500);
     }
-
-    // Guardar la nueva imagen de portada
-    $imageFile = $request->file('cover_image');
-    $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
-    $imageFile->move(public_path('business_covers'), $filename);
-
-    $business->cover_image_url = 'business_covers/' . $filename;
-    $business->save();
-
-    return response()->json($business);
 }
 
 

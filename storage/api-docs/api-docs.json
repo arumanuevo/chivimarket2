@@ -690,7 +690,7 @@
                     "Negocios"
                 ],
                 "summary": "Subir o actualizar la imagen de portada de un negocio",
-                "description": "Sube o actualiza la imagen de portada de un negocio específico. Solo el dueño del negocio puede subir imágenes.",
+                "description": "Sube o actualiza la imagen de portada de un negocio específico. Solo el dueño del negocio puede subir imágenes. La imagen se redimensiona automáticamente a 1200x630 píxeles (proporción 16:9) para optimizar el almacenamiento y la visualización.",
                 "operationId": "e1a6069c0ae332486196886105fcda81",
                 "parameters": [
                     {
@@ -714,7 +714,7 @@
                                 ],
                                 "properties": {
                                     "cover_image": {
-                                        "description": "Archivo de imagen de portada (JPEG, PNG, JPG, GIF)",
+                                        "description": "Archivo de imagen de portada (JPEG, PNG, JPG, GIF). Máximo 2MB.",
                                         "type": "string",
                                         "format": "binary"
                                     }
