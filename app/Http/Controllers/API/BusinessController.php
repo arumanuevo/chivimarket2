@@ -688,7 +688,7 @@ public function updateCoverImage(Request $request, Business $business)
     $this->authorize('update', $business);
 
     $validator = Validator::make($request->all(), [
-        'cover_image' => 'required|image|mimes:jpeg,png,jpg|max:2048', // Eliminé GIF para evitar problemas de proporciones
+        'cover_image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
     ]);
 
     if ($validator->fails()) {
@@ -696,7 +696,7 @@ public function updateCoverImage(Request $request, Business $business)
     }
 
     try {
-        // Eliminar la imagen de portada anterior si existe
+        // Eliminar la imagen anterior si existe
         if ($business->cover_image_url) {
             $oldImagePath = public_path($business->cover_image_url);
             if (file_exists($oldImagePath)) {
@@ -704,23 +704,26 @@ public function updateCoverImage(Request $request, Business $business)
             }
         }
 
-        // Procesar la nueva imagen de portada
-        $imageFile = $request->file('cover_image');
+        // Verificar si Intervention Image está disponible
+        if (!class_exists('Intervention\Image\Facades\Image')) {
+            throw new \Exception('Intervention Image no está disponible en este servidor.');
+        }
 
-        // Usar Intervention Image para redimensionar
+        // Procesar la imagen
+        $imageFile = $request->file('cover_image');
         $img = Image::make($imageFile->getRealPath());
 
-        // Redimensionar manteniendo la proporción 16:9 (1200x630)
+        // Redimensionar a 1200x630 (16:9)
         $img->resize(1200, 630, function ($constraint) {
-            $constraint->aspectRatio(); // Mantener proporción
-            $constraint->upsize();     // Evitar que imágenes pequeñas se agranden
+            $constraint->aspectRatio();
+            $constraint->upsize();
         });
 
-        // Guardar la imagen procesada
+        // Guardar la imagen
         $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
-        $img->save(public_path('business_covers/' . $filename), 85); // Calidad 85%
+        $img->save(public_path('business_covers/' . $filename), 85);
 
-        // Actualizar el modelo Business con la nueva URL de la imagen
+        // Actualizar el modelo
         $business->cover_image_url = 'business_covers/' . $filename;
         $business->save();
 
@@ -730,13 +733,11 @@ public function updateCoverImage(Request $request, Business $business)
         ]);
 
     } catch (\Exception $e) {
-        // Manejar errores inesperados
         return response()->json([
             'message' => 'Error al procesar la imagen: ' . $e->getMessage()
         ], 500);
     }
 }
-
 
 
 
