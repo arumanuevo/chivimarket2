@@ -162,7 +162,7 @@ public function store(Request $request)
         $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
         $imageFile->move(public_path('business_covers'), $filename);
         $business->cover_image_url = 'business_covers/' . $filename;
-        $business->save();
+        //$business->save();
     }
 
     return response()->json($business->load('categories'), 201);
