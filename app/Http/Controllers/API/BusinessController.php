@@ -113,12 +113,14 @@ public function store(Request $request)
 
     // Eliminar negocios anteriores del usuario para permitir pruebas
     $existingBusinesses = Business::where('user_id', $user->id)->get();
-    foreach ($businesses as $business) {
+    foreach ($existingBusinesses as $business) {  // Cambié $businesses a $existingBusinesses
         $business->delete();
     }
+
     Log::info('Datos recibidos en la solicitud:', $request->all());
     Log::info('Tipo de categories:', gettype($request->categories));
     Log::info('Valor de categories:', $request->categories);
+
     // Validación de datos del negocio
     $validator = Validator::make($request->all(), [
         'name' => [
@@ -169,7 +171,6 @@ public function store(Request $request)
 
     return response()->json($business->load('categories'), 201);
 }
-
 
 
     /**
