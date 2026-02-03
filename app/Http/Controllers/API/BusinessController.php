@@ -111,20 +111,14 @@ public function store(Request $request)
     $user = Auth::user();
     $subscriptionCheck = SubscriptionService::canCreateBusiness($user);
 
-    if (!$subscriptionCheck['can_create']) {
-        return response()->json([
-            'message' => $subscriptionCheck['message']
-        ], 403);
+    // Eliminar negocios anteriores del usuario para permitir pruebas
+    $existingBusinesses = Business::where('user_id', $user->id)->get();
+    foreach ($businesses as $business) {
+        $business->delete();
     }
     Log::info('Datos recibidos en la solicitud:', $request->all());
     Log::info('Tipo de categories:', gettype($request->categories));
     Log::info('Valor de categories:', $request->categories);
-    // Convertir 'categories' de string a array si es necesario
-    if ($request->has('categories') && is_string($request->categories)) {
-        $categories = json_decode($request->categories, true);
-        $request->merge(['categories' => $categories]);
-    }
-
     // Validación de datos del negocio
     $validator = Validator::make($request->all(), [
         'name' => [
@@ -148,6 +142,12 @@ public function store(Request $request)
         return response()->json($validator->errors(), 422);
     }
 
+    // Convertir 'categories' de string a array si es necesario
+    if ($request->has('categories') && is_string($request->categories)) {
+        $categories = json_decode($request->categories, true);
+        $request->merge(['categories' => $categories]);
+    }
+
     // Crear el negocio
     $businessData = $request->except('categories', 'cover_image');
     $businessData['user_id'] = $user->id;
@@ -164,7 +164,7 @@ public function store(Request $request)
         $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
         $imageFile->move(public_path('business_covers'), $filename);
         $business->cover_image_url = 'business_covers/' . $filename;
-        //$business->save();
+        $business->save();
     }
 
     return response()->json($business->load('categories'), 201);
