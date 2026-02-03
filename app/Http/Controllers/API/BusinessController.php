@@ -116,9 +116,13 @@ public function store(Request $request)
             'message' => $subscriptionCheck['message']
         ], 403);
     }
-    Log::info('Datos recibidos en la solicitud:', $request->all());
-    Log::info('Tipo de categories:', gettype($request->categories));
-    Log::info('Valor de categories:', $request->categories);
+
+    // Convertir 'categories' de string a array si es necesario
+    if ($request->has('categories') && is_string($request->categories)) {
+        $categories = json_decode($request->categories, true);
+        $request->merge(['categories' => $categories]);
+    }
+
     // Validación de datos del negocio
     $validator = Validator::make($request->all(), [
         'name' => [
@@ -135,7 +139,7 @@ public function store(Request $request)
         'longitude' => 'nullable|numeric|between:-180,180',
         'categories' => 'nullable|array',
         'categories.*' => 'exists:business_categories,id',
-        'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validación para la imagen de portada
+        'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
     ]);
 
     if ($validator->fails()) {
@@ -163,6 +167,7 @@ public function store(Request $request)
 
     return response()->json($business->load('categories'), 201);
 }
+
 
 
     /**
