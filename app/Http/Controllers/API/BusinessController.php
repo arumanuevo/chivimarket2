@@ -13,6 +13,7 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Services\SubscriptionService;
 use Illuminate\Support\Facades\DB; 
 use App\Models\BusinessRating;
+use Illuminate\Support\Facades\Log;
 
 class BusinessController extends Controller
 {
@@ -115,7 +116,9 @@ public function store(Request $request)
             'message' => $subscriptionCheck['message']
         ], 403);
     }
-
+    Log::info('Datos recibidos en la solicitud:', $request->all());
+    Log::info('Tipo de categories:', gettype($request->categories));
+    Log::info('Valor de categories:', $request->categories);
     // Validación de datos del negocio
     $validator = Validator::make($request->all(), [
         'name' => [
