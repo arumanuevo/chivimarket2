@@ -68,7 +68,7 @@ class BusinessController extends Controller
         return response()->json($business->load(['categories', 'images']));
     }
 
-    /**
+/**
  * @OA\Post(
  *     path="/api/businesses",
  *     summary="Crear un nuevo negocio",
@@ -111,25 +111,23 @@ public function store(Request $request)
     $user = Auth::user();
     $subscriptionCheck = SubscriptionService::canCreateBusiness($user);
 
-    // Eliminar negocios anteriores del usuario para permitir pruebas
-    $existingBusinesses = Business::where('user_id', $user->id)->get();
-    foreach ($existingBusinesses as $business) {
-        $business->delete();
+    if (!$subscriptionCheck['can_create']) {
+        return response()->json([
+            'message' => $subscriptionCheck['message']
+        ], 403);
     }
 
-    
-
-    // Convertir 'categories' de string a array si es necesario
-    if ($request->has('categories')) {
-        if (is_string($request->categories)) {
-            $categories = json_decode($request->categories, true);
-            $request->merge(['categories' => $categories]);
-        }
-    }
-
+    // Logs para depuración (opcional, puedes comentarlos o eliminarlos)
     Log::info('Datos recibidos en la solicitud:', ['data' => $request->all()]);
     Log::info('Tipo de categories:', ['type' => gettype($request->categories)]);
     Log::info('Valor de categories:', ['value' => $request->categories]);
+
+    // Convertir 'categories' de string a array si es necesario
+    if ($request->has('categories') && is_string($request->categories)) {
+        $categories = json_decode($request->categories, true);
+        $request->merge(['categories' => $categories]);
+    }
+
     // Validación de datos del negocio
     $validator = Validator::make($request->all(), [
         'name' => [
@@ -174,6 +172,7 @@ public function store(Request $request)
 
     return response()->json($business->load('categories'), 201);
 }
+
 
 
     /**
