@@ -117,9 +117,7 @@ public function store(Request $request)
         $business->delete();
     }
 
-    Log::info('Datos recibidos en la solicitud:', ['data' => $request->all()]);
-    Log::info('Tipo de categories:', ['type' => gettype($request->categories)]);
-    Log::info('Valor de categories:', ['value' => $request->categories]);
+    
 
     // Convertir 'categories' de string a array si es necesario
     if ($request->has('categories')) {
@@ -129,6 +127,9 @@ public function store(Request $request)
         }
     }
 
+    Log::info('Datos recibidos en la solicitud:', ['data' => $request->all()]);
+    Log::info('Tipo de categories:', ['type' => gettype($request->categories)]);
+    Log::info('Valor de categories:', ['value' => $request->categories]);
     // Validación de datos del negocio
     $validator = Validator::make($request->all(), [
         'name' => [
