@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,16 +11,15 @@ use App\Models\BusinessRating;
 
 class Business extends Model
 {
-    
     use HasFactory;
 
     protected $casts = [
         'user_id' => 'integer',
         'is_active' => 'boolean'
     ];
-    
+
     protected $fillable = [
-        'user_id', 
+        'user_id',
         'name',
         'description',
         'address',
@@ -32,7 +32,6 @@ class Business extends Model
         'logo_url',
         'cover_image_url',
     ];
-    
 
     public function user(): BelongsTo
     {
@@ -45,18 +44,17 @@ class Business extends Model
     }
 
     /**
- * Relación muchos-a-muchos con categorías de negocio.
- */
-public function categories(): BelongsToMany
-{
-    return $this->belongsToMany(
-        BusinessCategory::class,  // Modelo relacionado
-        'business_category',       // Nombre exacto de la tabla pivote
-        'business_id',            // Clave foránea de este modelo
-        'category_id'             // Clave foránea del modelo BusinessCategory
-    );
-}
-
+     * Relación muchos-a-muchos con categorías de negocio.
+     */
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            BusinessCategory::class,
+            'business_category',
+            'business_id',
+            'category_id'
+        );
+    }
 
     public function images(): HasMany
     {
@@ -72,9 +70,15 @@ public function categories(): BelongsToMany
     {
         return $value ? rtrim(env('APP_URL'), '/') . '/' . $value : null;
     }
+
+    public function getCoverImageUrlAttribute($value)
+    {
+        return $value ? rtrim(env('APP_URL'), '/') . '/' . $value : null;
+    }
+
     public function ratings()
     {
         return $this->hasMany(BusinessRating::class);
     }
-    
 }
+

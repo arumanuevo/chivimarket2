@@ -117,7 +117,7 @@ public function store(Request $request)
         ], 403);
     }
 
-    // Logs para depuración (opcional)
+    // Logs para depuración (opcional, puedes comentarlos o eliminarlos)
     Log::info('Datos recibidos en la solicitud:', ['data' => $request->all()]);
     Log::info('Tipo de categories:', ['type' => gettype($request->categories)]);
     Log::info('Valor de categories:', ['value' => $request->categories]);
@@ -166,19 +166,11 @@ public function store(Request $request)
         $imageFile = $request->file('cover_image');
         $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
         $imageFile->move(public_path('business_covers'), $filename);
-        $business->cover_image_url = $filename; // Solo guardamos el nombre del archivo
+        $business->cover_image_url = 'business_covers/' . $filename;
         $business->save();
     }
 
-    // Cargar las categorías y construir la URL completa de la imagen
-    $business->load('categories');
-
-    // Construir la URL completa de la imagen
-    if ($business->cover_image_url) {
-        $business->cover_image_url = 'https://chivimarket.arumasoft.com/business_covers/' . $business->cover_image_url;
-    }
-
-    return response()->json($business, 201);
+    return response()->json($business->load('categories'), 201);
 }
 
 
