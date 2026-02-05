@@ -15,6 +15,7 @@ use App\Http\Controllers\API\ContactController;
 use App\Http\Controllers\API\DiscountTokenController;
 use App\Http\Controllers\API\TestPusherController;
 use App\Http\Controllers\API\MessageController;
+use App\Http\Controllers\API\ImageController;
 use App\Http\Resources\SubscriptionResource;
 use App\Http\Resources\UserResource;
 
@@ -101,6 +102,8 @@ Route::get('products/{product}', [ProductController::class, 'show']);
 Route::get('businesses/search', [BusinessController::class, 'search']); // <-- Mover esta línea aquí
 Route::get('businesses/category/{category}', [BusinessController::class, 'byCategory']); // <-- También mover esta línea aquí
 Route::get('/businesses/top-rated', [BusinessController::class, 'getTopRatedBusinesses']);
+
+Route::get('/image/{filename}', [ImageController::class, 'show'])->name('image.show');
 
 // =============================================
 // RUTAS PROTEGIDAS (requieren autenticación)
