@@ -73,7 +73,11 @@ class Business extends Model
 
     public function getCoverImageUrlAttribute($value)
     {
-        return $value ? rtrim(env('APP_URL'), '/') . '/' . $value : null;
+        if ($value) {
+            // Devuelve la URL generada por el controlador ImageController
+            return rtrim(env('APP_URL'), '/') . '/api/image/' . basename($value);
+        }
+        return null;
     }
 
     public function ratings()
@@ -81,4 +85,5 @@ class Business extends Model
         return $this->hasMany(BusinessRating::class);
     }
 }
+
 
