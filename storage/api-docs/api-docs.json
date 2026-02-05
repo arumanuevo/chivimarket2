@@ -1991,6 +1991,43 @@
                 ]
             }
         },
+        "/api/image/{filename}": {
+            "get": {
+                "tags": [
+                    "Imágenes"
+                ],
+                "summary": "Obtener imagen de portada de un negocio",
+                "description": "Devuelve la imagen de portada de un negocio en formato binario. El nombre del archivo debe coincidir con el almacenado en el campo `cover_image_url` del negocio.",
+                "operationId": "13437db729bed3d3db8d05f9db0076b4",
+                "parameters": [
+                    {
+                        "name": "filename",
+                        "in": "path",
+                        "description": "Nombre del archivo de la imagen de portada (ej: '698397b188896.png').",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Imagen de portada del negocio en formato binario (PNG, JPEG, etc.).",
+                        "content": {
+                            "image/png": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Imagen no encontrada."
+                    }
+                }
+            }
+        },
         "/api/conversations/start": {
             "post": {
                 "tags": [
@@ -4909,6 +4946,10 @@
         {
             "name": "Contacts",
             "description": "API para registrar y gestionar contactos con negocios/productos"
+        },
+        {
+            "name": "Imágenes",
+            "description": "Endpoints relacionados con la gestión de imágenes de negocios."
         },
         {
             "name": "Messaging",
