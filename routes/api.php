@@ -115,9 +115,15 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user()->load(['roles', 'permissions', 'businesses', 'subscription']);
     });*/
     Route::get('/user', function (Request $request) {
-        $user = $request->user()->load(['roles', 'permissions', 'businesses', 'subscription']);
+        $user = $request->user()->load([
+            'roles',
+            'permissions',
+            'businesses.categories', 
+            'subscription'
+        ]);
         return new UserResource($user);
     });
+    
     
 
     // Usuarios (con permisos Spatie)
