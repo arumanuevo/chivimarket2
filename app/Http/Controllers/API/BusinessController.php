@@ -282,8 +282,22 @@ public function store(Request $request)
     public function destroy(Business $business)
     {
         $this->authorize('update', $business);
-        $business->delete();
-        return response()->json(['message' => 'Negocio eliminado correctamente']);
+    
+        // Registrar los datos del negocio en los logs para depuración
+        Log::info('Datos del negocio a eliminar:', [
+            'business_id' => $business->id,
+            'business_data' => $business->toArray(),
+        ]);
+    
+        // Modo depuración: No eliminar el negocio, solo devolver los datos
+        return response()->json([
+            'message' => 'Datos del negocio recibidos correctamente (modo depuración).',
+            'business' => $business,
+        ]);
+    
+        // Para eliminar el negocio, descomenta la siguiente línea y comenta el return anterior
+        // $business->delete();
+        // return response()->json(['message' => 'Negocio eliminado correctamente']);
     }
 
     /**
