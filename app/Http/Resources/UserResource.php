@@ -50,8 +50,9 @@ class UserResource extends JsonResource
             'roles' => $this->roles,
             'permissions' => $this->permissions,
 
-            // Negocios del usuario + conteo + existencia
-            'businesses' => $this->businesses,
+            // Usar BusinessResource para formatear los negocios y cargar las categorías
+            'businesses' => BusinessResource::collection($this->whenLoaded('businesses')),
+
             'businesses_count' => $this->businesses->count(),
             'has_business' => $this->businesses->isNotEmpty(),
 
@@ -77,3 +78,4 @@ class UserResource extends JsonResource
         ];
     }
 }
+
