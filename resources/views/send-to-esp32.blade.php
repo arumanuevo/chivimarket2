@@ -150,7 +150,7 @@
 
                         <div class="mt-4 p-4 bg-white rounded-4 shadow-sm fs-5">
                             <h5 class="fw-bold mb-3"><i class="bi bi-info-circle-fill me-2"></i>Información:</h5>
-                            <p>Selecciona un color y escribe tu mensaje. El ESP32 lo mostrará en la pantalla con el estilo elegido.</p>
+                            <p>Podes enviar un mensaje con el color que quieras al ESP32.</p>
                         </div>
                     </div>
                 </div>
