@@ -18,7 +18,7 @@ use App\Http\Controllers\API\MessageController;
 use App\Http\Controllers\API\ImageController;
 use App\Http\Resources\SubscriptionResource;
 use App\Http\Resources\UserResource;
-
+use App\Models\EspMessage;
 
 /*
 // =============================================
@@ -259,19 +259,18 @@ Route::post('/notifications/{notification}/read', [MessageController::class, 'ma
 
 // En routes/api.php
 Route::get('/esp32/pending-messages', function () {
-    // Ejemplo: Obtener el último mensaje enviado desde la web
-    $lastMessage = \App\Models\EspMessage::orderBy('created_at', 'desc')->first();
+    $lastMessage = EspMessage::orderBy('created_at', 'desc')->first();
 
     if ($lastMessage) {
         return response()->json([
             'message' => $lastMessage->content,
-            'color' => $lastMessage->color ?? '0x07FF',
+            'color' => $lastMessage->color,
             'action' => 'show_message'
         ]);
     } else {
         return response()->json([
             'message' => 'No hay mensajes nuevos',
-            'color' => '0xFFFF', // Blanco
+            'color' => '0xFFFF',
             'action' => 'no_action'
         ]);
     }
