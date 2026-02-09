@@ -249,6 +249,15 @@ Route::post('/notifications/{notification}/read', [MessageController::class, 'ma
     ->middleware('auth:sanctum');
 
 
+    Route::get('/esp32/message', function () {
+        return response()->json([
+            'message' => '¡Hola desde Laravel, Santiago!',
+            'color' => '0x07FF', // Color cyan en hexadecimal para la pantalla
+            'action' => 'show_message' // Acción que el ESP32 debe realizar
+        ]);
+    });
+
+
 
 
 
