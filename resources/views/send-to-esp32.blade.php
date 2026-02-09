@@ -19,22 +19,30 @@
         .rounded-4 {
             border-radius: 1rem !important;
         }
-        .color-example {
-            width: 30px;
-            height: 30px;
+        /* Estilo para los círculos de colores (más pequeños y alineados) */
+        .color-circle {
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             display: inline-block;
             margin-right: 8px;
+            vertical-align: middle;
+            border: 1px solid #dee2e6; /* Borde sutil para mejor visibilidad */
         }
+        /* Estilo para los radio buttons personalizados */
         .form-check-input-color {
-            width: 1.5em;
-            height: 1.5em;
-            margin-top: 0.2em;
-            border: 2px solid #dee2e6;
+            margin-right: 10px;
+            margin-top: 2px;
         }
-        .form-check-input-color:checked {
-            border-color: #0d6efd;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        /* Estilo para las etiquetas de los colores */
+        .form-check-label-color {
+            display: flex;
+            align-items: center;
+            padding-left: 5px;
+        }
+        /* Estilo para el campo de color (input) */
+        .color-input-group {
+            max-width: 150px;
         }
     </style>
 </head>
@@ -53,71 +61,73 @@
                             <div class="mb-4">
                                 <label for="message" class="form-label fw-bold fs-5">Mensaje:</label>
                                 <textarea class="form-control border border-primary rounded-3 p-3 fs-5" id="message" name="message" rows="5"
-                                          placeholder="Ej: ¡Hola ESP32! Muestra este mensaje..." required></textarea>
+                                          placeholder="Ej: ¡Hola ESP32! Muestra este mensaje en la pantalla..." required></textarea>
                                 <div class="invalid-feedback">Por favor, ingresa un mensaje.</div>
                             </div>
 
                             <!-- Selección de color con radio buttons -->
                             <div class="mb-4">
                                 <label class="form-label fw-bold fs-5">Color del texto:</label>
-                                <div class="row mb-3">
+                                <div class="row">
+                                    <!-- Columna 1 de colores -->
                                     <div class="col-md-6">
                                         <div class="form-check mb-2">
                                             <input class="form-check-input form-check-input-color" type="radio" name="colorRadio" id="colorCyan" value="07FF" checked>
-                                            <label class="form-check-label" for="colorCyan">
-                                                <div class="color-example" style="background-color: #00FFFF; display: inline-block;"></div>
+                                            <label class="form-check-label form-check-label-color" for="colorCyan">
+                                                <span class="color-circle" style="background-color: #00FFFF;"></span>
                                                 Cyan (07FF)
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input form-check-input-color" type="radio" name="colorRadio" id="colorRed" value="F800">
-                                            <label class="form-check-label" for="colorRed">
-                                                <div class="color-example" style="background-color: #FF0000; display: inline-block;"></div>
+                                            <label class="form-check-label form-check-label-color" for="colorRed">
+                                                <span class="color-circle" style="background-color: #FF0000;"></span>
                                                 Rojo (F800)
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input form-check-input-color" type="radio" name="colorRadio" id="colorYellow" value="FFE0">
-                                            <label class="form-check-label" for="colorYellow">
-                                                <div class="color-example" style="background-color: #FFFF00; display: inline-block;"></div>
+                                            <label class="form-check-label form-check-label-color" for="colorYellow">
+                                                <span class="color-circle" style="background-color: #FFFF00;"></span>
                                                 Amarillo (FFE0)
                                             </label>
                                         </div>
-                                        <div class="form-check">
-                                            <input class="form-check-input form-check-input-color" type="radio" name="colorRadio" id="colorPink" value="F81F">
-                                            <label class="form-check-label" for="colorPink">
-                                                <div class="color-example" style="background-color: #FF00FF; display: inline-block;"></div>
-                                                Rosa (F81F)
-                                            </label>
-                                        </div>
                                     </div>
+                                    <!-- Columna 2 de colores -->
                                     <div class="col-md-6">
                                         <div class="form-check mb-2">
                                             <input class="form-check-input form-check-input-color" type="radio" name="colorRadio" id="colorGreen" value="07E0">
-                                            <label class="form-check-label" for="colorGreen">
-                                                <div class="color-example" style="background-color: #00FF00; display: inline-block;"></div>
+                                            <label class="form-check-label form-check-label-color" for="colorGreen">
+                                                <span class="color-circle" style="background-color: #00FF00;"></span>
                                                 Verde (07E0)
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
                                             <input class="form-check-input form-check-input-color" type="radio" name="colorRadio" id="colorBlue" value="001F">
-                                            <label class="form-check-label" for="colorBlue">
-                                                <div class="color-example" style="background-color: #0000FF; display: inline-block;"></div>
+                                            <label class="form-check-label form-check-label-color" for="colorBlue">
+                                                <span class="color-circle" style="background-color: #0000FF;"></span>
                                                 Azul (001F)
                                             </label>
                                         </div>
                                         <div class="form-check mb-2">
+                                            <input class="form-check-input form-check-input-color" type="radio" name="colorRadio" id="colorPink" value="F81F">
+                                            <label class="form-check-label form-check-label-color" for="colorPink">
+                                                <span class="color-circle" style="background-color: #FF00FF;"></span>
+                                                Rosa (F81F)
+                                            </label>
+                                        </div>
+                                        <div class="form-check mb-2">
                                             <input class="form-check-input form-check-input-color" type="radio" name="colorRadio" id="colorWhite" value="FFFF">
-                                            <label class="form-check-label" for="colorWhite">
-                                                <div class="color-example" style="background-color: #FFFFFF; display: inline-block; border: 1px solid #ccc;"></div>
+                                            <label class="form-check-label form-check-label-color" for="colorWhite">
+                                                <span class="color-circle" style="background-color: #FFFFFF; border: 1px solid #ccc;"></span>
                                                 Blanco (FFFF)
                                             </label>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Campo oculto para el color (se actualiza con JS) -->
-                                <div class="input-group mb-3">
+                                <!-- Campo de texto para el color (se actualiza con JS) -->
+                                <div class="input-group color-input-group">
                                     <span class="input-group-text bg-primary text-white fs-5">0x</span>
                                     <input type="text" class="form-control border border-primary rounded-end-3 p-3 fs-5" id="color" name="color"
                                            value="07FF" maxlength="4" required readonly>
@@ -176,3 +186,4 @@
     </script>
 </body>
 </html>
+
