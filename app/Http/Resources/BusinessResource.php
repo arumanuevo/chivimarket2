@@ -1,5 +1,6 @@
 <?php
 
+// app/Http/Resources/BusinessResource.php
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
@@ -25,7 +26,10 @@ class BusinessResource extends JsonResource
             'is_active' => $this->is_active,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'categories' => $this->whenLoaded('categories'), // Incluir las categorías si están cargadas
+            'categories' => $this->whenLoaded('categories'),
+            'images' => $this->whenLoaded('images'), // Incluir todas las imágenes
+            'first_image_url' => $this->first_image_url, // Primera imagen (o imagen por defecto)
+            'products' => $this->whenLoaded('products') // Incluir productos si están cargados
         ];
     }
 }

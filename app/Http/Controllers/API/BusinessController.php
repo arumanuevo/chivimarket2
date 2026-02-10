@@ -43,7 +43,7 @@ class BusinessController extends Controller
      * @OA\Get(
      *     path="/api/businesses/{business}",
      *     summary="Mostrar un negocio específico",
-     *     description="Devuelve la información detallada de un negocio por su ID. Si el usuario autenticado es el dueño, también incluye los productos del negocio.",
+     *     description="Devuelve la información detallada de un negocio por su ID, incluyendo sus categorías, imágenes y productos (si el usuario autenticado es el dueño).",
      *     tags={"Negocios"},
      *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
@@ -56,16 +56,70 @@ class BusinessController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Detalle del negocio",
-     *         @OA\JsonContent(ref="#/components/schemas/Business")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             allOf={
+     *                 @OA\Schema(ref="#/components/schemas/Business"),
+     *                 @OA\Schema(
+     *                     @OA\Property(
+     *                         property="images",
+     *                         type="array",
+     *                         @OA\Items(
+     *                             @OA\Property(property="id", type="integer", example=1),
+     *                             @OA\Property(property="business_id", type="integer", example=1),
+     *                             @OA\Property(property="url", type="string", example="http://tudominio.com/business_images/1.jpg"),
+     *                             @OA\Property(property="is_primary", type="boolean", example=false),
+     *                             @OA\Property(property="description", type="string", example="Imagen de la fachada"),
+     *                             @OA\Property(property="created_at", type="string", format="date-time", example="2025-10-25T19:45:20.000000Z"),
+     *                             @OA\Property(property="updated_at", type="string", format="date-time", example="2025-10-25T19:45:20.000000Z")
+     *                         )
+     *                     ),
+     *                     @OA\Property(
+     *                         property="first_image_url",
+     *                         type="string",
+     *                         example="http://tudominio.com/business_images/1.jpg",
+     *                         description="URL de la primera imagen del negocio (o imagen por defecto si no hay imágenes)"
+     *                     )
+     *                 )
+     *             }
+     *         )
      *     )
      * )
      */
+   /* public function show(Business $business)
+    {
+        // Cargar siempre las categorías e imágenes
+        $business->load(['categories', 'images']);
+
+        // Si el usuario autenticado es el dueño, también cargar los productos
+        if (Auth::check() && Auth::user()->id === $business->id) {
+            $business->load('products');
+        }
+
+        // Añadir la primera imagen (o imagen por defecto) al objeto raíz del negocio
+        $firstImageUrl = null;
+        if ($business->images->isNotEmpty()) {
+            $firstImage = $business->images->first();
+            $firstImageUrl = $firstImage->url;
+        } else {
+            $firstImageUrl = 'https://via.placeholder.com/300x200?text=Sin+Imagen';
+        }
+        $business->first_image_url = $firstImageUrl;
+
+        return response()->json($business);
+    }*/
+
     public function show(Business $business)
     {
+        // Cargar siempre las categorías e imágenes
+        $business->load(['categories', 'images']);
+
+        // Si el usuario autenticado es el dueño, también cargar los productos
         if (Auth::check() && Auth::user()->id === $business->user_id) {
-            return response()->json($business->load(['categories', 'images', 'products']));
+            $business->load('products');
         }
-        return response()->json($business->load(['categories', 'images']));
+
+        return response()->json(new BusinessResource($business));
     }
 
 /**

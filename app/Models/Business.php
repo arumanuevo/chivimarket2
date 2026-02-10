@@ -84,6 +84,14 @@ class Business extends Model
     {
         return $this->hasMany(BusinessRating::class);
     }
+
+    public function getFirstImageUrlAttribute()
+    {
+        if ($this->images->isNotEmpty()) {
+            return $this->images->first()->url;
+        }
+        return 'https://via.placeholder.com/300x200?text=Sin+Imagen';
+    }
 }
 
 
