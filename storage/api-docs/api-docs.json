@@ -133,7 +133,7 @@
                     "Negocios"
                 ],
                 "summary": "Mostrar un negocio específico",
-                "description": "Devuelve la información detallada de un negocio por su ID. Si el usuario autenticado es el dueño, también incluye los productos del negocio.",
+                "description": "Devuelve la información detallada de un negocio por su ID, incluyendo sus categorías, imágenes y productos (si el usuario autenticado es el dueño).",
                 "operationId": "feb0cf913a78b75503617b23b3a7d154",
                 "parameters": [
                     {
@@ -152,7 +152,60 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Business"
+                                    "type": "object",
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/Business"
+                                        },
+                                        {
+                                            "properties": {
+                                                "images": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "business_id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "url": {
+                                                                "type": "string",
+                                                                "example": "http://tudominio.com/business_images/1.jpg"
+                                                            },
+                                                            "is_primary": {
+                                                                "type": "boolean",
+                                                                "example": false
+                                                            },
+                                                            "description": {
+                                                                "type": "string",
+                                                                "example": "Imagen de la fachada"
+                                                            },
+                                                            "created_at": {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                                "example": "2025-10-25T19:45:20.000000Z"
+                                                            },
+                                                            "updated_at": {
+                                                                "type": "string",
+                                                                "format": "date-time",
+                                                                "example": "2025-10-25T19:45:20.000000Z"
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "first_image_url": {
+                                                    "description": "URL de la primera imagen del negocio (o imagen por defecto si no hay imágenes)",
+                                                    "type": "string",
+                                                    "example": "http://tudominio.com/business_images/1.jpg"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
                                 }
                             }
                         }
