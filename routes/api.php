@@ -136,6 +136,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('businesses/{business}/categories', [BusinessController::class, 'updateCategories']);
     Route::delete('businesses/{business}/categories/{category}', [BusinessController::class, 'removeCategory']);
     Route::post('businesses/{business}/categories/{category}', [BusinessController::class, 'addCategory']);
+    Route::post('/businesses-with-images', [BusinessController::class, 'storeWithImages'])->middleware('auth:sanctum');
+
    // Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessImageController::class, 'store']);
 
     Route::delete('businesses/{business}/images/{image}', [\App\Http\Controllers\API\BusinessImageController::class, 'destroy']);
@@ -179,6 +181,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Listar conversaciones del usuario
     Route::get('/conversations', [MessageController::class, 'listConversations']);
+    
 });
 
 Route::get('/check-business/{business}', function (Request $request, Business $business) {

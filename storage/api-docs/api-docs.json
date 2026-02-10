@@ -802,6 +802,99 @@
                 ]
             }
         },
+        "/api/businesses-with-images": {
+            "post": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Crear un negocio con imágenes",
+                "description": "Crea un nuevo negocio y sube sus imágenes en una sola solicitud. Valida el límite de negocios según la suscripción del usuario.",
+                "operationId": "be0062ed0b9c33a92d813c4fb5d0dcfe",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "address"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Panadería San Martín"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Panadería artesanal..."
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Calle Mitre 123"
+                                    },
+                                    "latitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -34.6037,
+                                        "nullable": true
+                                    },
+                                    "longitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -58.3816,
+                                        "nullable": true
+                                    },
+                                    "categories": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 1
+                                        }
+                                    },
+                                    "cover_image": {
+                                        "description": "Imagen de portada",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "images[]": {
+                                        "description": "Array de imágenes del negocio",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Negocio e imágenes creados correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Business"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para crear más negocios según su suscripción"
+                    },
+                    "422": {
+                        "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/businesses/{business}/images": {
             "post": {
                 "tags": [

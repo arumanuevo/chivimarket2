@@ -814,6 +814,133 @@ public function updateCoverImage(Request $request, Business $business)
     }
 }
 
+/**
+ * @OA\Post(
+ *     path="/api/businesses-with-images",
+ *     summary="Crear un negocio con imágenes",
+ *     description="Crea un nuevo negocio y sube sus imágenes en una sola solicitud. Valida el límite de negocios según la suscripción del usuario.",
+ *     tags={"Negocios"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\MediaType(
+ *             mediaType="multipart/form-data",
+ *             @OA\Schema(
+ *                 required={"name", "address"},
+ *                 @OA\Property(property="name", type="string", example="Panadería San Martín"),
+ *                 @OA\Property(property="description", type="string", example="Panadería artesanal..."),
+ *                 @OA\Property(property="address", type="string", example="Calle Mitre 123"),
+ *                 @OA\Property(property="latitude", type="number", format="float", nullable=true, example=-34.6037),
+ *                 @OA\Property(property="longitude", type="number", format="float", nullable=true, example=-58.3816),
+ *                 @OA\Property(property="categories", type="array", @OA\Items(type="integer", example=1)),
+ *                 @OA\Property(property="cover_image", type="string", format="binary", description="Imagen de portada"),
+ *                 @OA\Property(property="images[]", type="array", @OA\Items(type="string", format="binary"), description="Array de imágenes del negocio")
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=201,
+ *         description="Negocio e imágenes creados correctamente",
+ *         @OA\JsonContent(ref="#/components/schemas/Business")
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="No autorizado para crear más negocios según su suscripción"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Error de validación"
+ *     )
+ * )
+ */
+public function storeWithImages(Request $request)
+{
+    $user = Auth::user();
+    $subscriptionCheck = SubscriptionService::canCreateBusiness($user);
+
+    if (!$subscriptionCheck['can_create']) {
+        return response()->json([
+            'message' => $subscriptionCheck['message']
+        ], 403);
+    }
+
+    // Validar datos del negocio
+    $validator = Validator::make($request->all(), [
+        'name' => [
+            'required',
+            'string',
+            'max:255',
+            Rule::unique('businesses')->where(function ($query) use ($user) {
+                return $query->where('user_id', $user->id);
+            })
+        ],
+        'description' => 'nullable|string',
+        'address' => 'required|string',
+        'latitude' => 'nullable|numeric|between:-90,90',
+        'longitude' => 'nullable|numeric|between:-180,180',
+        'categories' => 'nullable|array',
+        'categories.*' => 'exists:business_categories,id',
+        'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'images' => 'nullable|array',
+        'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+    }
+
+    // Crear el negocio
+    $businessData = $request->except('categories', 'cover_image', 'images');
+    $businessData['user_id'] = $user->id;
+    $business = Business::create($businessData);
+
+    // Asignar categorías
+    if ($request->has('categories')) {
+        $business->categories()->attach($request->categories);
+    }
+
+    // Manejar la imagen de portada
+    if ($request->hasFile('cover_image')) {
+        $this->handleCoverImageUpload($request, $business);
+    }
+
+    // Manejar las imágenes del negocio
+    if ($request->hasFile('images')) {
+        $this->handleBusinessImagesUpload($request, $business);
+    }
+
+    return response()->json($business->load(['categories', 'images']), 201);
+}
+
+    /**
+     * Maneja la subida de la imagen de portada.
+     */
+    protected function handleCoverImageUpload(Request $request, Business $business)
+    {
+        $imageFile = $request->file('cover_image');
+        $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+        $imageFile->move(public_path('business_covers'), $filename);
+        $business->cover_image_url = 'business_covers/' . $filename;
+        $business->save();
+    }
+
+    /**
+     * Maneja la subida de múltiples imágenes del negocio.
+     */
+    protected function handleBusinessImagesUpload(Request $request, Business $business)
+    {
+        foreach ($request->file('images') as $image) {
+            $filename = uniqid() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('business_images'), $filename);
+
+            $business->images()->create([
+                'url' => 'business_images/' . $filename,
+                'is_primary' => false,
+                'description' => 'Imagen de ' . $business->name
+            ]);
+        }
+    }
+
 
 
 
