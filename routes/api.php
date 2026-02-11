@@ -19,7 +19,12 @@ use App\Http\Controllers\API\ImageController;
 use App\Http\Resources\SubscriptionResource;
 use App\Http\Resources\UserResource;
 use App\Models\EspMessage;
+use App\Models\Device;
+use App\Models\AccessToken;
+use Illuminate\Support\Str;
 
+use App\Models\ReleActivation;
+use App\Models\ActivationLog;
 /*
 // =============================================
 // RUTAS PÚBLICAS (sin autenticación)
@@ -278,6 +283,124 @@ Route::get('/esp32/pending-messages', function () {
         ]);
     }
 });
+
+Route::get('/validate-device', function (Request $request) {
+    $deviceId = $request->input('device_id');
+
+    // Verificar si el dispositivo existe (o crearlo si no existe)
+    $device = Device::firstOrCreate(
+        ['device_id' => $deviceId],
+        ['name' => 'Dispositivo ' . substr($deviceId, -4)] // Nombre por defecto
+    );
+
+    // Generar un token único
+    $token = Str::uuid()->toString();
+
+    // Guardar el token en la base de datos (expira en 5 minutos)
+    AccessToken::create([
+        'device_id' => $deviceId,
+        'token' => $token,
+        'expires_at' => now()->addMinutes(5)
+    ]);
+
+    // Devolver una vista con el token y un QR (usando SimpleSoftwareIO/qr-code)
+    return response()->json([
+        'status' => 'success',
+        'device_id' => $deviceId,
+        'token' => $token,
+        'qr_url' => url("/qr/{$token}") // Ruta para generar el QR (ver siguiente endpoint)
+    ]);
+});
+
+// Ruta para generar el token y mostrar el QR
+Route::post('/generate-token', function (Request $request) {
+    $deviceId = $request->input('device_id');
+    $token = Str::random(16); // Generar token único
+
+    // Guardar el token en la base de datos
+    AccessToken::create([
+        'device_id' => $deviceId,
+        'token' => $token,
+        'expires_at' => now()->addMinutes(5)
+    ]);
+
+    return view('token-qr', [
+        'deviceId' => $deviceId,
+        'token' => $token
+    ]);
+});
+
+Route::get('/activate', function (Request $request) {
+    $deviceId = $request->input('device_id');
+    $tempToken = $request->input('temp_token');
+
+    // Validar que el device_id y temp_token sean correctos
+    $device = Device::where('device_id', $deviceId)->first();
+    if (!$device) {
+        abort(404, 'Dispositivo no encontrado');
+    }
+
+    // Aquí iría la lógica de pago (simulada con un botón)
+    return view('activate-ducha', [
+        'deviceId' => $deviceId,
+        'tempToken' => $tempToken,
+        'esp32Ip' => $request->ip()  // IP del ESP32 (para pruebas locales)
+    ]);
+});
+
+Route::get('/validate-activation', function (Request $request) {
+    $request->validate([
+        'device_id' => 'required|string',
+        'token' => 'required|string',       // Token de pago (ej: PAY_ABC123)
+        'temp_token' => 'required|string'  // Token temporal del ESP32
+    ]);
+
+    $deviceId = $request->input('device_id');
+    $paymentToken = $request->input('token');
+    $tempToken = $request->input('temp_token');
+
+    // 1. Validar que el dispositivo exista
+    $device = Device::where('device_id', $deviceId)->first();
+    if (!$device) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Dispositivo no encontrado'
+        ], 404);
+    }
+
+    // 2. Validar el token de pago (simulado: en producción, validar con pasarela de pago)
+    if (!Str::startsWith($paymentToken, 'PAY_')) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Token de pago inválido'
+        ], 403);
+    }
+
+    // 3. Validar el temp_token (opcional: podrías validarlo contra un campo en la tabla `devices`)
+    // Por ahora, asumimos que es válido si el dispositivo existe.
+
+    // 4. Registrar la activación en la base de datos
+    ActivationLog::create([
+        'device_id' => $deviceId,
+        'token' => $paymentToken,
+        'duration_seconds' => 10,  // Duración fija de 10 segundos
+        'source_ip' => $request->ip(),
+        'status' => 'completed'
+    ]);
+
+    // 5. Devolver éxito
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Relé activado por 10 segundos',
+        'data' => [
+            'device_id' => $deviceId,
+            'token' => $paymentToken,
+            'duration' => 10
+        ]
+    ]);
+});
+
+
 
 
 
