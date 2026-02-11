@@ -26,6 +26,8 @@ use Illuminate\Support\Str;
 
 use App\Models\ReleActivation;
 use App\Models\ActivationLog;
+use App\Http\Controllers\DeviceController;
+
 /*
 // =============================================
 // RUTAS PÚBLICAS (sin autenticación)
@@ -285,7 +287,7 @@ Route::get('/esp32/pending-messages', function () {
     }
 });
 
-Route::get('/validate-activation', [ActivationController::class, 'validate']);
+Route::get('/validate-activation', [DeviceController::class, 'validateActivation']);
 
 
 
