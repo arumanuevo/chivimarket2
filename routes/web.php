@@ -7,6 +7,7 @@ use App\Models\AccessToken;
 use Illuminate\Http\Request;
 use App\Http\Controllers\DeviceController;
 
+
 // Ruta principal (welcome)
 Route::get('/', function () {
     return view('welcome');
@@ -34,7 +35,7 @@ Route::get('/activate', [DeviceController::class, 'showActivateForm']);
     return view('validate-device', ['deviceId' => $deviceId]);
 });*/
 
-Route::post('/generate-token', function (Request $request) {
+/*Route::post('/generate-token', function (Request $request) {
     $deviceId = $request->input('device_id');
     $token = Str::random(16);
 
@@ -49,7 +50,10 @@ Route::post('/generate-token', function (Request $request) {
         'deviceId' => $deviceId,
         'token' => $token
     ]);
-});
+});*/
+
+//Route::post('/generate-token', [DeviceController::class, 'generateToken'])->middleware('check.temp.token');
+Route::post('/generate-token', [DeviceController::class, 'generateToken'])->middleware('check.temp.token');
 
 
 

@@ -80,11 +80,22 @@
         // Deshabilitar la recarga de la página
         window.onbeforeunload = function(e) {
             e.preventDefault();
-            e.returnValue = '';
+            e.returnValue = 'No puedes recargar esta página.';
+            return 'No puedes recargar esta página.';
+        };
+
+        // Evitar que el usuario recargue la página con F5 o Ctrl+R
+        document.onkeydown = function(e) {
+            if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
+                e.preventDefault();
+                alert('No puedes recargar esta página.');
+            }
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
 
 
