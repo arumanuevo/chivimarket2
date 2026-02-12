@@ -58,7 +58,7 @@
 
     <script>
         // Cuenta regresiva de 5 minutos (300 segundos)
-        let timeLeft = 10;
+        let timeLeft = 20;
         const countdownElement = document.getElementById('countdown');
 
         const timer = setInterval(() => {
