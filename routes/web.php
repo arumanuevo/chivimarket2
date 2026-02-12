@@ -24,8 +24,30 @@ Route::get('/qr/{token}', function ($token) {
     return response()->json(['qr' => "QR para token: {$token}"]);
 });
 
-Route::get('/validate-device', [DeviceController::class, 'validateDevice']);
+/*Route::get('/validate-device', [DeviceController::class, 'validateDevice']);
 Route::post('/generate-token', [DeviceController::class, 'generateToken']);
-Route::get('/activate', [DeviceController::class, 'showActivateForm']);
+Route::get('/activate', [DeviceController::class, 'showActivateForm']);*/
+
+Route::get('/validate-device', function (Request $request) {
+    $deviceId = $request->input('device_id');
+    return view('validate-device', ['deviceId' => $deviceId]);
+});
+
+Route::post('/generate-token', function (Request $request) {
+    $deviceId = $request->input('device_id');
+    $token = Str::random(16);
+
+    AccessToken::create([
+        'device_id' => $deviceId,
+        'token' => $token,
+        'expires_at' => now()->addMinutes(5),
+        'used' => false
+    ]);
+
+    return view('token-generated', [
+        'deviceId' => $deviceId,
+        'token' => $token
+    ]);
+});
 
 

@@ -9,11 +9,9 @@
         <div class="card p-4 shadow">
             <h2 class="text-center">Validar Dispositivo</h2>
             <p class="text-center">Dispositivo: <strong>{{ $deviceId }}</strong></p>
-
             <form method="POST" action="/generate-token">
                 @csrf
                 <input type="hidden" name="device_id" value="{{ $deviceId }}">
-                <input type="hidden" name="esp32_ip" value="{{ $esp32Ip }}">
                 <button type="submit" class="btn btn-primary w-100">
                     Generar Token de Acceso
                 </button>

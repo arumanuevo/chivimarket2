@@ -287,7 +287,26 @@ Route::get('/esp32/pending-messages', function () {
     }
 });
 
-Route::get('/validate-activation', [DeviceController::class, 'validateActivation']);
+//Route::get('/validate-activation', [DeviceController::class, 'validateActivation']);
+
+Route::get('/check-token', function (Request $request) {
+    $deviceId = $request->input('device_id');
+
+    $token = AccessToken::where('device_id', $deviceId)
+                        ->where('expires_at', '>', now())
+                        ->where('used', false)
+                        ->first();
+
+    if ($token) {
+        $token->update(['used' => true]);  // Marcar el token como usado
+        return response()->json([
+            'status' => 'valid',
+            'token' => $token->token
+        ]);
+    } else {
+        return response()->json(['status' => 'invalid']);
+    }
+});
 
 
 
