@@ -13,42 +13,56 @@ class DeviceController extends Controller
     /**
      * Muestra el formulario para validar un dispositivo.
      */
-    public function validateDevice(Request $request)
+    // app/Http/Controllers/DeviceController.php
+public function validateDevice(Request $request)
 {
     $deviceId = $request->input('device_id');
-    $esp32Ip = $request->input('esp32_ip', '');  // Leer la IP del QR
+    $tempToken = $request->input('temp_token');
 
+    // Verificar si el dispositivo existe
     $device = Device::firstOrCreate(
         ['device_id' => $deviceId],
         ['name' => 'Dispositivo ' . substr($deviceId, -4)]
     );
 
+    // Verificar si el temp_token es válido (opcional: podrías guardar el último temp_token en la base de datos)
+    // Por ahora, asumimos que el temp_token es válido si el dispositivo existe.
+    // Si quieres mayor seguridad, podrías guardar el temp_token en la base de datos y validarlo aquí.
+
     return view('validate-device', [
         'deviceId' => $deviceId,
-        'esp32Ip' => $esp32Ip  // Pasar la IP a la vista
+        'tempToken' => $tempToken
     ]);
 }
+
     /**
      * Genera un token de acceso para el dispositivo.
      */
     public function generateToken(Request $request)
-{
-    $deviceId = $request->input('device_id');
-    $esp32Ip = $request->input('esp32_ip', '');  // Obtener la IP del QR
-
-    $token = Str::random(16);
-    AccessToken::create([
-        'device_id' => $deviceId,
-        'token' => $token,
-        'expires_at' => now()->addMinutes(5)
-    ]);
-
-    return view('token', [
-        'deviceId' => $deviceId,
-        'token' => $token,
-        'esp32Ip' => $esp32Ip  // Pasar la IP a la vista
-    ]);
-}
+    {
+        $deviceId = $request->input('device_id');
+        $tempToken = $request->input('temp_token');
+    
+        // Validar que el temp_token no esté vacío
+        if (empty($tempToken)) {
+            return back()->with('error', 'El código QR ha caducado. Escanea el QR nuevamente.');
+        }
+    
+        // Aquí podrías validar el temp_token contra el último generado por el ESP32.
+        // Por ahora, asumimos que es válido si no está vacío.
+    
+        $token = Str::random(16);
+        AccessToken::create([
+            'device_id' => $deviceId,
+            'token' => $token,
+            'expires_at' => now()->addMinutes(5)
+        ]);
+    
+        return view('token-generated', [
+            'deviceId' => $deviceId,
+            'token' => $token
+        ]);
+    }
 
     /**
      * Muestra el formulario para activar el relé.
