@@ -33,21 +33,22 @@ class DeviceController extends Controller
     }
 
    // app/Http/Controllers/DeviceController.php
-   public function generateToken(Request $request)
+  // app/Http/Controllers/DeviceController.php
+public function generateToken(Request $request)
 {
     $deviceId = $request->input('device_id');
     $tempToken = $request->input('temp_token');
 
-    // Verificar si el temp_token ya fue usado en esta sesión
-    if (Session::has('used_temp_token_' . $tempToken)) {
-        return back()->with('error', 'El código QR ya ha sido usado. Escanea el QR nuevamente.');
-    }
+    \Log::info("GenerateToken: device_id = " . $deviceId . ", temp_token = " . $tempToken);
 
     if (empty($tempToken)) {
         return back()->with('error', 'El código QR ha caducado. Escanea el QR nuevamente.');
     }
 
-    // Marcar el temp_token como usado en esta sesión
+    if (Session::has('used_temp_token_' . $tempToken)) {
+        return back()->with('error', 'El código QR ya ha sido usado. Escanea el QR nuevamente.');
+    }
+
     Session::put('used_temp_token_' . $tempToken, true);
 
     $token = Str::random(16);
@@ -55,7 +56,7 @@ class DeviceController extends Controller
         'device_id' => $deviceId,
         'token' => $token,
         'expires_at' => now()->addMinutes(5),
-        'used' => true  // Marcamos el token como usado inmediatamente
+        'used' => true
     ]);
 
     return view('token-generated', [
@@ -64,4 +65,5 @@ class DeviceController extends Controller
         'tempToken' => $tempToken
     ]);
 }
+
 }

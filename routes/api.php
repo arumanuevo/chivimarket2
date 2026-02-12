@@ -292,22 +292,25 @@ Route::get('/esp32/pending-messages', function () {
 Route::get('/check-token', function (Request $request) {
     $deviceId = $request->input('device_id');
 
+    \Log::info("CheckToken: device_id = " . $deviceId);
+
     $token = AccessToken::where('device_id', $deviceId)
                         ->where('expires_at', '>', now())
-                        ->where('used', false)  // Solo tokens no usados
+                        ->where('used', false)
                         ->first();
 
     if ($token) {
-        $token->update(['used' => true]);  // Marcar el token como usado
+        $token->update(['used' => true]);
+        \Log::info("CheckToken: Token válido encontrado y marcado como usado");
         return response()->json([
             'status' => 'valid',
             'token' => $token->token
         ]);
     } else {
+        \Log::info("CheckToken: No se encontró un token válido");
         return response()->json(['status' => 'invalid']);
     }
 });
-
 
 
 
