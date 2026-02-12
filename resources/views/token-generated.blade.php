@@ -72,6 +72,8 @@
                 countdownElement.textContent = "00:00";
                 countdownElement.classList.remove('text-primary');
                 countdownElement.classList.add('text-danger');
+                alert("El token ha caducado. Escanea el QR nuevamente.");
+                window.location.href = "/"; // Redirigir a la página principal o recargar
             }
         }, 1000);
     </script>
