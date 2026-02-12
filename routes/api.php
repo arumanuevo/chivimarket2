@@ -294,11 +294,11 @@ Route::get('/check-token', function (Request $request) {
 
     $token = AccessToken::where('device_id', $deviceId)
                         ->where('expires_at', '>', now())
-                        ->where('used', false)
+                        ->where('used', false)  // Solo tokens no usados
                         ->first();
 
     if ($token) {
-        $token->update(['used' => true]);
+        $token->update(['used' => true]);  // Marcar el token como usado
         return response()->json([
             'status' => 'valid',
             'token' => $token->token

@@ -58,7 +58,7 @@
 
     <script>
         // Cuenta regresiva de 5 minutos (300 segundos)
-        let timeLeft = 20;
+        let timeLeft = 300;
         const countdownElement = document.getElementById('countdown');
 
         const timer = setInterval(() => {
@@ -72,11 +72,18 @@
                 countdownElement.textContent = "00:00";
                 countdownElement.classList.remove('text-primary');
                 countdownElement.classList.add('text-danger');
-                alert("El token ha caducado. Escanea el QR nuevamente.");
-                window.location.href = "/"; // Redirigir a la página principal o recargar
+                alert("El token ha caducado.");
+                window.location.href = "/"; // Redirigir a la página principal
             }
         }, 1000);
+
+        // Deshabilitar la recarga de la página
+        window.onbeforeunload = function(e) {
+            e.preventDefault();
+            e.returnValue = '';
+        };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
