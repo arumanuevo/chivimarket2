@@ -16,13 +16,18 @@ class DeviceController extends Controller
     public function validateDevice(Request $request)
     {
         $deviceId = $request->input('device_id');
+        $esp32Ip = $request->input('esp32_ip', '');  // Leer la IP del QR
+    
         $device = Device::firstOrCreate(
             ['device_id' => $deviceId],
             ['name' => 'Dispositivo ' . substr($deviceId, -4)]
         );
-        return view('validate-device', ['deviceId' => $deviceId]);
+    
+        return view('validate-device', [
+            'deviceId' => $deviceId,
+            'esp32Ip' => $esp32Ip  // Pasar la IP a la vista
+        ]);
     }
-
     /**
      * Genera un token de acceso para el dispositivo.
      */

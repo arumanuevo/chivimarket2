@@ -18,11 +18,11 @@
             </div>
 
             <form id="activateForm" class="mt-4">
-                <div class="mb-3">
-                    <label class="form-label">IP del ESP32 (ej: 192.168.1.100):</label>
-                    <input type="text" class="form-control" id="esp32Ip" value="{{ $esp32Ip ?? '' }}" required>
-                </div>
-                <button type="submit" class="btn btn-success w-100">Activar Ducha</button>
+                <input type="hidden" id="esp32Ip" value="{{ $esp32Ip }}">
+                <input type="hidden" id="token" value="{{ $token }}">
+                <button type="submit" class="btn btn-success w-100">
+                    Activar Ducha
+                </button>
             </form>
         </div>
     </div>
@@ -31,7 +31,7 @@
         document.getElementById('activateForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const esp32Ip = document.getElementById('esp32Ip').value;
-            const token = "{{ $token }}";
+            const token = document.getElementById('token').value;
 
             fetch(`http://${esp32Ip}/activate?token=${token}`)
                 .then(response => response.text())
