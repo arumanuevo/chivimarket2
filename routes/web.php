@@ -53,8 +53,8 @@ Route::get('/activate', [DeviceController::class, 'showActivateForm']);
 });*/
 
 //Route::post('/generate-token', [DeviceController::class, 'generateToken'])->middleware('check.temp.token');
-Route::post('/generate-token', [DeviceController::class, 'generateToken'])->middleware('check.temp.token');
-
+//Route::post('/generate-token', [DeviceController::class, 'generateToken'])->middleware('check.temp.token');
+Route::post('/generate-token', [DeviceController::class, 'generateToken']); 
 
 
 
