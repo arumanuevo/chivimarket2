@@ -33,8 +33,7 @@ class DeviceController extends Controller
     }
 
    // app/Http/Controllers/DeviceController.php
-  // app/Http/Controllers/DeviceController.php
-public function generateToken(Request $request)
+   public function generateToken(Request $request)
 {
     $deviceId = $request->input('device_id');
     $tempToken = $request->input('temp_token');
@@ -52,12 +51,14 @@ public function generateToken(Request $request)
     Session::put('used_temp_token_' . $tempToken, true);
 
     $token = Str::random(16);
-    AccessToken::create([
+    $accessToken = AccessToken::create([
         'device_id' => $deviceId,
         'token' => $token,
         'expires_at' => now()->addMinutes(5),
-        'used' => true
+        'used' => false
     ]);
+
+    \Log::info("GenerateToken: Token guardado en la base de datos, ID = " . $accessToken->id);
 
     return view('token-generated', [
         'deviceId' => $deviceId,
