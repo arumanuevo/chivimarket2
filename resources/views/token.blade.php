@@ -17,18 +17,25 @@
                 <p>Este token expirará en 5 minutos.</p>
             </div>
 
-            <form id="activateForm" class="mt-4">
-                <input type="hidden" id="esp32Ip" value="{{ $esp32Ip }}">
-                <input type="hidden" id="token" value="{{ $token }}">
-                <button type="submit" class="btn btn-success w-100">
-                    Activar Ducha
-                </button>
-            </form>
+            <!-- Verificar si $esp32Ip existe -->
+            @if(isset($esp32Ip) && !empty($esp32Ip))
+                <form id="activateForm" class="mt-4">
+                    <input type="hidden" id="esp32Ip" value="{{ $esp32Ip }}">
+                    <input type="hidden" id="token" value="{{ $token }}">
+                    <button type="submit" class="btn btn-success w-100">
+                        Activar Ducha
+                    </button>
+                </form>
+            @else
+                <div class="alert alert-warning mt-4">
+                    No se pudo obtener la IP del ESP32. Escanea el QR nuevamente.
+                </div>
+            @endif
         </div>
     </div>
 
     <script>
-        document.getElementById('activateForm').addEventListener('submit', function(e) {
+        document.getElementById('activateForm')?.addEventListener('submit', function(e) {
             e.preventDefault();
             const esp32Ip = document.getElementById('esp32Ip').value;
             const token = document.getElementById('token').value;

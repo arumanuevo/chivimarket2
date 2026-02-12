@@ -14,37 +14,41 @@ class DeviceController extends Controller
      * Muestra el formulario para validar un dispositivo.
      */
     public function validateDevice(Request $request)
-    {
-        $deviceId = $request->input('device_id');
-        $esp32Ip = $request->input('esp32_ip', '');  // Leer la IP del QR
-    
-        $device = Device::firstOrCreate(
-            ['device_id' => $deviceId],
-            ['name' => 'Dispositivo ' . substr($deviceId, -4)]
-        );
-    
-        return view('validate-device', [
-            'deviceId' => $deviceId,
-            'esp32Ip' => $esp32Ip  // Pasar la IP a la vista
-        ]);
-    }
+{
+    $deviceId = $request->input('device_id');
+    $esp32Ip = $request->input('esp32_ip', '');  // Leer la IP del QR
+
+    $device = Device::firstOrCreate(
+        ['device_id' => $deviceId],
+        ['name' => 'Dispositivo ' . substr($deviceId, -4)]
+    );
+
+    return view('validate-device', [
+        'deviceId' => $deviceId,
+        'esp32Ip' => $esp32Ip  // Pasar la IP a la vista
+    ]);
+}
     /**
      * Genera un token de acceso para el dispositivo.
      */
     public function generateToken(Request $request)
-    {
-        $deviceId = $request->input('device_id');
-        $token = Str::random(16);
-        AccessToken::create([
-            'device_id' => $deviceId,
-            'token' => $token,
-            'expires_at' => now()->addMinutes(5)
-        ]);
-        return view('token', [
-            'deviceId' => $deviceId,
-            'token' => $token
-        ]);
-    }
+{
+    $deviceId = $request->input('device_id');
+    $esp32Ip = $request->input('esp32_ip', '');  // Obtener la IP del QR
+
+    $token = Str::random(16);
+    AccessToken::create([
+        'device_id' => $deviceId,
+        'token' => $token,
+        'expires_at' => now()->addMinutes(5)
+    ]);
+
+    return view('token', [
+        'deviceId' => $deviceId,
+        'token' => $token,
+        'esp32Ip' => $esp32Ip  // Pasar la IP a la vista
+    ]);
+}
 
     /**
      * Muestra el formulario para activar el relé.
