@@ -11,9 +11,9 @@
             <h2 class="text-center">Validar Dispositivo</h2>
             <p class="text-center">Dispositivo: <strong>{{ $deviceId }}</strong></p>
 
-            @if(session('error'))
+            @if(isset($error))
                 <div class="alert alert-danger">
-                    {{ session('error') }}
+                    {{ $error }}
                 </div>
             @endif
 

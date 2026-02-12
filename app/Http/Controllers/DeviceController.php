@@ -15,22 +15,27 @@ class DeviceController extends Controller
      */
     // app/Http/Controllers/DeviceController.php
     public function validateDevice(Request $request)
-    {
-        $deviceId = $request->input('device_id');
-        $tempToken = $request->input('temp_token');  // Obtener temp_token del QR
-    
-        // Verificar si el dispositivo existe
-        $device = Device::firstOrCreate(
-            ['device_id' => $deviceId],
-            ['name' => 'Dispositivo ' . substr($deviceId, -4)]
-        );
-    
-        // Pasar ambas variables a la vista
+{
+    $deviceId = $request->input('device_id');
+    $tempToken = $request->input('temp_token');  // Asegúrate de que este parámetro se esté recibiendo
+
+    if (empty($tempToken)) {
         return view('validate-device', [
             'deviceId' => $deviceId,
-            'tempToken' => $tempToken
+            'error' => 'El código QR ha caducado. Escanea el QR nuevamente.'
         ]);
     }
+
+    $device = Device::firstOrCreate(
+        ['device_id' => $deviceId],
+        ['name' => 'Dispositivo ' . substr($deviceId, -4)]
+    );
+
+    return view('validate-device', [
+        'deviceId' => $deviceId,
+        'tempToken' => $tempToken
+    ]);
+}
 
     /**
      * Genera un token de acceso para el dispositivo.

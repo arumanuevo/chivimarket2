@@ -27,11 +27,12 @@ Route::get('/qr/{token}', function ($token) {
 /*Route::get('/validate-device', [DeviceController::class, 'validateDevice']);
 Route::post('/generate-token', [DeviceController::class, 'generateToken']);
 Route::get('/activate', [DeviceController::class, 'showActivateForm']);*/
+Route::get('/validate-device', [DeviceController::class, 'validateDevice']);
 
-Route::get('/validate-device', function (Request $request) {
+/*Route::get('/validate-device', function (Request $request) {
     $deviceId = $request->input('device_id');
     return view('validate-device', ['deviceId' => $deviceId]);
-});
+});*/
 
 Route::post('/generate-token', function (Request $request) {
     $deviceId = $request->input('device_id');
