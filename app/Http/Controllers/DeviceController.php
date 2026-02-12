@@ -14,26 +14,23 @@ class DeviceController extends Controller
      * Muestra el formulario para validar un dispositivo.
      */
     // app/Http/Controllers/DeviceController.php
-public function validateDevice(Request $request)
-{
-    $deviceId = $request->input('device_id');
-    $tempToken = $request->input('temp_token');
-
-    // Verificar si el dispositivo existe
-    $device = Device::firstOrCreate(
-        ['device_id' => $deviceId],
-        ['name' => 'Dispositivo ' . substr($deviceId, -4)]
-    );
-
-    // Verificar si el temp_token es válido (opcional: podrías guardar el último temp_token en la base de datos)
-    // Por ahora, asumimos que el temp_token es válido si el dispositivo existe.
-    // Si quieres mayor seguridad, podrías guardar el temp_token en la base de datos y validarlo aquí.
-
-    return view('validate-device', [
-        'deviceId' => $deviceId,
-        'tempToken' => $tempToken
-    ]);
-}
+    public function validateDevice(Request $request)
+    {
+        $deviceId = $request->input('device_id');
+        $tempToken = $request->input('temp_token');  // Obtener temp_token del QR
+    
+        // Verificar si el dispositivo existe
+        $device = Device::firstOrCreate(
+            ['device_id' => $deviceId],
+            ['name' => 'Dispositivo ' . substr($deviceId, -4)]
+        );
+    
+        // Pasar ambas variables a la vista
+        return view('validate-device', [
+            'deviceId' => $deviceId,
+            'tempToken' => $tempToken
+        ]);
+    }
 
     /**
      * Genera un token de acceso para el dispositivo.
