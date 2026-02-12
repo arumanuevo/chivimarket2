@@ -290,6 +290,7 @@ Route::get('/esp32/pending-messages', function () {
 //Route::get('/validate-activation', [DeviceController::class, 'validateActivation']);
 
 // routes/api.php
+// routes/api.php
 Route::get('/check-token', function (Request $request) {
     $deviceId = $request->input('device_id');
 
@@ -302,7 +303,7 @@ Route::get('/check-token', function (Request $request) {
     \Log::info("CheckToken: Tokens encontrados = " . $tokens->count());
 
     foreach ($tokens as $token) {
-        \Log::info("CheckToken: Token ID = " . $token->id . ", used = " . $token->used);
+        \Log::info("CheckToken: Token ID = " . $token->id . ", token = " . $token->token . ", used = " . $token->used);
     }
 
     $token = AccessToken::where('device_id', $deviceId)
@@ -312,7 +313,7 @@ Route::get('/check-token', function (Request $request) {
 
     if ($token) {
         $token->update(['used' => true]);
-        \Log::info("CheckToken: Token válido encontrado y marcado como usado, ID = " . $token->id);
+        \Log::info("CheckToken: Token válido encontrado y marcado como usado, ID = " . $token->id . ", token = " . $token->token);
         return response()->json([
             'status' => 'valid',
             'token' => $token->token
@@ -322,6 +323,7 @@ Route::get('/check-token', function (Request $request) {
         return response()->json(['status' => 'invalid']);
     }
 });
+
 
 
 

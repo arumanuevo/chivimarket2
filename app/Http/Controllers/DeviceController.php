@@ -33,7 +33,8 @@ class DeviceController extends Controller
     }
 
    // app/Http/Controllers/DeviceController.php
-   public function generateToken(Request $request)
+   // app/Http/Controllers/DeviceController.php
+public function generateToken(Request $request)
 {
     $deviceId = $request->input('device_id');
     $tempToken = $request->input('temp_token');
@@ -58,7 +59,7 @@ class DeviceController extends Controller
         'used' => false
     ]);
 
-    \Log::info("GenerateToken: Token guardado en la base de datos, ID = " . $accessToken->id);
+    \Log::info("GenerateToken: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
 
     return view('token-generated', [
         'deviceId' => $deviceId,
