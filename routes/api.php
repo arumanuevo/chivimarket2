@@ -298,7 +298,7 @@ Route::get('/check-token', function (Request $request) {
                         ->first();
 
     if ($token) {
-        $token->update(['used' => true]);  // Marcar el token como usado
+        $token->update(['used' => true]);
         return response()->json([
             'status' => 'valid',
             'token' => $token->token

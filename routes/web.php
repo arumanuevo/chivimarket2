@@ -24,10 +24,10 @@ Route::get('/qr/{token}', function ($token) {
     return response()->json(['qr' => "QR para token: {$token}"]);
 });
 
-/*Route::get('/validate-device', [DeviceController::class, 'validateDevice']);
-Route::post('/generate-token', [DeviceController::class, 'generateToken']);
-Route::get('/activate', [DeviceController::class, 'showActivateForm']);*/
 Route::get('/validate-device', [DeviceController::class, 'validateDevice']);
+Route::post('/generate-token', [DeviceController::class, 'generateToken']);
+Route::get('/activate', [DeviceController::class, 'showActivateForm']);
+
 
 /*Route::get('/validate-device', function (Request $request) {
     $deviceId = $request->input('device_id');
@@ -50,5 +50,8 @@ Route::post('/generate-token', function (Request $request) {
         'token' => $token
     ]);
 });
+
+
+
 
 

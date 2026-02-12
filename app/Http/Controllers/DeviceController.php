@@ -1,8 +1,9 @@
 <?php
+namespace App\Http\Controllers;
 
-// app/Http/Controllers/DeviceController.php
 use App\Models\Device;
 use App\Models\AccessToken;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class DeviceController extends Controller
@@ -12,7 +13,13 @@ class DeviceController extends Controller
         $deviceId = $request->input('device_id');
         $tempToken = $request->input('temp_token');
 
-        // Verificar si el dispositivo existe
+        if (empty($tempToken)) {
+            return view('validate-device', [
+                'deviceId' => $deviceId,
+                'error' => 'El código QR ha caducado. Escanea el QR nuevamente.'
+            ]);
+        }
+
         $device = Device::firstOrCreate(
             ['device_id' => $deviceId],
             ['name' => 'Dispositivo ' . substr($deviceId, -4)]
@@ -29,12 +36,10 @@ class DeviceController extends Controller
         $deviceId = $request->input('device_id');
         $tempToken = $request->input('temp_token');
 
-        // Validar que el temp_token no esté vacío
         if (empty($tempToken)) {
             return back()->with('error', 'El código QR ha caducado. Escanea el QR nuevamente.');
         }
 
-        // Generar un token de acceso único
         $token = Str::random(16);
         AccessToken::create([
             'device_id' => $deviceId,
