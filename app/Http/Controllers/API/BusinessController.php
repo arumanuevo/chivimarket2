@@ -832,13 +832,13 @@ public function updateCoverImage(Request $request, Business $business)
      *                 @OA\Property(property="address", type="string", example="Calle Mitre 123"),
      *                 @OA\Property(property="latitude", type="number", format="float", nullable=true, example=-34.6037),
      *                 @OA\Property(property="longitude", type="number", format="float", nullable=true, example=-58.3816),
-     *                 @OA\Property(property="categories", type="array", @OA\Items(type="integer", example=1)),
-     *                 @OA\Property(property="cover_image", type="string", format="binary", description="Imagen de portada"),
-     *                 @OA\Property(property="image1", type="string", format="binary", description="Imagen adicional 1"),
-     *                 @OA\Property(property="image2", type="string", format="binary", description="Imagen adicional 2"),
-     *                 @OA\Property(property="image3", type="string", format="binary", description="Imagen adicional 3"),
-     *                 @OA\Property(property="image4", type="string", format="binary", description="Imagen adicional 4"),
-     *                 @OA\Property(property="image5", type="string", format="binary", description="Imagen adicional 5")
+     *                 @OA\Property(property="categories", type="string", example="[1,2,3]", description="Array de categorías en formato JSON string"),
+     *                 @OA\Property(property="cover_image", type="string", format="binary", description="Imagen de portada (opcional)"),
+     *                 @OA\Property(property="imagen1", type="string", format="binary", description="Imagen adicional 1 (opcional)"),
+     *                 @OA\Property(property="imagen2", type="string", format="binary", description="Imagen adicional 2 (opcional)"),
+     *                 @OA\Property(property="imagen3", type="string", format="binary", description="Imagen adicional 3 (opcional)"),
+     *                 @OA\Property(property="imagen4", type="string", format="binary", description="Imagen adicional 4 (opcional)"),
+     *                 @OA\Property(property="imagen5", type="string", format="binary", description="Imagen adicional 5 (opcional)")
      *             )
      *         )
      *     ),
@@ -880,12 +880,20 @@ public function updateCoverImage(Request $request, Business $business)
             'files' => $request->file(),
             'categories' => $request->input('categories'),
             'has_cover_image' => $request->hasFile('cover_image'),
-            'has_image1' => $request->hasFile('image1'),
-            'has_image2' => $request->hasFile('image2'),
-            'has_image3' => $request->hasFile('image3'),
-            'has_image4' => $request->hasFile('image4'),
-            'has_image5' => $request->hasFile('image5')
+            'has_imagen1' => $request->hasFile('imagen1'),
+            'has_imagen2' => $request->hasFile('imagen2'),
+            'has_imagen3' => $request->hasFile('imagen3'),
+            'has_imagen4' => $request->hasFile('imagen4'),
+            'has_imagen5' => $request->hasFile('imagen5')
         ]);
+
+        // Convertir categories de string a array si es necesario
+        $categories = $request->input('categories');
+        if (is_string($categories)) {
+            $categories = json_decode($categories, true);
+            $request->merge(['categories' => $categories]);
+            Log::info('Categorías convertidas de string a array', ['categories' => $categories]);
+        }
 
         // Validar datos del negocio
         $validator = Validator::make($request->all(), [
@@ -903,12 +911,12 @@ public function updateCoverImage(Request $request, Business $business)
             'longitude' => 'nullable|numeric|between:-180,180',
             'categories' => 'nullable|array',
             'categories.*' => 'exists:business_categories,id',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image4' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'image5' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Hacer cover_image opcional
+            'imagen1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'imagen2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'imagen3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'imagen4' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'imagen5' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
         if ($validator->fails()) {
@@ -919,7 +927,7 @@ public function updateCoverImage(Request $request, Business $business)
         Log::info('Validación exitosa');
 
         // Crear el negocio
-        $businessData = $request->except('categories', 'cover_image', 'image1', 'image2', 'image3', 'image4', 'image5');
+        $businessData = $request->except('categories', 'cover_image', 'imagen1', 'imagen2', 'imagen3', 'imagen4', 'imagen5');
         $businessData['user_id'] = $user->id;
         Log::info('Datos del negocio a crear', ['businessData' => $businessData]);
 
@@ -932,19 +940,19 @@ public function updateCoverImage(Request $request, Business $business)
         }
 
         // Asignar categorías
-        if ($request->has('categories')) {
-            Log::info('Asignando categorías', ['categories' => $request->input('categories')]);
+        if ($request->has('categories') && is_array($request->categories)) {
+            Log::info('Asignando categorías', ['categories' => $request->categories]);
             try {
-                $business->categories()->attach($request->input('categories'));
+                $business->categories()->attach($request->categories);
                 Log::info('Categorías asignadas exitosamente');
             } catch (\Exception $e) {
                 Log::error('Error al asignar categorías', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             }
         } else {
-            Log::info('No se proporcionaron categorías');
+            Log::info('No se proporcionaron categorías o no son un array válido');
         }
 
-        // Manejar la imagen de portada
+        // Manejar la imagen de portada (opcional)
         if ($request->hasFile('cover_image')) {
             Log::info('Procesando imagen de portada', ['file' => $request->file('cover_image')->getClientOriginalName()]);
             try {
@@ -975,6 +983,7 @@ public function updateCoverImage(Request $request, Business $business)
             return response()->json($business, 201);
         }
     }
+
 
     /**
      * Maneja la subida de la imagen de portada.
@@ -1033,7 +1042,7 @@ public function updateCoverImage(Request $request, Business $business)
 
             // Procesar cada imagen individual
             for ($i = 1; $i <= 5; $i++) {
-                $imageField = 'image' . $i;
+                $imageField = 'imagen' . $i;
 
                 if ($request->hasFile($imageField)) {
                     $image = $request->file($imageField);
