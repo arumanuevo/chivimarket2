@@ -855,14 +855,29 @@ public function updateCoverImage(Request $request, Business $business)
  */
 public function storeWithImages(Request $request)
 {
+    Log::info('Iniciando storeWithImages', ['user_id' => Auth::id()]);
+
     $user = Auth::user();
+    Log::info('Usuario autenticado', ['user' => $user->toArray()]);
+
     $subscriptionCheck = SubscriptionService::canCreateBusiness($user);
+    Log::info('Verificación de suscripción', ['subscriptionCheck' => $subscriptionCheck]);
 
     if (!$subscriptionCheck['can_create']) {
+        Log::warning('Usuario no puede crear negocios', ['message' => $subscriptionCheck['message']]);
         return response()->json([
             'message' => $subscriptionCheck['message']
         ], 403);
     }
+
+    // Log de todos los datos de entrada
+    Log::info('Datos de entrada', [
+        'all' => $request->all(),
+        'files' => $request->file(),
+        'categories' => $request->input('categories'),
+        'has_cover_image' => $request->hasFile('cover_image'),
+        'has_images' => $request->hasFile('images')
+    ]);
 
     // Validar datos del negocio
     $validator = Validator::make($request->all(), [
@@ -886,60 +901,170 @@ public function storeWithImages(Request $request)
     ]);
 
     if ($validator->fails()) {
+        Log::error('Errores de validación', ['errors' => $validator->errors()]);
         return response()->json($validator->errors(), 422);
     }
+
+    Log::info('Validación exitosa');
 
     // Crear el negocio
     $businessData = $request->except('categories', 'cover_image', 'images');
     $businessData['user_id'] = $user->id;
-    $business = Business::create($businessData);
+    Log::info('Datos del negocio a crear', ['businessData' => $businessData]);
+
+    try {
+        $business = Business::create($businessData);
+        Log::info('Negocio creado exitosamente', ['business_id' => $business->id]);
+    } catch (\Exception $e) {
+        Log::error('Error al crear el negocio', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        return response()->json(['message' => 'Error al crear el negocio'], 500);
+    }
 
     // Asignar categorías
     if ($request->has('categories')) {
-        $business->categories()->attach($request->categories);
+        Log::info('Asignando categorías', ['categories' => $request->input('categories')]);
+        try {
+            $business->categories()->attach($request->input('categories'));
+            Log::info('Categorías asignadas exitosamente');
+        } catch (\Exception $e) {
+            Log::error('Error al asignar categorías', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        }
+    } else {
+        Log::info('No se proporcionaron categorías');
     }
 
     // Manejar la imagen de portada
     if ($request->hasFile('cover_image')) {
-        $this->handleCoverImageUpload($request, $business);
+        Log::info('Procesando imagen de portada', ['file' => $request->file('cover_image')->getClientOriginalName()]);
+        try {
+            $this->handleCoverImageUpload($request, $business);
+            Log::info('Imagen de portada procesada exitosamente');
+        } catch (\Exception $e) {
+            Log::error('Error al procesar imagen de portada', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        }
+    } else {
+        Log::info('No se proporcionó imagen de portada');
     }
 
     // Manejar las imágenes del negocio
     if ($request->hasFile('images')) {
-        $this->handleBusinessImagesUpload($request, $business);
+        Log::info('Procesando imágenes adicionales', ['files' => array_map(function($file) {
+            return $file->getClientOriginalName();
+        }, $request->file('images'))]);
+
+        try {
+            $this->handleBusinessImagesUpload($request, $business);
+            Log::info('Imágenes adicionales procesadas exitosamente');
+        } catch (\Exception $e) {
+            Log::error('Error al procesar imágenes adicionales', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        }
+    } else {
+        Log::info('No se proporcionaron imágenes adicionales');
     }
 
-    return response()->json($business->load(['categories', 'images']), 201);
+    // Cargar relaciones y devolver respuesta
+    try {
+        $businessWithRelations = $business->load(['categories', 'images']);
+        Log::info('Negocio con relaciones cargado', ['business' => $businessWithRelations->toArray()]);
+        return response()->json($businessWithRelations, 201);
+    } catch (\Exception $e) {
+        Log::error('Error al cargar relaciones del negocio', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        return response()->json($business, 201);
+    }
 }
 
-    /**
-     * Maneja la subida de la imagen de portada.
-     */
-    protected function handleCoverImageUpload(Request $request, Business $business)
-    {
-        $imageFile = $request->file('cover_image');
-        $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
-        $imageFile->move(public_path('business_covers'), $filename);
+/**
+ * Maneja la subida de la imagen de portada.
+ */
+protected function handleCoverImageUpload(Request $request, Business $business)
+{
+    Log::info('Iniciando handleCoverImageUpload');
+
+    $imageFile = $request->file('cover_image');
+    Log::info('Archivo de imagen de portada recibido', [
+        'name' => $imageFile->getClientOriginalName(),
+        'size' => $imageFile->getSize(),
+        'mime' => $imageFile->getMimeType()
+    ]);
+
+    $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+    Log::info('Nombre de archivo generado', ['filename' => $filename]);
+
+    $destinationPath = public_path('business_covers');
+    Log::info('Ruta de destino', ['path' => $destinationPath]);
+
+    try {
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0777, true);
+            Log::info('Directorio creado', ['path' => $destinationPath]);
+        }
+
+        $imageFile->move($destinationPath, $filename);
+        Log::info('Imagen de portada movida exitosamente');
+
         $business->cover_image_url = 'business_covers/' . $filename;
         $business->save();
+        Log::info('Negocio actualizado con URL de imagen de portada', ['cover_image_url' => $business->cover_image_url]);
+
+    } catch (\Exception $e) {
+        Log::error('Error al procesar imagen de portada', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        throw $e;
     }
+}
 
-    /**
-     * Maneja la subida de múltiples imágenes del negocio.
-     */
-    protected function handleBusinessImagesUpload(Request $request, Business $business)
-    {
-        foreach ($request->file('images') as $image) {
-            $filename = uniqid() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('business_images'), $filename);
+/**
+ * Maneja la subida de múltiples imágenes del negocio.
+ */
+protected function handleBusinessImagesUpload(Request $request, Business $business)
+{
+    Log::info('Iniciando handleBusinessImagesUpload');
 
-            $business->images()->create([
-                'url' => 'business_images/' . $filename,
-                'is_primary' => false,
-                'description' => 'Imagen de ' . $business->name
-            ]);
+    $destinationPath = public_path('business_images');
+    Log::info('Ruta de destino para imágenes', ['path' => $destinationPath]);
+
+    try {
+        if (!file_exists($destinationPath)) {
+            mkdir($destinationPath, 0777, true);
+            Log::info('Directorio creado para imágenes', ['path' => $destinationPath]);
         }
+
+        foreach ($request->file('images') as $image) {
+            Log::info('Procesando imagen adicional', [
+                'name' => $image->getClientOriginalName(),
+                'size' => $image->getSize(),
+                'mime' => $image->getMimeType()
+            ]);
+
+            $filename = uniqid() . '.' . $image->getClientOriginalExtension();
+
+            try {
+                $image->move($destinationPath, $filename);
+                Log::info('Imagen movida exitosamente', ['filename' => $filename]);
+
+                $businessImage = $business->images()->create([
+                    'url' => 'business_images/' . $filename,
+                    'is_primary' => false,
+                    'description' => 'Imagen de ' . $business->name
+                ]);
+
+                Log::info('Imagen creada en base de datos', ['image_id' => $businessImage->id]);
+
+            } catch (\Exception $e) {
+                Log::error('Error al procesar una imagen adicional', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'filename' => $filename
+                ]);
+                continue; // Continuar con las siguientes imágenes aunque una falle
+            }
+        }
+
+    } catch (\Exception $e) {
+        Log::error('Error general al procesar imágenes adicionales', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+        throw $e;
     }
+}
+
 
 
 
