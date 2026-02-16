@@ -27,6 +27,7 @@ class UserResource extends JsonResource
 
 // app/Http/Resources/UserResource.php
 // app/Http/Resources/UserResource.php
+// app/Http/Resources/UserResource.php
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
@@ -51,7 +52,6 @@ class UserResource extends JsonResource
             'roles' => $this->roles,
             'permissions' => $this->permissions,
 
-            // Usar BusinessResource para formatear los negocios y cargar las categorías e imágenes
             'businesses' => BusinessResource::collection($this->whenLoaded('businesses')),
 
             'businesses_count' => $this->businesses->count(),

@@ -111,6 +111,7 @@ Route::get('businesses/search', [BusinessController::class, 'search']); // <-- M
 Route::get('businesses/category/{category}', [BusinessController::class, 'byCategory']); // <-- También mover esta línea aquí
 Route::get('/businesses/top-rated', [BusinessController::class, 'getTopRatedBusinesses']);
 
+Route::get('/api/business-image/{filename}', [ImageController::class, 'showBusinessImage']);
 Route::get('/image/{filename}', [ImageController::class, 'show'])->name('image.show');
 
 // =============================================

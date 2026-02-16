@@ -9,7 +9,6 @@ class BusinessResource extends JsonResource
 {
     public function toArray($request)
     {
-        // Obtener el dominio base de la aplicación
         $baseUrl = rtrim(env('APP_URL'), '/');
 
         return [
@@ -34,8 +33,8 @@ class BusinessResource extends JsonResource
                     return [
                         'id' => $image->id,
                         'business_id' => $image->business_id,
-                        'url' => $baseUrl . '/' . $image->url, // URL completa
-                        'full_url' => $image->full_url, // Usar el accessor del modelo
+                        'url' => $baseUrl . '/api/business-image/' . basename($image->url), // Usar el nuevo endpoint
+                        'full_url' => $image->full_url,
                         'is_primary' => $image->is_primary,
                         'description' => $image->description,
                         'created_at' => $image->created_at,
@@ -43,8 +42,9 @@ class BusinessResource extends JsonResource
                     ];
                 });
             }),
-            'first_image_url' => $this->first_image_url ? $baseUrl . '/' . $this->first_image_url : 'https://via.placeholder.com/300x200?text=Sin+Imagen',
+            'first_image_url' => $this->first_image_url ? $baseUrl . '/api/business-image/' . basename($this->first_image_url) : 'https://via.placeholder.com/300x200?text=Sin+Imagen',
             'products' => $this->whenLoaded('products')
         ];
     }
 }
+
