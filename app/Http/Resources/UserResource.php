@@ -26,6 +26,7 @@ class UserResource extends JsonResource
 }*/
 
 // app/Http/Resources/UserResource.php
+// app/Http/Resources/UserResource.php
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
@@ -50,22 +51,20 @@ class UserResource extends JsonResource
             'roles' => $this->roles,
             'permissions' => $this->permissions,
 
-            // Usar BusinessResource para formatear los negocios y cargar las categorías
+            // Usar BusinessResource para formatear los negocios y cargar las categorías e imágenes
             'businesses' => BusinessResource::collection($this->whenLoaded('businesses')),
 
             'businesses_count' => $this->businesses->count(),
             'has_business' => $this->businesses->isNotEmpty(),
 
-            // Datos adicionales para evaluaciones posteriores
             'can_create_business' => $this->subscription ?
                 SubscriptionService::canCreateBusiness($userModel)['can_create'] :
                 false,
 
-            // Validar si existe al menos un negocio antes de llamar a canCreateProduct
             'can_create_product' => $this->subscription ?
                 ($this->businesses->isNotEmpty() ?
                     (SubscriptionService::canCreateProduct($userModel, $this->businesses->first()->id)['can_create'] ?? false) :
-                    false) :  // Si no hay negocios, no puede crear productos
+                    false) :
                 false,
 
             'max_businesses_allowed' => $this->subscription ?
@@ -78,4 +77,3 @@ class UserResource extends JsonResource
         ];
     }
 }
-

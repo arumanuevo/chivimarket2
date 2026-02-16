@@ -126,11 +126,12 @@ Route::middleware('auth:sanctum')->group(function () {
         $user = $request->user()->load([
             'roles',
             'permissions',
-            'businesses.categories', 
+            'businesses.categories',
+            'businesses.images', // Asegúrate de cargar las imágenes de los negocios
             'subscription'
         ]);
         return new UserResource($user);
-    });
+    })->middleware('auth:sanctum');
     
     
 
