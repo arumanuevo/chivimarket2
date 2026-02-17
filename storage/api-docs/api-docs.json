@@ -222,7 +222,7 @@
                     "Negocios"
                 ],
                 "summary": "Actualizar un negocio",
-                "description": "Actualiza la información de un negocio. Solo el dueño del negocio puede actualizarlo.",
+                "description": "Actualiza la información de un negocio, incluyendo su imagen de portada y múltiples imágenes. Solo el dueño del negocio puede actualizarlo.",
                 "operationId": "cd3ec13e27b92b89bb83a6dc56aafd20",
                 "parameters": [
                     {
@@ -238,8 +238,12 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
+                                "required": [
+                                    "name",
+                                    "address"
+                                ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
@@ -266,11 +270,39 @@
                                         "nullable": true
                                     },
                                     "categories": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer",
-                                            "example": 1
-                                        }
+                                        "description": "Array de categorías en formato JSON string",
+                                        "type": "string",
+                                        "example": "[1,2,3]"
+                                    },
+                                    "cover_image": {
+                                        "description": "Nueva imagen de portada (opcional)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen1": {
+                                        "description": "Imagen adicional 1 (opcional)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen2": {
+                                        "description": "Imagen adicional 2 (opcional)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen3": {
+                                        "description": "Imagen adicional 3 (opcional)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen4": {
+                                        "description": "Imagen adicional 4 (opcional)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen5": {
+                                        "description": "Imagen adicional 5 (opcional)",
+                                        "type": "string",
+                                        "format": "binary"
                                     }
                                 },
                                 "type": "object"

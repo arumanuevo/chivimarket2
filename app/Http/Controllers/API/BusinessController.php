@@ -230,81 +230,232 @@ class BusinessController extends Controller
 
 
 
-    /**
-     * @OA\Put(
-     *     path="/api/businesses/{business}",
-     *     summary="Actualizar un negocio",
-     *     description="Actualiza la información de un negocio. Solo el dueño del negocio puede actualizarlo.",
-     *     tags={"Negocios"},
-     *     security={{"bearerAuth": {}}},
-     *     @OA\Parameter(
-     *         name="business",
-     *         in="path",
-     *         required=true,
-     *         description="ID del negocio",
-     *         @OA\Schema(type="integer")
-     *     ),
-     *     @OA\RequestBody(
-     *         required=true,
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(property="name", type="string", example="Panadería San Jorge (Actualizado)"),
-     *             @OA\Property(property="description", type="string", example="Panadería artesanal con más de 25 años de experiencia"),
-     *             @OA\Property(property="address", type="string", example="Calle Falsa 456"),
-     *             @OA\Property(property="latitude", type="number", format="float", nullable=true, example=-34.6037),
-     *             @OA\Property(property="longitude", type="number", format="float", nullable=true, example=-58.3816),
-     *             @OA\Property(property="categories", type="array", @OA\Items(type="integer", example=1))
-     *         )
-     *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Negocio actualizado correctamente",
-     *         @OA\JsonContent(ref="#/components/schemas/Business")
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="No autorizado para actualizar este negocio"
-     *     ),
-     *     @OA\Response(
-     *         response=422,
-     *         description="Error de validación de los datos enviados"
-     *     )
-     * )
-     */
-    public function update(Request $request, Business $business)
-    {
-        $this->authorize('update', $business);
+   /**
+ * @OA\Put(
+ *     path="/api/businesses/{business}",
+ *     summary="Actualizar un negocio",
+ *     description="Actualiza la información de un negocio, incluyendo su imagen de portada y múltiples imágenes. Solo el dueño del negocio puede actualizarlo.",
+ *     tags={"Negocios"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Parameter(
+ *         name="business",
+ *         in="path",
+ *         required=true,
+ *         description="ID del negocio",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\MediaType(
+ *             mediaType="multipart/form-data",
+ *             @OA\Schema(
+ *                 required={"name", "address"},
+ *                 @OA\Property(property="name", type="string", example="Panadería San Jorge (Actualizado)"),
+ *                 @OA\Property(property="description", type="string", example="Panadería artesanal con más de 25 años de experiencia"),
+ *                 @OA\Property(property="address", type="string", example="Calle Falsa 456"),
+ *                 @OA\Property(property="latitude", type="number", format="float", nullable=true, example=-34.6037),
+ *                 @OA\Property(property="longitude", type="number", format="float", nullable=true, example=-58.3816),
+ *                 @OA\Property(property="categories", type="string", example="[1,2,3]", description="Array de categorías en formato JSON string"),
+ *                 @OA\Property(property="cover_image", type="string", format="binary", description="Nueva imagen de portada (opcional)"),
+ *                 @OA\Property(property="imagen1", type="string", format="binary", description="Imagen adicional 1 (opcional)"),
+ *                 @OA\Property(property="imagen2", type="string", format="binary", description="Imagen adicional 2 (opcional)"),
+ *                 @OA\Property(property="imagen3", type="string", format="binary", description="Imagen adicional 3 (opcional)"),
+ *                 @OA\Property(property="imagen4", type="string", format="binary", description="Imagen adicional 4 (opcional)"),
+ *                 @OA\Property(property="imagen5", type="string", format="binary", description="Imagen adicional 5 (opcional)")
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Negocio actualizado correctamente",
+ *         @OA\JsonContent(ref="#/components/schemas/Business")
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="No autorizado para actualizar este negocio"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Error de validación de los datos enviados"
+ *     )
+ * )
+ */
+public function update(Request $request, Business $business)
+{
+    $this->authorize('update', $business);
 
-        $validator = Validator::make($request->all(), [
-            'name' => [
-                'sometimes',
-                'required',
-                'string',
-                'max:255',
-                Rule::unique('businesses')->ignore($business->id)->where(function ($query) {
-                    return $query->where('user_id', Auth::id());
-                })
-            ],
-            'description' => 'nullable|string',
-            'address' => 'sometimes|required|string',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
-            'categories' => 'nullable|array',
-            'categories.*' => 'exists:business_categories,id'
+    Log::info('Iniciando actualización del negocio', [
+        'business_id' => $business->id,
+        'request_data' => $request->all(),
+        'has_cover_image' => $request->hasFile('cover_image'),
+        'has_imagen1' => $request->hasFile('imagen1'),
+        'has_imagen2' => $request->hasFile('imagen2'),
+        'has_imagen3' => $request->hasFile('imagen3'),
+        'has_imagen4' => $request->hasFile('imagen4'),
+        'has_imagen5' => $request->hasFile('imagen5')
+    ]);
+
+    // Convertir categories de string a array si es necesario
+    $categories = $request->input('categories');
+    if (is_string($categories)) {
+        $categories = json_decode($categories, true);
+        $request->merge(['categories' => $categories]);
+        Log::info('Categorías convertidas de string a array', ['categories' => $categories]);
+    }
+
+    // Validar datos del negocio
+    $validator = Validator::make($request->all(), [
+        'name' => [
+            'sometimes',
+            'required',
+            'string',
+            'max:255',
+            Rule::unique('businesses')->ignore($business->id)->where(function ($query) {
+                return $query->where('user_id', Auth::id());
+            })
+        ],
+        'description' => 'nullable|string',
+        'address' => 'sometimes|required|string',
+        'latitude' => 'nullable|numeric|between:-90,90',
+        'longitude' => 'nullable|numeric|between:-180,180',
+        'categories' => 'nullable|array',
+        'categories.*' => 'exists:business_categories,id',
+        'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'imagen1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'imagen2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'imagen3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'imagen4' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'imagen5' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+    ]);
+
+    if ($validator->fails()) {
+        Log::error('Errores de validación', ['errors' => $validator->errors()]);
+        return response()->json($validator->errors(), 422);
+    }
+
+    try {
+        // Actualizar datos básicos del negocio
+        $businessData = $request->except('categories', 'cover_image', 'imagen1', 'imagen2', 'imagen3', 'imagen4', 'imagen5');
+        $business->update($businessData);
+
+        // Actualizar categorías si existen
+        if ($request->has('categories') && is_array($request->categories)) {
+            $business->categories()->sync($request->categories);
+            Log::info('Categorías actualizadas', ['categories' => $request->categories]);
+        }
+
+        // Manejar la imagen de portada (opcional)
+        if ($request->hasFile('cover_image')) {
+            $this->handleCoverImageUpdate($request, $business);
+        }
+
+        // Manejar las imágenes individuales del negocio
+        $this->handleBusinessImagesUpdate($request, $business);
+
+        // Recargar el negocio con sus relaciones
+        $updatedBusiness = $business->fresh()->load(['categories', 'images']);
+
+        Log::info('Negocio actualizado correctamente', [
+            'business_id' => $business->id,
+            'updated_business' => $updatedBusiness->toArray()
         ]);
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
+        return response()->json($updatedBusiness);
 
-        $business->update($request->except('categories'));
-
-        if ($request->has('categories')) {
-            $business->categories()->sync($request->categories);
-        }
-
-        return response()->json($business->fresh()->load('categories'));
+    } catch (\Exception $e) {
+        Log::error('Error al actualizar el negocio', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json([
+            'message' => 'Error al actualizar el negocio: ' . $e->getMessage()
+        ], 500);
     }
+}
+
+/**
+ * Maneja la actualización de la imagen de portada.
+ */
+protected function handleCoverImageUpdate(Request $request, Business $business)
+{
+    Log::info('Actualizando imagen de portada', [
+        'business_id' => $business->id,
+        'file' => $request->file('cover_image')->getClientOriginalName()
+    ]);
+
+    try {
+        // Eliminar la imagen anterior si existe
+        if ($business->cover_image_url) {
+            $oldImagePath = public_path($business->cover_image_url);
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+                Log::info('Imagen de portada anterior eliminada', ['path' => $oldImagePath]);
+            }
+        }
+
+        // Procesar la nueva imagen
+        $imageFile = $request->file('cover_image');
+        $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+        $imageFile->move(public_path('business_covers'), $filename);
+
+        // Actualizar el modelo
+        $business->cover_image_url = 'business_covers/' . $filename;
+        $business->save();
+
+        Log::info('Imagen de portada actualizada', [
+            'cover_image_url' => $business->cover_image_url
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('Error al actualizar imagen de portada', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        throw $e;
+    }
+}
+
+/**
+ * Maneja la actualización de las imágenes individuales del negocio.
+ */
+protected function handleBusinessImagesUpdate(Request $request, Business $business)
+{
+    Log::info('Actualizando imágenes del negocio', ['business_id' => $business->id]);
+
+    try {
+        // Procesar cada imagen individual
+        for ($i = 1; $i <= 5; $i++) {
+            $imageField = 'imagen' . $i;
+
+            if ($request->hasFile($imageField)) {
+                $image = $request->file($imageField);
+                Log::info("Procesando $imageField", [
+                    'name' => $image->getClientOriginalName(),
+                    'size' => $image->getSize()
+                ]);
+
+                $filename = uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->move(public_path('business_images'), $filename);
+
+                // Crear registro de la imagen en la base de datos
+                $businessImage = $business->images()->create([
+                    'url' => 'business_images/' . $filename,
+                    'is_primary' => false,
+                    'description' => 'Imagen ' . $i . ' de ' . $business->name
+                ]);
+
+                Log::info("Imagen $imageField creada", ['image_id' => $businessImage->id]);
+            }
+        }
+
+    } catch (\Exception $e) {
+        Log::error('Error al actualizar imágenes del negocio', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        throw $e;
+    }
+}
 
     /**
      * @OA\Delete(
