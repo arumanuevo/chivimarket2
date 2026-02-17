@@ -307,7 +307,7 @@
                     "Negocios"
                 ],
                 "summary": "Eliminar un negocio",
-                "description": "Elimina un negocio existente. Solo el dueño del negocio puede eliminarlo.",
+                "description": "Elimina un negocio existente y todos sus datos asociados (productos, imágenes, calificaciones, etc.). Solo el dueño del negocio puede eliminarlo.",
                 "operationId": "1ba49b80ee03bbaf297a4bd08e88982f",
                 "parameters": [
                     {
@@ -322,14 +322,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Negocio eliminado correctamente",
+                        "description": "Negocio y datos asociados eliminados correctamente",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Negocio eliminado correctamente"
+                                            "example": "Negocio y datos asociados eliminados correctamente"
                                         }
                                     },
                                     "type": "object"
@@ -339,6 +339,9 @@
                     },
                     "403": {
                         "description": "No autorizado para eliminar este negocio"
+                    },
+                    "500": {
+                        "description": "Error al eliminar el negocio o sus datos asociados"
                     }
                 },
                 "security": [
@@ -657,7 +660,7 @@
                     "Negocios"
                 ],
                 "summary": "Listar negocios por calificación",
-                "description": "Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).\n *                  Incluye la primera imagen del negocio (o una imagen por defecto si no hay imágenes).",
+                "description": "Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).\n     *                  Incluye la primera imagen del negocio (o una imagen por defecto si no hay imágenes).",
                 "operationId": "76c4859233b4b156c6f86bf4fa0d3b6d",
                 "parameters": [
                     {
@@ -845,24 +848,39 @@
                                         "nullable": true
                                     },
                                     "categories": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer",
-                                            "example": 1
-                                        }
+                                        "description": "Array de categorías en formato JSON string",
+                                        "type": "string",
+                                        "example": "[1,2,3]"
                                     },
                                     "cover_image": {
-                                        "description": "Imagen de portada",
+                                        "description": "Imagen de portada (opcional)",
                                         "type": "string",
                                         "format": "binary"
                                     },
-                                    "images[]": {
-                                        "description": "Array de imágenes del negocio",
-                                        "type": "array",
-                                        "items": {
-                                            "type": "string",
-                                            "format": "binary"
-                                        }
+                                    "imagen1": {
+                                        "description": "Imagen adicional 1 (opcional)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen2": {
+                                        "description": "Imagen adicional 2 (opcional)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen3": {
+                                        "description": "Imagen adicional 3 (opcional)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen4": {
+                                        "description": "Imagen adicional 4 (opcional)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen5": {
+                                        "description": "Imagen adicional 5 (opcional)",
+                                        "type": "string",
+                                        "format": "binary"
                                     }
                                 },
                                 "type": "object"
@@ -2143,7 +2161,7 @@
                     "Imágenes"
                 ],
                 "summary": "Obtener imagen de portada de un negocio",
-                "description": "Devuelve la imagen de portada de un negocio en formato binario. El nombre del archivo debe coincidir con el almacenado en el campo `cover_image_url` del negocio.",
+                "description": "Devuelve la imagen de portada de un negocio en formato binario.",
                 "operationId": "13437db729bed3d3db8d05f9db0076b4",
                 "parameters": [
                     {
@@ -2159,6 +2177,43 @@
                 "responses": {
                     "200": {
                         "description": "Imagen de portada del negocio en formato binario (PNG, JPEG, etc.).",
+                        "content": {
+                            "image/png": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Imagen no encontrada."
+                    }
+                }
+            }
+        },
+        "/api/business-image/{filename}": {
+            "get": {
+                "tags": [
+                    "Imágenes"
+                ],
+                "summary": "Obtener imagen de un negocio",
+                "description": "Devuelve una imagen específica de un negocio en formato binario. El nombre del archivo debe coincidir con el almacenado en el campo `url` de la tabla `business_images`.",
+                "operationId": "47096ef4b141cc6e204c6073aa7b42ad",
+                "parameters": [
+                    {
+                        "name": "filename",
+                        "in": "path",
+                        "description": "Nombre del archivo de la imagen (ej: '69923fe433fd8.png').",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Imagen del negocio en formato binario (PNG, JPEG, etc.).",
                         "content": {
                             "image/png": {
                                 "schema": {
