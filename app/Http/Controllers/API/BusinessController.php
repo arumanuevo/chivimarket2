@@ -14,6 +14,7 @@ use App\Services\SubscriptionService;
 use Illuminate\Support\Facades\DB; 
 use App\Models\BusinessRating;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class BusinessController extends Controller
 {
@@ -122,110 +123,110 @@ class BusinessController extends Controller
         return response()->json(new BusinessResource($business));
     }
 
-/**
- * @OA\Post(
- *     path="/api/businesses",
- *     summary="Crear un nuevo negocio",
- *     description="Crear un nuevo negocio asociado al usuario autenticado. Valida el límite de negocios según la suscripción del usuario.",
- *     tags={"Negocios"},
- *     security={{"bearerAuth": {}}},
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\MediaType(
- *             mediaType="multipart/form-data",
- *             @OA\Schema(
- *                 required={"name", "address"},
- *                 @OA\Property(property="name", type="string", example="Panadería San Jorge"),
- *                 @OA\Property(property="description", type="string", example="Panadería artesanal con más de 20 años de experiencia"),
- *                 @OA\Property(property="address", type="string", example="Calle Falsa 123"),
- *                 @OA\Property(property="latitude", type="number", format="float", nullable=true, example=-34.6037),
- *                 @OA\Property(property="longitude", type="number", format="float", nullable=true, example=-58.3816),
- *                 @OA\Property(property="categories", type="array", @OA\Items(type="integer", example=1)),
- *                 @OA\Property(property="cover_image", type="string", format="binary", description="Imagen de portada del negocio")
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=201,
- *         description="Negocio creado correctamente",
- *         @OA\JsonContent(ref="#/components/schemas/Business")
- *     ),
- *     @OA\Response(
- *         response=403,
- *         description="No autorizado para crear más negocios según su suscripción"
- *     ),
- *     @OA\Response(
- *         response=422,
- *         description="Error de validación de los datos enviados"
- *     )
- * )
- */
-public function store(Request $request)
-{
-    $user = Auth::user();
-    $subscriptionCheck = SubscriptionService::canCreateBusiness($user);
+    /**
+     * @OA\Post(
+     *     path="/api/businesses",
+     *     summary="Crear un nuevo negocio",
+     *     description="Crear un nuevo negocio asociado al usuario autenticado. Valida el límite de negocios según la suscripción del usuario.",
+     *     tags={"Negocios"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"name", "address"},
+     *                 @OA\Property(property="name", type="string", example="Panadería San Jorge"),
+     *                 @OA\Property(property="description", type="string", example="Panadería artesanal con más de 20 años de experiencia"),
+     *                 @OA\Property(property="address", type="string", example="Calle Falsa 123"),
+     *                 @OA\Property(property="latitude", type="number", format="float", nullable=true, example=-34.6037),
+     *                 @OA\Property(property="longitude", type="number", format="float", nullable=true, example=-58.3816),
+     *                 @OA\Property(property="categories", type="array", @OA\Items(type="integer", example=1)),
+     *                 @OA\Property(property="cover_image", type="string", format="binary", description="Imagen de portada del negocio")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Negocio creado correctamente",
+     *         @OA\JsonContent(ref="#/components/schemas/Business")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="No autorizado para crear más negocios según su suscripción"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Error de validación de los datos enviados"
+     *     )
+     * )
+     */
+    public function store(Request $request)
+    {
+        $user = Auth::user();
+        $subscriptionCheck = SubscriptionService::canCreateBusiness($user);
 
-    if (!$subscriptionCheck['can_create']) {
-        return response()->json([
-            'message' => $subscriptionCheck['message']
-        ], 403);
+        if (!$subscriptionCheck['can_create']) {
+            return response()->json([
+                'message' => $subscriptionCheck['message']
+            ], 403);
+        }
+
+        // Logs para depuración (opcional, puedes comentarlos o eliminarlos)
+        Log::info('Datos recibidos en la solicitud:', ['data' => $request->all()]);
+        Log::info('Tipo de categories:', ['type' => gettype($request->categories)]);
+        Log::info('Valor de categories:', ['value' => $request->categories]);
+
+        // Convertir 'categories' de string a array si es necesario
+        if ($request->has('categories') && is_string($request->categories)) {
+            $categories = json_decode($request->categories, true);
+            $request->merge(['categories' => $categories]);
+        }
+
+        // Validación de datos del negocio
+        $validator = Validator::make($request->all(), [
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('businesses')->where(function ($query) use ($user) {
+                    return $query->where('user_id', $user->id);
+                })
+            ],
+            'description' => 'nullable|string',
+            'address' => 'required|string',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
+            'categories' => 'nullable|array',
+            'categories.*' => 'exists:business_categories,id',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        // Crear el negocio
+        $businessData = $request->except('categories', 'cover_image');
+        $businessData['user_id'] = $user->id;
+        $business = Business::create($businessData);
+
+        // Asignar categorías si existen
+        if ($request->has('categories')) {
+            $business->categories()->attach($request->categories);
+        }
+
+        // Manejar la imagen de portada
+        if ($request->hasFile('cover_image')) {
+            $imageFile = $request->file('cover_image');
+            $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+            $imageFile->move(public_path('business_covers'), $filename);
+            $business->cover_image_url = 'business_covers/' . $filename;
+            $business->save();
+        }
+
+        return response()->json($business->load('categories'), 201);
     }
-
-    // Logs para depuración (opcional, puedes comentarlos o eliminarlos)
-    Log::info('Datos recibidos en la solicitud:', ['data' => $request->all()]);
-    Log::info('Tipo de categories:', ['type' => gettype($request->categories)]);
-    Log::info('Valor de categories:', ['value' => $request->categories]);
-
-    // Convertir 'categories' de string a array si es necesario
-    if ($request->has('categories') && is_string($request->categories)) {
-        $categories = json_decode($request->categories, true);
-        $request->merge(['categories' => $categories]);
-    }
-
-    // Validación de datos del negocio
-    $validator = Validator::make($request->all(), [
-        'name' => [
-            'required',
-            'string',
-            'max:255',
-            Rule::unique('businesses')->where(function ($query) use ($user) {
-                return $query->where('user_id', $user->id);
-            })
-        ],
-        'description' => 'nullable|string',
-        'address' => 'required|string',
-        'latitude' => 'nullable|numeric|between:-90,90',
-        'longitude' => 'nullable|numeric|between:-180,180',
-        'categories' => 'nullable|array',
-        'categories.*' => 'exists:business_categories,id',
-        'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 422);
-    }
-
-    // Crear el negocio
-    $businessData = $request->except('categories', 'cover_image');
-    $businessData['user_id'] = $user->id;
-    $business = Business::create($businessData);
-
-    // Asignar categorías si existen
-    if ($request->has('categories')) {
-        $business->categories()->attach($request->categories);
-    }
-
-    // Manejar la imagen de portada
-    if ($request->hasFile('cover_image')) {
-        $imageFile = $request->file('cover_image');
-        $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
-        $imageFile->move(public_path('business_covers'), $filename);
-        $business->cover_image_url = 'business_covers/' . $filename;
-        $business->save();
-    }
-
-    return response()->json($business->load('categories'), 201);
-}
 
 
 
@@ -309,7 +310,7 @@ public function store(Request $request)
      * @OA\Delete(
      *     path="/api/businesses/{business}",
      *     summary="Eliminar un negocio",
-     *     description="Elimina un negocio existente. Solo el dueño del negocio puede eliminarlo.",
+     *     description="Elimina un negocio existente y todos sus datos asociados (productos, imágenes, calificaciones, etc.). Solo el dueño del negocio puede eliminarlo.",
      *     tags={"Negocios"},
      *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
@@ -321,31 +322,166 @@ public function store(Request $request)
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Negocio eliminado correctamente",
+     *         description="Negocio y datos asociados eliminados correctamente",
      *         @OA\JsonContent(
      *             type="object",
-     *             @OA\Property(property="message", type="string", example="Negocio eliminado correctamente")
+     *             @OA\Property(property="message", type="string", example="Negocio y datos asociados eliminados correctamente")
      *         )
      *     ),
      *     @OA\Response(
      *         response=403,
      *         description="No autorizado para eliminar este negocio"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Error al eliminar el negocio o sus datos asociados"
      *     )
      * )
      */
     public function destroy(Business $business)
     {
         $this->authorize('update', $business);
-    
+
         // Registrar los datos del negocio en los logs para depuración
-        Log::info('Datos del negocio a eliminar:', [
+        Log::info('Iniciando eliminación del negocio', [
             'business_id' => $business->id,
             'business_data' => $business->toArray(),
         ]);
-    
 
-         $business->delete();
-         return response()->json(['message' => 'Negocio eliminado correctamente']);
+        try {
+            DB::beginTransaction();
+
+            // 1. Eliminar productos asociados al negocio
+            $this->deleteBusinessProducts($business);
+
+            // 2. Eliminar imágenes asociadas al negocio
+            $this->deleteBusinessImages($business);
+
+            // 3. Eliminar calificaciones del negocio
+            $this->deleteBusinessRatings($business);
+
+            // 4. Eliminar registros de contacto asociados al negocio
+            $this->deleteBusinessContacts($business);
+
+            // 5. Eliminar el negocio
+            $business->delete();
+
+            DB::commit();
+
+            Log::info('Negocio y datos asociados eliminados correctamente', [
+                'business_id' => $business->id,
+            ]);
+
+            return response()->json([
+                'message' => 'Negocio y datos asociados eliminados correctamente'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            Log::error('Error al eliminar el negocio o sus datos asociados', [
+                'business_id' => $business->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'message' => 'Error al eliminar el negocio o sus datos asociados: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Elimina todos los productos asociados a un negocio.
+     */
+    protected function deleteBusinessProducts(Business $business)
+    {
+        Log::info('Eliminando productos del negocio', [
+            'business_id' => $business->id,
+            'products_count' => $business->products()->count(),
+        ]);
+
+        // Eliminar imágenes de los productos primero
+        foreach ($business->products as $product) {
+            $this->deleteProductImages($product);
+        }
+
+        // Eliminar los productos
+        $business->products()->delete();
+    }
+
+    /**
+     * Elimina todas las imágenes asociadas a un negocio.
+     */
+    protected function deleteBusinessImages(Business $business)
+    {
+        Log::info('Eliminando imágenes del negocio', [
+            'business_id' => $business->id,
+            'images_count' => $business->images()->count(),
+        ]);
+
+        foreach ($business->images as $image) {
+            // Eliminar el archivo físico si existe
+            $imagePath = public_path($image->url);
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+                Log::info('Archivo de imagen eliminado', ['path' => $imagePath]);
+            }
+        }
+
+        // Eliminar registros de imágenes en la base de datos
+        $business->images()->delete();
+    }
+
+    /**
+     * Elimina todas las calificaciones asociadas a un negocio.
+     */
+    protected function deleteBusinessRatings(Business $business)
+    {
+        Log::info('Eliminando calificaciones del negocio', [
+            'business_id' => $business->id,
+            'ratings_count' => $business->ratings()->count(),
+        ]);
+
+        $business->ratings()->delete();
+    }
+
+    /**
+     * Elimina todos los registros de contacto asociados a un negocio.
+     */
+    protected function deleteBusinessContacts(Business $business)
+    {
+        Log::info('Eliminando registros de contacto del negocio', [
+            'business_id' => $business->id,
+        ]);
+
+        DB::table('contacts')
+            ->where('contactable_type', 'business')
+            ->where('contactable_id', $business->id)
+            ->delete();
+    }
+
+    /**
+     * Elimina todas las imágenes asociadas a un producto.
+     */
+    protected function deleteProductImages($product)
+    {
+        Log::info('Eliminando imágenes del producto', [
+            'product_id' => $product->id,
+            'images_count' => $product->images()->count(),
+        ]);
+
+        foreach ($product->images as $image) {
+            // Eliminar el archivo físico si existe
+            $imagePath = public_path($image->url);
+            if (file_exists($imagePath)) {
+                unlink($imagePath);
+                Log::info('Archivo de imagen de producto eliminado', ['path' => $imagePath]);
+            }
+        }
+
+        // Eliminar registros de imágenes en la base de datos
+        $product->images()->delete();
     }
 
     /**
@@ -609,212 +745,212 @@ public function store(Request $request)
         ]);
     }
 
-/**
- * @OA\Get(
- *     path="/api/businesses/top-rated",
- *     summary="Listar negocios por calificación",
- *     description="Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).
- *                  Incluye la primera imagen del negocio (o una imagen por defecto si no hay imágenes).",
- *     tags={"Negocios"},
- *     @OA\Parameter(
- *         name="limit",
- *         in="query",
- *         description="Límite de negocios a devolver (opcional, por defecto: 10).",
- *         required=false,
- *         @OA\Schema(type="integer", default=10, example=5)
- *     ),
- *     @OA\Parameter(
- *         name="category_id",
- *         in="query",
- *         description="ID de la categoría para filtrar negocios (opcional).",
- *         required=false,
- *         @OA\Schema(type="integer", example=1)
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Lista de negocios ordenados por calificación (éxito).",
- *         @OA\JsonContent(
- *             type="object",
- *             @OA\Property(
- *                 property="data",
- *                 type="array",
- *                 @OA\Items(
- *                     allOf={
- *                         @OA\Schema(ref="#/components/schemas/Business"),
- *                         @OA\Schema(
- *                             @OA\Property(property="avg_rating", type="number", format="float", example=4.5, description="Promedio de calificaciones del negocio"),
- *                             @OA\Property(property="ratings_count", type="integer", example=25, description="Cantidad total de calificaciones"),
- *                             @OA\Property(property="first_image_url", type="string", example="http://tudominio.com/business_images/1.jpg", description="URL de la primera imagen del negocio (o imagen por defecto si no hay imágenes)")
- *                         )
- *                     }
- *                 )
- *             ),
- *             @OA\Property(property="links", type="object", description="Enlaces de paginación"),
- *             @OA\Property(property="meta", type="object", description="Metadatos de la paginación")
- *         )
- *     )
- * )
- */
-public function getTopRatedBusinesses(Request $request)
-{
-    $limit = $request->input('limit', 10);
-    $categoryId = $request->input('category_id');
+    /**
+     * @OA\Get(
+     *     path="/api/businesses/top-rated",
+     *     summary="Listar negocios por calificación",
+     *     description="Devuelve una lista de negocios ordenados por su calificación promedio (de mayor a menor).
+     *                  Incluye la primera imagen del negocio (o una imagen por defecto si no hay imágenes).",
+     *     tags={"Negocios"},
+     *     @OA\Parameter(
+     *         name="limit",
+     *         in="query",
+     *         description="Límite de negocios a devolver (opcional, por defecto: 10).",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=10, example=5)
+     *     ),
+     *     @OA\Parameter(
+     *         name="category_id",
+     *         in="query",
+     *         description="ID de la categoría para filtrar negocios (opcional).",
+     *         required=false,
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de negocios ordenados por calificación (éxito).",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(
+     *                     allOf={
+     *                         @OA\Schema(ref="#/components/schemas/Business"),
+     *                         @OA\Schema(
+     *                             @OA\Property(property="avg_rating", type="number", format="float", example=4.5, description="Promedio de calificaciones del negocio"),
+     *                             @OA\Property(property="ratings_count", type="integer", example=25, description="Cantidad total de calificaciones"),
+     *                             @OA\Property(property="first_image_url", type="string", example="http://tudominio.com/business_images/1.jpg", description="URL de la primera imagen del negocio (o imagen por defecto si no hay imágenes)")
+     *                         )
+     *                     }
+     *                 )
+     *             ),
+     *             @OA\Property(property="links", type="object", description="Enlaces de paginación"),
+     *             @OA\Property(property="meta", type="object", description="Metadatos de la paginación")
+     *         )
+     *     )
+     * )
+     */
+    public function getTopRatedBusinesses(Request $request)
+    {
+        $limit = $request->input('limit', 10);
+        $categoryId = $request->input('category_id');
 
-    // Subconsulta para calcular el promedio de calificaciones
-    $avgRatingSubQuery = \App\Models\BusinessRating::select('business_id', DB::raw('AVG(rating) as avg_rating'))
-        ->groupBy('business_id');
+        // Subconsulta para calcular el promedio de calificaciones
+        $avgRatingSubQuery = \App\Models\BusinessRating::select('business_id', DB::raw('AVG(rating) as avg_rating'))
+            ->groupBy('business_id');
 
-    // Subconsulta para contar las calificaciones
-    $ratingsCountSubQuery = \App\Models\BusinessRating::select('business_id', DB::raw('COUNT(*) as ratings_count'))
-        ->groupBy('business_id');
+        // Subconsulta para contar las calificaciones
+        $ratingsCountSubQuery = \App\Models\BusinessRating::select('business_id', DB::raw('COUNT(*) as ratings_count'))
+            ->groupBy('business_id');
 
-    $query = Business::query()
-        ->leftJoinSub($avgRatingSubQuery, 'avg_ratings', function($join) {
-            $join->on('businesses.id', '=', 'avg_ratings.business_id');
-        })
-        ->leftJoinSub($ratingsCountSubQuery, 'ratings_counts', function($join) {
-            $join->on('businesses.id', '=', 'ratings_counts.business_id');
-        })
-        ->with(['user', 'categories', 'images' => function($query) {
-            $query->orderBy('is_primary', 'desc')->limit(1); // Optimizar: cargar solo la primera imagen
-        }])
-        ->select([
-            'businesses.*',
-            DB::raw('COALESCE(avg_ratings.avg_rating, 0) as avg_rating'),
-            DB::raw('COALESCE(ratings_counts.ratings_count, 0) as ratings_count')
-        ]);
+        $query = Business::query()
+            ->leftJoinSub($avgRatingSubQuery, 'avg_ratings', function($join) {
+                $join->on('businesses.id', '=', 'avg_ratings.business_id');
+            })
+            ->leftJoinSub($ratingsCountSubQuery, 'ratings_counts', function($join) {
+                $join->on('businesses.id', '=', 'ratings_counts.business_id');
+            })
+            ->with(['user', 'categories', 'images' => function($query) {
+                $query->orderBy('is_primary', 'desc')->limit(1); // Optimizar: cargar solo la primera imagen
+            }])
+            ->select([
+                'businesses.*',
+                DB::raw('COALESCE(avg_ratings.avg_rating, 0) as avg_rating'),
+                DB::raw('COALESCE(ratings_counts.ratings_count, 0) as ratings_count')
+            ]);
 
-    if ($categoryId) {
-        $query->whereHas('categories', function($q) use ($categoryId) {
-            $q->where('business_category.category_id', $categoryId);
-        });
-    }
-
-    $businesses = $query->orderBy('avg_rating', 'desc')
-        ->orderBy('ratings_count', 'desc')
-        ->paginate($limit);
-
-    // Añadir la primera imagen (o imagen por defecto) a cada negocio
-    $businesses->getCollection()->transform(function ($business) {
-        $firstImageUrl = null;
-
-        // Si el negocio tiene imágenes, usar la primera
-        if ($business->images->isNotEmpty()) {
-            $firstImage = $business->images->first();
-            $firstImageUrl = $firstImage->url;
+        if ($categoryId) {
+            $query->whereHas('categories', function($q) use ($categoryId) {
+                $q->where('business_category.category_id', $categoryId);
+            });
         }
 
-        // Si no tiene imágenes, usar una imagen por defecto
-        if (!$firstImageUrl) {
-            $firstImageUrl = 'https://via.placeholder.com/300x200?text=Sin+Imagen'; // Imagen por defecto
-        }
+        $businesses = $query->orderBy('avg_rating', 'desc')
+            ->orderBy('ratings_count', 'desc')
+            ->paginate($limit);
 
-        // Añadir la URL de la primera imagen al objeto raíz del negocio
-        $business->first_image_url = $firstImageUrl;
+        // Añadir la primera imagen (o imagen por defecto) a cada negocio
+        $businesses->getCollection()->transform(function ($business) {
+            $firstImageUrl = null;
 
-        return $business;
-    });
-
-    return response()->json($businesses);
-}
-
-/**
- * @OA\Post(
- *     path="/api/businesses/{business}/cover-image",
- *     summary="Subir o actualizar la imagen de portada de un negocio",
- *     description="Sube o actualiza la imagen de portada de un negocio específico. Solo el dueño del negocio puede subir imágenes. La imagen se redimensiona automáticamente a 1200x630 píxeles (proporción 16:9) para optimizar el almacenamiento y la visualización.",
- *     tags={"Negocios"},
- *     security={{"bearerAuth": {}}},
- *     @OA\Parameter(
- *         name="business",
- *         in="path",
- *         required=true,
- *         description="ID del negocio",
- *         @OA\Schema(type="integer")
- *     ),
- *     @OA\RequestBody(
- *         required=true,
- *         description="Imagen de portada",
- *         @OA\MediaType(
- *             mediaType="multipart/form-data",
- *             @OA\Schema(
- *                 required={"cover_image"},
- *                 @OA\Property(property="cover_image", type="string", format="binary", description="Archivo de imagen de portada (JPEG, PNG, JPG, GIF). Máximo 2MB.")
- *             )
- *         )
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Imagen de portada subida correctamente",
- *         @OA\JsonContent(ref="#/components/schemas/Business")
- *     ),
- *     @OA\Response(
- *         response=403,
- *         description="No autorizado para subir imágenes a este negocio"
- *     ),
- *     @OA\Response(
- *         response=422,
- *         description="Error de validación de los datos enviados"
- *     )
- * )
- */
-public function updateCoverImage(Request $request, Business $business)
-{
-    $this->authorize('update', $business);
-
-    $validator = Validator::make($request->all(), [
-        'cover_image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 422);
-    }
-
-    try {
-        // Eliminar la imagen anterior si existe
-        if ($business->cover_image_url) {
-            $oldImagePath = public_path($business->cover_image_url);
-            if (file_exists($oldImagePath)) {
-                unlink($oldImagePath);
+            // Si el negocio tiene imágenes, usar la primera
+            if ($business->images->isNotEmpty()) {
+                $firstImage = $business->images->first();
+                $firstImageUrl = $firstImage->url;
             }
-        }
 
-        // Verificar si Intervention Image está disponible
-        if (!class_exists('Intervention\Image\Facades\Image')) {
-            throw new \Exception('Intervention Image no está disponible en este servidor.');
-        }
+            // Si no tiene imágenes, usar una imagen por defecto
+            if (!$firstImageUrl) {
+                $firstImageUrl = 'https://via.placeholder.com/300x200?text=Sin+Imagen'; // Imagen por defecto
+            }
 
-        // Procesar la imagen
-        $imageFile = $request->file('cover_image');
-        $img = Image::make($imageFile->getRealPath());
+            // Añadir la URL de la primera imagen al objeto raíz del negocio
+            $business->first_image_url = $firstImageUrl;
 
-        // Redimensionar a 1200x630 (16:9)
-        $img->resize(1200, 630, function ($constraint) {
-            $constraint->aspectRatio();
-            $constraint->upsize();
+            return $business;
         });
 
-        // Guardar la imagen
-        $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
-        $img->save(public_path('business_covers/' . $filename), 85);
+        return response()->json($businesses);
+    }
 
-        // Actualizar el modelo
-        $business->cover_image_url = 'business_covers/' . $filename;
-        $business->save();
+    /**
+     * @OA\Post(
+     *     path="/api/businesses/{business}/cover-image",
+     *     summary="Subir o actualizar la imagen de portada de un negocio",
+     *     description="Sube o actualiza la imagen de portada de un negocio específico. Solo el dueño del negocio puede subir imágenes. La imagen se redimensiona automáticamente a 1200x630 píxeles (proporción 16:9) para optimizar el almacenamiento y la visualización.",
+     *     tags={"Negocios"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="business",
+     *         in="path",
+     *         required=true,
+     *         description="ID del negocio",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Imagen de portada",
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"cover_image"},
+     *                 @OA\Property(property="cover_image", type="string", format="binary", description="Archivo de imagen de portada (JPEG, PNG, JPG, GIF). Máximo 2MB.")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Imagen de portada subida correctamente",
+     *         @OA\JsonContent(ref="#/components/schemas/Business")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="No autorizado para subir imágenes a este negocio"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Error de validación de los datos enviados"
+     *     )
+     * )
+     */
+    public function updateCoverImage(Request $request, Business $business)
+    {
+        $this->authorize('update', $business);
 
-        return response()->json([
-            'message' => 'Imagen de portada actualizada correctamente',
-            'business' => $business
+        $validator = Validator::make($request->all(), [
+            'cover_image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Error al procesar la imagen: ' . $e->getMessage()
-        ], 500);
-    }
-}
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
 
-/**
+        try {
+            // Eliminar la imagen anterior si existe
+            if ($business->cover_image_url) {
+                $oldImagePath = public_path($business->cover_image_url);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            // Verificar si Intervention Image está disponible
+            if (!class_exists('Intervention\Image\Facades\Image')) {
+                throw new \Exception('Intervention Image no está disponible en este servidor.');
+            }
+
+            // Procesar la imagen
+            $imageFile = $request->file('cover_image');
+            $img = Image::make($imageFile->getRealPath());
+
+            // Redimensionar a 1200x630 (16:9)
+            $img->resize(1200, 630, function ($constraint) {
+                $constraint->aspectRatio();
+                $constraint->upsize();
+            });
+
+            // Guardar la imagen
+            $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+            $img->save(public_path('business_covers/' . $filename), 85);
+
+            // Actualizar el modelo
+            $business->cover_image_url = 'business_covers/' . $filename;
+            $business->save();
+
+            return response()->json([
+                'message' => 'Imagen de portada actualizada correctamente',
+                'business' => $business
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error al procesar la imagen: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * @OA\Post(
      *     path="/api/businesses-with-images",
      *     summary="Crear un negocio con imágenes",
