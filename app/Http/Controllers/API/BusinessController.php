@@ -230,11 +230,11 @@ class BusinessController extends Controller
 
 
 
-  /**
+ /**
  * @OA\Put(
  *     path="/api/businesses/{business}",
  *     summary="Actualizar un negocio",
- *     description="Actualiza la información de un negocio, incluyendo su imagen de portada y múltiples imágenes. Solo el dueño del negocio puede actualizarlo.",
+ *     description="Actualiza la información de un negocio, incluyendo su imagen de portada y múltiples imágenes.",
  *     tags={"Negocios"},
  *     security={{"bearerAuth": {}}},
  *     @OA\Parameter(
@@ -251,32 +251,19 @@ class BusinessController extends Controller
  *             @OA\Schema(
  *                 required={"name", "address"},
  *                 @OA\Property(property="name", type="string", example="Panadería San Jorge (Actualizado)"),
- *                 @OA\Property(property="description", type="string", example="Panadería artesanal con más de 25 años de experiencia"),
+ *                 @OA\Property(property="description", type="string", example="Panadería artesanal..."),
  *                 @OA\Property(property="address", type="string", example="Calle Falsa 456"),
- *                 @OA\Property(property="latitude", type="number", format="float", nullable=true, example=-34.6037),
- *                 @OA\Property(property="longitude", type="number", format="float", nullable=true, example=-58.3816),
- *                 @OA\Property(property="categories", type="string", example="[1,2,3]", description="Array de categorías en formato JSON string"),
- *                 @OA\Property(property="cover_image", type="string", format="binary", description="Nueva imagen de portada (opcional)"),
- *                 @OA\Property(property="imagen1", type="string", format="binary", description="Imagen adicional 1 (opcional)"),
- *                 @OA\Property(property="imagen2", type="string", format="binary", description="Imagen adicional 2 (opcional)"),
- *                 @OA\Property(property="imagen3", type="string", format="binary", description="Imagen adicional 3 (opcional)"),
- *                 @OA\Property(property="imagen4", type="string", format="binary", description="Imagen adicional 4 (opcional)"),
- *                 @OA\Property(property="imagen5", type="string", format="binary", description="Imagen adicional 5 (opcional)")
+ *                 @OA\Property(property="lat", type="number", format="float", nullable=true, example=-34.6037),
+ *                 @OA\Property(property="lon", type="number", format="float", nullable=true, example=-58.3816),
+ *                 @OA\Property(property="categories", type="string", example="[1,2,3]"),
+ *                 @OA\Property(property="cover_image", type="string", format="binary"),
+ *                 @OA\Property(property="imagen1", type="string", format="binary"),
+ *                 @OA\Property(property="imagen2", type="string", format="binary"),
+ *                 @OA\Property(property="imagen3", type="string", format="binary"),
+ *                 @OA\Property(property="imagen4", type="string", format="binary"),
+ *                 @OA\Property(property="imagen5", type="string", format="binary")
  *             )
  *         )
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Negocio actualizado correctamente",
- *         @OA\JsonContent(ref="#/components/schemas/Business")
- *     ),
- *     @OA\Response(
- *         response=403,
- *         description="No autorizado para actualizar este negocio"
- *     ),
- *     @OA\Response(
- *         response=422,
- *         description="Error de validación de los datos enviados"
  *     )
  * )
  */
@@ -284,93 +271,13 @@ public function update(Request $request, Business $business)
 {
     $this->authorize('update', $business);
 
-    // Diagnóstico completo de la solicitud
-    Log::info('=== DIAGNÓSTICO COMPLETO DE LA SOLICITUD ===');
-
-    // 1. Mostrar todos los datos de la solicitud
-    Log::info('Request all():', $request->all());
-
-    // 2. Mostrar todos los archivos de la solicitud
-    Log::info('Request files():', $request->file());
-
-    // 3. Mostrar el contenido crudo de la solicitud
-    Log::info('Request content:', $request->getContent());
-
-    // 4. Mostrar los headers de la solicitud
-    Log::info('Request headers:', $request->header());
-
-    // 5. Mostrar el método de la solicitud
-    Log::info('Request method:', [$request->method()]);
-
-    // 6. Mostrar si es una solicitud multipart
-    Log::info('Is multipart:', [$request->isMethod('put'), $request->is('api/businesses/*')]);
-
-    // 7. Verificar si hay datos en el input
-    Log::info('Input name:', [$request->input('name')]);
-    Log::info('Input description:', [$request->input('description')]);
-    Log::info('Input address:', [$request->input('address')]);
-    Log::info('Input lat:', [$request->input('lat')]);
-    Log::info('Input lon:', [$request->input('lon')]);
-    Log::info('Input categories:', [$request->input('categories')]);
-
-    // 8. Verificar si hay archivos
-    Log::info('Has cover_image:', [$request->hasFile('cover_image')]);
-    Log::info('Has imagen1:', [$request->hasFile('imagen1')]);
-
-    // Verificar si el contenido es JSON
+    // Diagnóstico inicial
     $contentType = $request->header('Content-Type');
-    Log::info('Content-Type:', [$contentType]);
+    $allData = $request->all();
+    $allFiles = $request->file();
 
-    if (str_contains($contentType, 'multipart/form-data')) {
-        Log::info('Es una solicitud multipart/form-data');
-
-        // Intentar obtener los datos como si fueran multipart
-        $allInput = $request->all();
-        Log::info('All input (multipart):', $allInput);
-
-        // Verificar si los datos están en el cuerpo crudo
-        $rawContent = $request->getContent();
-        Log::info('Raw content length:', [strlen($rawContent)]);
-
-        // Intentar parsear manualmente el contenido multipart
-        if (!empty($rawContent)) {
-            try {
-                $boundary = substr($contentType, strpos($contentType, 'boundary=') + 9);
-                Log::info('Boundary:', [$boundary]);
-
-                $parts = explode($boundary, $rawContent);
-                Log::info('Number of parts:', [count($parts)]);
-            } catch (\Exception $e) {
-                Log::error('Error parsing multipart:', [$e->getMessage()]);
-            }
-        }
-    } elseif (str_contains($contentType, 'application/json')) {
-        Log::info('Es una solicitud JSON');
-        $jsonData = json_decode($request->getContent(), true);
-        Log::info('JSON data:', $jsonData);
-    }
-
-    // Si no hay datos, devolver un error de diagnóstico
-    if (empty($request->all()) && empty($request->file())) {
-        return response()->json([
-            'message' => 'No se recibieron datos en la solicitud',
-            'diagnostic' => [
-                'all' => $request->all(),
-                'files' => $request->file(),
-                'content_type' => $contentType,
-                'method' => $request->method(),
-                'headers' => $request->header()
-            ]
-        ], 400);
-    }
-
-    // Convertir categories de string a array si es necesario
-    $categories = $request->input('categories');
-    if (is_string($categories)) {
-        $categories = json_decode($categories, true);
-        $request->merge(['categories' => $categories]);
-        Log::info('Categorías convertidas:', ['categories' => $categories]);
-    }
+    // Log seguro que maneja tanto arrays como strings
+    $this->logRequestDetails($request, $contentType, $allData, $allFiles);
 
     // Validar datos del negocio
     $validator = Validator::make($request->all(), [
@@ -386,8 +293,7 @@ public function update(Request $request, Business $business)
         'address' => 'sometimes|string',
         'lat' => 'nullable|numeric|between:-90,90',
         'lon' => 'nullable|numeric|between:-180,180',
-        'categories' => 'nullable|array',
-        'categories.*' => 'exists:business_categories,id',
+        'categories' => 'nullable|string', // Primero como string
         'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         'imagen1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         'imagen2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -401,7 +307,7 @@ public function update(Request $request, Business $business)
     }
 
     try {
-        // Preparar datos para actualizar el negocio
+        // Preparar datos para actualizar
         $businessData = [];
 
         // Solo actualizar los campos que se proporcionaron
@@ -428,23 +334,26 @@ public function update(Request $request, Business $business)
         // Actualizar solo si hay datos para actualizar
         if (!empty($businessData)) {
             $business->update($businessData);
-            Log::info('Datos básicos del negocio actualizados:', $businessData);
-        } else {
-            Log::info('No se proporcionaron datos básicos para actualizar');
         }
 
-        // Actualizar categorías si existen
+        // Procesar categorías
         if ($request->has('categories')) {
-            $business->categories()->sync($request->input('categories'));
-            Log::info('Categorías actualizadas:', ['categories' => $request->input('categories')]);
+            $categories = $request->input('categories');
+            if (is_string($categories)) {
+                $categoriesArray = json_decode($categories, true);
+                if (is_array($categoriesArray)) {
+                    $business->categories()->sync($categoriesArray);
+                }
+            } elseif (is_array($categories)) {
+                $business->categories()->sync($categories);
+            }
         }
 
-        // Manejar la imagen de portada (opcional)
+        // Manejar imágenes
         if ($request->hasFile('cover_image')) {
             $this->handleCoverImageUpdate($request, $business);
         }
 
-        // Manejar las imágenes individuales del negocio
         $this->handleBusinessImagesUpdate($request, $business);
 
         // Recargar el negocio con sus relaciones
@@ -453,15 +362,73 @@ public function update(Request $request, Business $business)
         return response()->json($updatedBusiness);
 
     } catch (\Exception $e) {
-        Log::error('Error al actualizar el negocio:', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
         return response()->json([
             'message' => 'Error al actualizar el negocio: ' . $e->getMessage()
         ], 500);
     }
 }
+
+// Método para registrar detalles de la solicitud de forma segura
+protected function logRequestDetails(Request $request, $contentType, $allData, $allFiles)
+{
+    // Log básico de la solicitud
+    Log::info('=== INICIO DIAGNÓSTICO SOLICITUD ===');
+
+    // Log del método y URL
+    Log::info('Método y URL:', [
+        'method' => $request->method(),
+        'url' => $request->url(),
+        'path' => $request->path()
+    ]);
+
+    // Log de headers
+    Log::info('Headers:', $request->header());
+
+    // Log del Content-Type
+    Log::info('Content-Type:', [$contentType]);
+
+    // Log de todos los datos (con manejo seguro)
+    if (!empty($allData)) {
+        Log::info('Datos recibidos (all()):', $allData);
+    } else {
+        Log::info('Datos recibidos (all()): vacío');
+    }
+
+    // Log de archivos
+    if (!empty($allFiles)) {
+        Log::info('Archivos recibidos:', array_keys($allFiles));
+        foreach ($allFiles as $key => $file) {
+            Log::info("Archivo $key:", [
+                'name' => $file->getClientOriginalName(),
+                'size' => $file->getSize(),
+                'mime' => $file->getMimeType()
+            ]);
+        }
+    } else {
+        Log::info('Archivos recibidos: ninguno');
+    }
+
+    // Verificar campos específicos
+    $fieldsToCheck = ['name', 'description', 'address', 'lat', 'lon', 'categories'];
+    foreach ($fieldsToCheck as $field) {
+        $value = $request->input($field);
+        Log::info("Campo $field:", [
+            'has' => $request->has($field),
+            'value' => $value
+        ]);
+    }
+
+    // Verificar si hay contenido crudo
+    $rawContent = $request->getContent();
+    if (!empty($rawContent)) {
+        Log::info('Contenido crudo (primeros 200 caracteres):', [substr($rawContent, 0, 200)]);
+    } else {
+        Log::info('Contenido crudo: vacío');
+    }
+
+    Log::info('=== FIN DIAGNÓSTICO SOLICITUD ===');
+}
+
 
 /**
  * Maneja la actualización de la imagen de portada.
