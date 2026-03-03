@@ -230,7 +230,7 @@ class BusinessController extends Controller
 
 
 
-   /**
+  /**
  * @OA\Put(
  *     path="/api/businesses/{business}",
  *     summary="Actualizar un negocio",
@@ -284,9 +284,29 @@ public function update(Request $request, Business $business)
 {
     $this->authorize('update', $business);
 
-    Log::info('Iniciando actualización del negocio', [
+    // Obtener todos los datos de la solicitud
+    $allData = $request->all();
+
+    // Obtener los archivos de la solicitud
+    $allFiles = $request->file();
+
+    // Log detallado de los datos recibidos
+    Log::info('Datos recibidos en la solicitud:', [
         'business_id' => $business->id,
-        'request_data' => $request->all(),
+        'all_data' => $allData,
+        'all_files' => array_keys($allFiles),
+        'has_name' => $request->has('name'),
+        'name' => $request->input('name'),
+        'has_description' => $request->has('description'),
+        'description' => $request->input('description'),
+        'has_address' => $request->has('address'),
+        'address' => $request->input('address'),
+        'has_lat' => $request->has('lat'),
+        'lat' => $request->input('lat'),
+        'has_lon' => $request->has('lon'),
+        'lon' => $request->input('lon'),
+        'has_categories' => $request->has('categories'),
+        'categories' => $request->input('categories'),
         'has_cover_image' => $request->hasFile('cover_image'),
         'has_imagen1' => $request->hasFile('imagen1'),
         'has_imagen2' => $request->hasFile('imagen2'),
@@ -316,8 +336,8 @@ public function update(Request $request, Business $business)
         ],
         'description' => 'nullable|string',
         'address' => 'sometimes|required|string',
-        'latitude' => 'nullable|numeric|between:-90,90',
-        'longitude' => 'nullable|numeric|between:-180,180',
+        'lat' => 'nullable|numeric|between:-90,90', // Cambiado de latitude a lat para coincidir con FlutterFlow
+        'lon' => 'nullable|numeric|between:-180,180', // Cambiado de longitude a lon para coincidir con FlutterFlow
         'categories' => 'nullable|array',
         'categories.*' => 'exists:business_categories,id',
         'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -326,6 +346,9 @@ public function update(Request $request, Business $business)
         'imagen3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         'imagen4' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         'imagen5' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+    ], [
+        'lat.numeric' => 'La latitud debe ser un número válido',
+        'lon.numeric' => 'La longitud debe ser un número válido'
     ]);
 
     if ($validator->fails()) {
@@ -334,14 +357,22 @@ public function update(Request $request, Business $business)
     }
 
     try {
+        // Preparar datos para actualizar el negocio
+        $businessData = [
+            'name' => $request->input('name', $business->name),
+            'description' => $request->input('description', $business->description),
+            'address' => $request->input('address', $business->address),
+            'latitude' => $request->input('lat', $business->latitude),
+            'longitude' => $request->input('lon', $business->longitude),
+        ];
+
         // Actualizar datos básicos del negocio
-        $businessData = $request->except('categories', 'cover_image', 'imagen1', 'imagen2', 'imagen3', 'imagen4', 'imagen5');
         $business->update($businessData);
 
         // Actualizar categorías si existen
-        if ($request->has('categories') && is_array($request->categories)) {
-            $business->categories()->sync($request->categories);
-            Log::info('Categorías actualizadas', ['categories' => $request->categories]);
+        if ($request->has('categories') && is_array($request->input('categories'))) {
+            $business->categories()->sync($request->input('categories'));
+            Log::info('Categorías actualizadas', ['categories' => $request->input('categories')]);
         }
 
         // Manejar la imagen de portada (opcional)
@@ -456,7 +487,6 @@ protected function handleBusinessImagesUpdate(Request $request, Business $busine
         throw $e;
     }
 }
-
     /**
      * @OA\Delete(
      *     path="/api/businesses/{business}",
