@@ -284,50 +284,98 @@ public function update(Request $request, Business $business)
 {
     $this->authorize('update', $business);
 
-    // Obtener todos los datos de la solicitud
-    $allData = $request->all();
+    // Diagnóstico completo de la solicitud
+    Log::info('=== DIAGNÓSTICO COMPLETO DE LA SOLICITUD ===');
 
-    // Obtener los archivos de la solicitud
-    $allFiles = $request->file();
+    // 1. Mostrar todos los datos de la solicitud
+    Log::info('Request all():', $request->all());
 
-    // Log detallado de los datos recibidos
-    Log::info('Datos recibidos en la solicitud:', [
-        'business_id' => $business->id,
-        'all_data' => $allData,
-        'all_files' => array_keys($allFiles),
-        'has_name' => $request->has('name'),
-        'name' => $request->input('name'),
-        'has_description' => $request->has('description'),
-        'description' => $request->input('description'),
-        'has_address' => $request->has('address'),
-        'address' => $request->input('address'),
-        'has_lat' => $request->has('lat'),
-        'lat' => $request->input('lat'),
-        'has_lon' => $request->has('lon'),
-        'lon' => $request->input('lon'),
-        'has_categories' => $request->has('categories'),
-        'categories' => $request->input('categories'),
-        'has_cover_image' => $request->hasFile('cover_image'),
-        'has_imagen1' => $request->hasFile('imagen1'),
-        'has_imagen2' => $request->hasFile('imagen2'),
-        'has_imagen3' => $request->hasFile('imagen3'),
-        'has_imagen4' => $request->hasFile('imagen4'),
-        'has_imagen5' => $request->hasFile('imagen5')
-    ]);
+    // 2. Mostrar todos los archivos de la solicitud
+    Log::info('Request files():', $request->file());
+
+    // 3. Mostrar el contenido crudo de la solicitud
+    Log::info('Request content:', $request->getContent());
+
+    // 4. Mostrar los headers de la solicitud
+    Log::info('Request headers:', $request->header());
+
+    // 5. Mostrar el método de la solicitud
+    Log::info('Request method:', [$request->method()]);
+
+    // 6. Mostrar si es una solicitud multipart
+    Log::info('Is multipart:', [$request->isMethod('put'), $request->is('api/businesses/*')]);
+
+    // 7. Verificar si hay datos en el input
+    Log::info('Input name:', [$request->input('name')]);
+    Log::info('Input description:', [$request->input('description')]);
+    Log::info('Input address:', [$request->input('address')]);
+    Log::info('Input lat:', [$request->input('lat')]);
+    Log::info('Input lon:', [$request->input('lon')]);
+    Log::info('Input categories:', [$request->input('categories')]);
+
+    // 8. Verificar si hay archivos
+    Log::info('Has cover_image:', [$request->hasFile('cover_image')]);
+    Log::info('Has imagen1:', [$request->hasFile('imagen1')]);
+
+    // Verificar si el contenido es JSON
+    $contentType = $request->header('Content-Type');
+    Log::info('Content-Type:', [$contentType]);
+
+    if (str_contains($contentType, 'multipart/form-data')) {
+        Log::info('Es una solicitud multipart/form-data');
+
+        // Intentar obtener los datos como si fueran multipart
+        $allInput = $request->all();
+        Log::info('All input (multipart):', $allInput);
+
+        // Verificar si los datos están en el cuerpo crudo
+        $rawContent = $request->getContent();
+        Log::info('Raw content length:', [strlen($rawContent)]);
+
+        // Intentar parsear manualmente el contenido multipart
+        if (!empty($rawContent)) {
+            try {
+                $boundary = substr($contentType, strpos($contentType, 'boundary=') + 9);
+                Log::info('Boundary:', [$boundary]);
+
+                $parts = explode($boundary, $rawContent);
+                Log::info('Number of parts:', [count($parts)]);
+            } catch (\Exception $e) {
+                Log::error('Error parsing multipart:', [$e->getMessage()]);
+            }
+        }
+    } elseif (str_contains($contentType, 'application/json')) {
+        Log::info('Es una solicitud JSON');
+        $jsonData = json_decode($request->getContent(), true);
+        Log::info('JSON data:', $jsonData);
+    }
+
+    // Si no hay datos, devolver un error de diagnóstico
+    if (empty($request->all()) && empty($request->file())) {
+        return response()->json([
+            'message' => 'No se recibieron datos en la solicitud',
+            'diagnostic' => [
+                'all' => $request->all(),
+                'files' => $request->file(),
+                'content_type' => $contentType,
+                'method' => $request->method(),
+                'headers' => $request->header()
+            ]
+        ], 400);
+    }
 
     // Convertir categories de string a array si es necesario
     $categories = $request->input('categories');
     if (is_string($categories)) {
         $categories = json_decode($categories, true);
         $request->merge(['categories' => $categories]);
-        Log::info('Categorías convertidas de string a array', ['categories' => $categories]);
+        Log::info('Categorías convertidas:', ['categories' => $categories]);
     }
 
     // Validar datos del negocio
     $validator = Validator::make($request->all(), [
         'name' => [
             'sometimes',
-            'required',
             'string',
             'max:255',
             Rule::unique('businesses')->ignore($business->id)->where(function ($query) {
@@ -335,9 +383,9 @@ public function update(Request $request, Business $business)
             })
         ],
         'description' => 'nullable|string',
-        'address' => 'sometimes|required|string',
-        'lat' => 'nullable|numeric|between:-90,90', // Cambiado de latitude a lat para coincidir con FlutterFlow
-        'lon' => 'nullable|numeric|between:-180,180', // Cambiado de longitude a lon para coincidir con FlutterFlow
+        'address' => 'sometimes|string',
+        'lat' => 'nullable|numeric|between:-90,90',
+        'lon' => 'nullable|numeric|between:-180,180',
         'categories' => 'nullable|array',
         'categories.*' => 'exists:business_categories,id',
         'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -346,33 +394,49 @@ public function update(Request $request, Business $business)
         'imagen3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         'imagen4' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         'imagen5' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-    ], [
-        'lat.numeric' => 'La latitud debe ser un número válido',
-        'lon.numeric' => 'La longitud debe ser un número válido'
     ]);
 
     if ($validator->fails()) {
-        Log::error('Errores de validación', ['errors' => $validator->errors()]);
         return response()->json($validator->errors(), 422);
     }
 
     try {
         // Preparar datos para actualizar el negocio
-        $businessData = [
-            'name' => $request->input('name', $business->name),
-            'description' => $request->input('description', $business->description),
-            'address' => $request->input('address', $business->address),
-            'latitude' => $request->input('lat', $business->latitude),
-            'longitude' => $request->input('lon', $business->longitude),
-        ];
+        $businessData = [];
 
-        // Actualizar datos básicos del negocio
-        $business->update($businessData);
+        // Solo actualizar los campos que se proporcionaron
+        if ($request->has('name')) {
+            $businessData['name'] = $request->input('name');
+        }
+
+        if ($request->has('description')) {
+            $businessData['description'] = $request->input('description');
+        }
+
+        if ($request->has('address')) {
+            $businessData['address'] = $request->input('address');
+        }
+
+        if ($request->has('lat')) {
+            $businessData['latitude'] = $request->input('lat');
+        }
+
+        if ($request->has('lon')) {
+            $businessData['longitude'] = $request->input('lon');
+        }
+
+        // Actualizar solo si hay datos para actualizar
+        if (!empty($businessData)) {
+            $business->update($businessData);
+            Log::info('Datos básicos del negocio actualizados:', $businessData);
+        } else {
+            Log::info('No se proporcionaron datos básicos para actualizar');
+        }
 
         // Actualizar categorías si existen
-        if ($request->has('categories') && is_array($request->input('categories'))) {
+        if ($request->has('categories')) {
             $business->categories()->sync($request->input('categories'));
-            Log::info('Categorías actualizadas', ['categories' => $request->input('categories')]);
+            Log::info('Categorías actualizadas:', ['categories' => $request->input('categories')]);
         }
 
         // Manejar la imagen de portada (opcional)
@@ -386,15 +450,10 @@ public function update(Request $request, Business $business)
         // Recargar el negocio con sus relaciones
         $updatedBusiness = $business->fresh()->load(['categories', 'images']);
 
-        Log::info('Negocio actualizado correctamente', [
-            'business_id' => $business->id,
-            'updated_business' => $updatedBusiness->toArray()
-        ]);
-
         return response()->json($updatedBusiness);
 
     } catch (\Exception $e) {
-        Log::error('Error al actualizar el negocio', [
+        Log::error('Error al actualizar el negocio:', [
             'error' => $e->getMessage(),
             'trace' => $e->getTraceAsString()
         ]);
