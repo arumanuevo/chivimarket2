@@ -113,7 +113,7 @@ Route::get('/businesses/top-rated', [BusinessController::class, 'getTopRatedBusi
 
 Route::get('/business-image/{filename}', [ImageController::class, 'showBusinessImage']);
 Route::get('/image/{filename}', [ImageController::class, 'show'])->name('image.show');
-Route::post('/api/businesses/{business}/update2', [BusinessController::class, 'update2']);
+Route::post('/businesses/{business}/update2', [BusinessController::class, 'update2']);
 
 // =============================================
 // RUTAS PROTEGIDAS (requieren autenticación)
