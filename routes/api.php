@@ -113,7 +113,7 @@ Route::get('/businesses/top-rated', [BusinessController::class, 'getTopRatedBusi
 
 Route::get('/business-image/{filename}', [ImageController::class, 'showBusinessImage']);
 Route::get('/image/{filename}', [ImageController::class, 'show'])->name('image.show');
-Route::post('/businesses/{business}/update2', [BusinessController::class, 'update2']);
+
 
 // =============================================
 // RUTAS PROTEGIDAS (requieren autenticación)
@@ -148,7 +148,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('businesses/{business}/categories/{category}', [BusinessController::class, 'removeCategory']);
     Route::post('businesses/{business}/categories/{category}', [BusinessController::class, 'addCategory']);
     Route::post('/businesses-with-images', [BusinessController::class, 'storeWithImages'])->middleware('auth:sanctum');
-    
+    Route::post('/businesses/{business}/update2', [BusinessController::class, 'update2']);
 
     Route::post('/api/businesses/{business}/update', [BusinessController::class, 'update']);
    // Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessImageController::class, 'store']);
