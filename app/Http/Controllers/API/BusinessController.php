@@ -450,36 +450,56 @@ protected function updateCoverImage(Request $request, Business $business)
     ]);
 }
 
-/**
- * Actualiza las imágenes del negocio
- */
-protected function updateBusinessImages(Request $request, Business $business)
-{
-    // Asegurarse de que el directorio exista
-    if (!file_exists(public_path('business_images'))) {
-        mkdir(public_path('business_images'), 0777, true);
-    }
+    /**
+     * Actualiza las imágenes del negocio
+     */
+    protected function updateBusinessImages(Request $request, Business $business)
+    {
+        Log::info('Actualizando imágenes del negocio', ['business_id' => $business->id]);
 
-    // Procesar cada imagen individual
-    for ($i = 1; $i <= 5; $i++) {
-        $imageField = 'imagen' . $i;
+        // Asegurarse de que el directorio exista
+        if (!file_exists(public_path('business_images'))) {
+            mkdir(public_path('business_images'), 0777, true);
+        }
 
-        if ($request->hasFile($imageField)) {
-            $image = $request->file($imageField);
-            $filename = uniqid() . '.' . $image->getClientOriginalExtension();
-            $image->move(public_path('business_images'), $filename);
+        // Procesar cada imagen individual
+        for ($i = 1; $i <= 5; $i++) {
+            $imageField = 'imagen' . $i;
 
-            // Crear registro de la imagen en la base de datos
-            $business->images()->create([
-                'url' => 'business_images/' . $filename,
-                'is_primary' => false,
-                'description' => 'Imagen ' . $i . ' de ' . $business->name
-            ]);
+            if ($request->hasFile($imageField)) {
+                $image = $request->file($imageField);
+                $filename = uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->move(public_path('business_images'), $filename);
 
-            Log::info("Imagen $imageField creada", ['filename' => $filename]);
+                // Buscar la imagen existente para esta posición
+                $existingImage = $business->images()->where('id', $i)->first();
+
+                if ($existingImage) {
+                    // Eliminar la imagen física anterior si existe
+                    $oldImagePath = public_path($existingImage->url);
+                    if (file_exists($oldImagePath)) {
+                        unlink($oldImagePath);
+                    }
+
+                    // Actualizar la imagen existente
+                    $existingImage->update([
+                        'url' => 'business_images/' . $filename,
+                        'description' => 'Imagen ' . $i . ' de ' . $business->name
+                    ]);
+                } else {
+                    // Crear una nueva imagen
+                    $business->images()->create([
+                        'url' => 'business_images/' . $filename,
+                        'is_primary' => false,
+                        'description' => 'Imagen ' . $i . ' de ' . $business->name
+                    ]);
+                }
+
+                Log::info("Imagen $imageField actualizada", ['filename' => $filename]);
+            }
         }
     }
-}
+
 
     /**
      * @OA\Delete(
