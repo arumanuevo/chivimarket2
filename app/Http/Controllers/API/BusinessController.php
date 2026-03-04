@@ -229,9 +229,10 @@ class BusinessController extends Controller
     }
 
 
+
 /**
- * @OA\Put(
- *     path="/api/businesses/{business}",
+ * @OA\Post(
+ *     path="/api/businesses/{business}/update",
  *     summary="Actualizar un negocio",
  *     description="Actualiza la información de un negocio, incluyendo su imagen de portada y múltiples imágenes.",
  *     tags={"Negocios"},
@@ -248,10 +249,10 @@ class BusinessController extends Controller
  *         @OA\MediaType(
  *             mediaType="multipart/form-data",
  *             @OA\Schema(
- *                 required={"name"},
+ *                 required={"name", "address"},
  *                 @OA\Property(property="name", type="string", example="Panadería San Jorge (Actualizado)"),
- *                 @OA\Property(property="description", type="string", example="Panadería artesanal..."),
- *                 @OA\Property(property="address", type="string", example="Calle Falsa 456"),
+ *                 @OA\Property(property="description", type="string, example="Panadería artesanal..."),
+ *                 @OA\Property(property="address", type="string, example="Calle Falsa 456"),
  *                 @OA\Property(property="lat", type="number", format="float", nullable=true, example=-34.6037),
  *                 @OA\Property(property="lon", type="number", format="float", nullable=true, example=-58.3816),
  *                 @OA\Property(property="categories", type="string", example="[1,2,3]"),
@@ -270,13 +271,25 @@ public function update(Request $request, Business $business)
 {
     $this->authorize('update', $business);
 
-    // Parsear manualmente el contenido multipart
-    $parsedData = $this->parseMultipartFormData($request);
-
-    Log::info('Datos parseados manualmente:', $parsedData);
+    // Log simple de los datos recibidos
+    Log::info('Datos recibidos en update:', [
+        'name' => $request->input('name'),
+        'description' => $request->input('description'),
+        'address' => $request->input('address'),
+        'lat' => $request->input('lat'),
+        'lon' => $request->input('lon'),
+        'categories' => $request->input('categories'),
+        'has_cover_image' => $request->hasFile('cover_image'),
+        'has_imagen1' => $request->hasFile('imagen1'),
+        'has_imagen2' => $request->hasFile('imagen2'),
+        'has_imagen3' => $request->hasFile('imagen3'),
+        'has_imagen4' => $request->hasFile('imagen4'),
+        'has_imagen5' => $request->hasFile('imagen5'),
+        'all_files' => $request->file() ? array_keys($request->file()) : []
+    ]);
 
     // Validar datos del negocio
-    $validator = Validator::make($parsedData['fields'], [
+    $validator = Validator::make($request->all(), [
         'name' => [
             'sometimes',
             'required',
@@ -290,7 +303,13 @@ public function update(Request $request, Business $business)
         'address' => 'sometimes|required|string',
         'lat' => 'nullable|numeric|between:-90,90',
         'lon' => 'nullable|numeric|between:-180,180',
-        'categories' => 'nullable|string', // Primero como string
+        'categories' => 'nullable|string',
+        'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'imagen1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'imagen2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'imagen3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'imagen4' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'imagen5' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
     ]);
 
     if ($validator->fails()) {
@@ -298,57 +317,38 @@ public function update(Request $request, Business $business)
     }
 
     try {
-        // Preparar datos para actualizar
-        $businessData = [];
+        // Actualizar datos básicos del negocio
+        $businessData = $request->only(['name', 'description', 'address']);
 
-        // Solo actualizar los campos que se proporcionaron
-        if (isset($parsedData['fields']['name'])) {
-            $businessData['name'] = $parsedData['fields']['name'];
+        // Manejar lat y lon (que en FlutterFlow se llaman lat y lon, no latitude y longitude)
+        if ($request->has('lat')) {
+            $businessData['latitude'] = $request->input('lat');
         }
 
-        if (isset($parsedData['fields']['description'])) {
-            $businessData['description'] = $parsedData['fields']['description'];
+        if ($request->has('lon')) {
+            $businessData['longitude'] = $request->input('lon');
         }
 
-        if (isset($parsedData['fields']['address'])) {
-            $businessData['address'] = $parsedData['fields']['address'];
-        }
+        $business->update($businessData);
 
-        if (isset($parsedData['fields']['lat'])) {
-            $businessData['latitude'] = $parsedData['fields']['lat'];
-        }
-
-        if (isset($parsedData['fields']['lon'])) {
-            $businessData['longitude'] = $parsedData['fields']['lon'];
-        }
-
-        // Actualizar solo si hay datos para actualizar
-        if (!empty($businessData)) {
-            $business->update($businessData);
-            Log::info('Datos básicos del negocio actualizados:', $businessData);
-        } else {
-            Log::info('No se proporcionaron datos básicos para actualizar');
-        }
-
-        // Procesar categorías
-        if (isset($parsedData['fields']['categories'])) {
-            $categories = $parsedData['fields']['categories'];
+        // Actualizar categorías si existen
+        if ($request->has('categories')) {
+            $categories = $request->input('categories');
             if (is_string($categories)) {
                 $categoriesArray = json_decode($categories, true);
                 if (is_array($categoriesArray)) {
                     $business->categories()->sync($categoriesArray);
-                    Log::info('Categorías actualizadas:', ['categories' => $categoriesArray]);
                 }
             }
         }
 
         // Manejar la imagen de portada (opcional)
-        if (isset($parsedData['files']['cover_image'])) {
-            $this->handleCoverImageUpdateFromParsed($parsedData['files']['cover_image'], $business);
+        if ($request->hasFile('cover_image')) {
+            $this->updateCoverImage($request, $business);
         }
 
         // Manejar las imágenes individuales del negocio
-        $this->handleBusinessImagesUpdateFromParsed($parsedData['files'], $business);
+        $this->updateBusinessImages($request, $business);
 
         // Recargar el negocio con sus relaciones
         $updatedBusiness = $business->fresh()->load(['categories', 'images']);
@@ -357,8 +357,7 @@ public function update(Request $request, Business $business)
 
     } catch (\Exception $e) {
         Log::error('Error al actualizar el negocio:', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
+            'error' => $e->getMessage()
         ]);
         return response()->json([
             'message' => 'Error al actualizar el negocio: ' . $e->getMessage()
@@ -367,177 +366,48 @@ public function update(Request $request, Business $business)
 }
 
 /**
- * Parsear manualmente el contenido multipart/form-data
+ * Actualiza la imagen de portada del negocio
  */
-protected function parseMultipartFormData(Request $request)
+protected function updateCoverImage(Request $request, Business $business)
 {
-    $result = [
-        'fields' => [],
-        'files' => []
-    ];
-
-    // Obtener el contenido crudo y el boundary
-    $content = $request->getContent();
-    $contentType = $request->header('Content-Type');
-
-    if (empty($content) || !str_contains($contentType, 'multipart/form-data')) {
-        return $result;
-    }
-
-    // Extraer el boundary
-    preg_match('/boundary=(?<boundary>.*)$/', $contentType, $matches);
-    $boundary = $matches['boundary'] ?? '';
-
-    if (empty($boundary)) {
-        return $result;
-    }
-
-    // Dividir el contenido por el boundary
-    $parts = array_slice(explode($boundary, $content), 1);
-
-    foreach ($parts as $part) {
-        // Ignorar partes vacías
-        if (empty(trim($part))) {
-            continue;
-        }
-
-        // Obtener las cabezeras de la parte
-        $part = ltrim($part, "\r\n");
-        list($rawHeaders, $body) = explode("\r\n\r\n", $part, 2);
-        $body = substr($body, 0, strlen($body) - 2); // Remover el -- al final
-
-        // Parsear las cabezeras
-        $headers = [];
-        $headerLines = explode("\r\n", $rawHeaders);
-        foreach ($headerLines as $headerLine) {
-            list($name, $value) = explode(':', $headerLine, 2);
-            $headers[strtolower(trim($name))] = trim($value);
-        }
-
-        // Procesar según el tipo de parte
-        if (isset($headers['content-disposition'])) {
-            // Parsear el content-disposition
-            preg_match('/name="(?<name>.*)"(; filename="(?<filename>.*)")?/', $headers['content-disposition'], $matches);
-
-            $name = $matches['name'] ?? '';
-            $filename = $matches['filename'] ?? null;
-
-            if ($filename) {
-                // Es un archivo
-                $result['files'][$name] = [
-                    'name' => $filename,
-                    'content' => $body,
-                    'headers' => $headers
-                ];
-            } else {
-                // Es un campo de formulario
-                $result['fields'][$name] = trim($body);
-            }
+    // Eliminar la imagen anterior si existe
+    if ($business->cover_image_url) {
+        $oldImagePath = public_path($business->cover_image_url);
+        if (file_exists($oldImagePath)) {
+            unlink($oldImagePath);
         }
     }
 
-    return $result;
+    // Guardar la nueva imagen
+    $imageFile = $request->file('cover_image');
+    $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+    $imageFile->move(public_path('business_covers'), $filename);
+
+    // Actualizar el modelo
+    $business->cover_image_url = 'business_covers/' . $filename;
+    $business->save();
 }
 
 /**
- * Maneja la actualización de la imagen de portada desde datos parseados
+ * Actualiza las imágenes del negocio
  */
-protected function handleCoverImageUpdateFromParsed($fileData, Business $business)
+protected function updateBusinessImages(Request $request, Business $business)
 {
-    Log::info('Actualizando imagen de portada desde datos parseados', [
-        'business_id' => $business->id,
-        'filename' => $fileData['name']
-    ]);
+    for ($i = 1; $i <= 5; $i++) {
+        $imageField = 'imagen' . $i;
 
-    try {
-        // Eliminar la imagen anterior si existe
-        if ($business->cover_image_url) {
-            $oldImagePath = public_path($business->cover_image_url);
-            if (file_exists($oldImagePath)) {
-                unlink($oldImagePath);
-                Log::info('Imagen de portada anterior eliminada', ['path' => $oldImagePath]);
-            }
+        if ($request->hasFile($imageField)) {
+            $image = $request->file($imageField);
+            $filename = uniqid() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('business_images'), $filename);
+
+            // Crear registro de la imagen en la base de datos
+            $business->images()->create([
+                'url' => 'business_images/' . $filename,
+                'is_primary' => false,
+                'description' => 'Imagen ' . $i . ' de ' . $business->name
+            ]);
         }
-
-        // Guardar el nuevo archivo
-        $filename = uniqid() . '.' . pathinfo($fileData['name'], PATHINFO_EXTENSION);
-        $filePath = public_path('business_covers/' . $filename);
-
-        // Asegurarse de que el directorio exista
-        if (!file_exists(public_path('business_covers'))) {
-            mkdir(public_path('business_covers'), 0777, true);
-        }
-
-        // Guardar el archivo
-        file_put_contents($filePath, $fileData['content']);
-
-        // Actualizar el modelo
-        $business->cover_image_url = 'business_covers/' . $filename;
-        $business->save();
-
-        Log::info('Imagen de portada actualizada', [
-            'cover_image_url' => $business->cover_image_url
-        ]);
-
-    } catch (\Exception $e) {
-        Log::error('Error al actualizar imagen de portada desde datos parseados', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        throw $e;
-    }
-}
-
-/**
- * Maneja la actualización de las imágenes individuales del negocio desde datos parseados
- */
-protected function handleBusinessImagesUpdateFromParsed($files, Business $business)
-{
-    Log::info('Actualizando imágenes del negocio desde datos parseados', [
-        'business_id' => $business->id,
-        'files' => array_keys($files)
-    ]);
-
-    try {
-        // Asegurarse de que el directorio exista
-        if (!file_exists(public_path('business_images'))) {
-            mkdir(public_path('business_images'), 0777, true);
-        }
-
-        // Procesar cada imagen individual
-        for ($i = 1; $i <= 5; $i++) {
-            $imageField = 'imagen' . $i;
-
-            if (isset($files[$imageField])) {
-                $fileData = $files[$imageField];
-                Log::info("Procesando $imageField", [
-                    'name' => $fileData['name'],
-                    'size' => strlen($fileData['content'])
-                ]);
-
-                $filename = uniqid() . '.' . pathinfo($fileData['name'], PATHINFO_EXTENSION);
-                $filePath = public_path('business_images/' . $filename);
-
-                // Guardar el archivo
-                file_put_contents($filePath, $fileData['content']);
-
-                // Crear registro de la imagen en la base de datos
-                $businessImage = $business->images()->create([
-                    'url' => 'business_images/' . $filename,
-                    'is_primary' => false,
-                    'description' => 'Imagen ' . $i . ' de ' . $business->name
-                ]);
-
-                Log::info("Imagen $imageField creada", ['image_id' => $businessImage->id]);
-            }
-        }
-
-    } catch (\Exception $e) {
-        Log::error('Error al actualizar imágenes del negocio desde datos parseados', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        throw $e;
     }
 }
 
@@ -1129,7 +999,7 @@ protected function handleBusinessImagesUpdateFromParsed($files, Business $busine
      *     )
      * )
      */
-    public function updateCoverImage(Request $request, Business $business)
+    /*public function updateCoverImage(Request $request, Business $business)
     {
         $this->authorize('update', $business);
 
@@ -1183,7 +1053,7 @@ protected function handleBusinessImagesUpdateFromParsed($files, Business $busine
                 'message' => 'Error al procesar la imagen: ' . $e->getMessage()
             ], 500);
         }
-    }
+    }*/
 
     /**
      * @OA\Post(
