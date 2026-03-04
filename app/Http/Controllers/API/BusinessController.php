@@ -1327,6 +1327,149 @@ protected function updateBusinessImages(Request $request, Business $business)
     }
 
 
+    /**
+ * Método de prueba minimalista para diagnosticar qué datos están llegando desde FlutterFlow
+ *
+ * @OA\Post(
+ *     path="/api/businesses/{business}/update2",
+ *     summary="Actualizar negocio (versión de prueba)",
+ *     description="Endpoint de prueba para diagnosticar qué datos están llegando desde FlutterFlow. Solo acepta datos de texto, sin imágenes.",
+ *     tags={"Negocios"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Parameter(
+ *         name="business",
+ *         in="path",
+ *         required=true,
+ *         description="ID del negocio",
+ *         @OA\Schema(type="integer")
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\MediaType(
+ *             mediaType="multipart/form-data",
+ *             @OA\Schema(
+ *                 required={"name"},
+ *                 @OA\Property(property="name", type="string", example="Panadería San Jorge (Actualizado)"),
+ *                 @OA\Property(property="description", type="string, example="Panadería artesanal..."),
+ *                 @OA\Property(property="address", type="string, example="Calle Falsa 456"),
+ *                 @OA\Property(property="lat", type="number", format="float", nullable=true, example=-34.6037),
+ *                 @OA\Property(property="lon", type="number", format="float", nullable=true, example=-58.3816),
+ *                 @OA\Property(property="categories", type="string", example="[1,2,3]")
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Datos recibidos correctamente",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="message", type="string", example="Datos recibidos correctamente"),
+ *             @OA\Property(property="received_data", type="object", description="Datos recibidos en la solicitud")
+ *         )
+ *     )
+ * )
+ */
+public function update2(Request $request, Business $business)
+{
+    $this->authorize('update', $business);
+
+    // Log detallado de la solicitud
+    Log::info('=== INICIO DIAGNÓSTICO UPDATE2 ===');
+
+    // 1. Mostrar información básica de la solicitud
+    Log::info('Método HTTP:', [$request->method()]);
+    Log::info('URL:', [$request->url()]);
+    Log::info('Headers:', $request->header());
+
+    // 2. Mostrar el Content-Type
+    $contentType = $request->header('Content-Type');
+    Log::info('Content-Type:', [$contentType]);
+
+    // 3. Mostrar todos los datos de entrada
+    $allData = $request->all();
+    Log::info('Datos de $request->all():', $allData);
+
+    // 4. Verificar campos específicos
+    $fieldsToCheck = ['name', 'description', 'address', 'lat', 'lon', 'categories'];
+    foreach ($fieldsToCheck as $field) {
+        $value = $request->input($field);
+        Log::info("Campo '$field':", [
+            'has' => $request->has($field),
+            'value' => $value,
+            'type' => gettype($value)
+        ]);
+    }
+
+    // 5. Mostrar el contenido crudo de la solicitud (primeros 1000 caracteres)
+    $rawContent = $request->getContent();
+    Log::info('Longitud del contenido crudo:', [strlen($rawContent)]);
+    if (!empty($rawContent)) {
+        Log::info('Primeros 1000 caracteres del contenido crudo:', [substr($rawContent, 0, 1000)]);
+    }
+
+    // 6. Intentar parsear manualmente el contenido multipart si es necesario
+    if (str_contains($contentType, 'multipart/form-data') && !empty($rawContent)) {
+        Log::info('Intentando parsear contenido multipart...');
+
+        // Extraer el boundary
+        preg_match('/boundary=(?<boundary>.*)$/', $contentType, $matches);
+        $boundary = $matches['boundary'] ?? '';
+
+        if (!empty($boundary)) {
+            Log::info('Boundary encontrado:', [$boundary]);
+
+            // Dividir el contenido por el boundary
+            $parts = array_slice(explode($boundary, $rawContent), 1);
+
+            foreach ($parts as $part) {
+                if (empty(trim($part))) continue;
+
+                $part = ltrim($part, "\r\n");
+                list($rawHeaders, $body) = explode("\r\n\r\n", $part, 2);
+                $body = substr($body, 0, strlen($body) - 2); // Remover el -- al final
+
+                // Parsear las cabezeras
+                $headers = [];
+                $headerLines = explode("\r\n", $rawHeaders);
+                foreach ($headerLines as $headerLine) {
+                    list($name, $value) = explode(':', $headerLine, 2);
+                    $headers[strtolower(trim($name))] = trim($value);
+                }
+
+                // Extraer el nombre del campo
+                if (isset($headers['content-disposition'])) {
+                    preg_match('/name="(?<name>.*)"/', $headers['content-disposition'], $matches);
+                    $name = $matches['name'] ?? '';
+
+                    if (!empty($name)) {
+                        Log::info("Campo multipart encontrado: '$name'", [
+                            'value' => trim($body),
+                            'headers' => $headers
+                        ]);
+
+                        // Almacenar el valor en un array para la respuesta
+                        $receivedData[$name] = trim($body);
+                    }
+                }
+            }
+        }
+    }
+
+    // Preparar la respuesta con los datos recibidos
+    $responseData = [
+        'message' => 'Datos recibidos correctamente en update2',
+        'received_data' => $receivedData ?? [],
+        'all_data' => $allData,
+        'request_method' => $request->method(),
+        'content_type' => $contentType,
+        'raw_content_length' => strlen($rawContent)
+    ];
+
+    Log::info('=== FIN DIAGNÓSTICO UPDATE2 ===');
+
+    return response()->json($responseData);
+}
+
 
 
 
