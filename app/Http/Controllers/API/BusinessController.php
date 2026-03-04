@@ -452,50 +452,103 @@ protected function updateCoverImage(Request $request, Business $business)
 
     /**
      * Actualiza las imágenes del negocio
+     * Solución definitiva que maneja sobreescritura, adición y eliminación de imágenes
      */
     protected function updateBusinessImages(Request $request, Business $business)
     {
-        Log::info('Actualizando imágenes del negocio', ['business_id' => $business->id]);
+        Log::info('Actualizando imágenes del negocio', [
+            'business_id' => $business->id,
+            'files' => $request->file() ? array_keys($request->file()) : []
+        ]);
 
         // Asegurarse de que el directorio exista
         if (!file_exists(public_path('business_images'))) {
             mkdir(public_path('business_images'), 0777, true);
         }
 
-        // Procesar cada imagen individual
+        // Obtener las imágenes actuales del negocio ordenadas por su posición (id)
+        $currentImages = $business->images()->orderBy('id')->get();
+
+        // Array para almacenar las imágenes que se mantendrán
+        $imagesToKeep = [];
+        $imagesToDelete = [];
+
+        // Procesar cada imagen individual (imagen1 a imagen5)
         for ($i = 1; $i <= 5; $i++) {
             $imageField = 'imagen' . $i;
 
             if ($request->hasFile($imageField)) {
+                // Se está enviando una nueva imagen para esta posición
                 $image = $request->file($imageField);
                 $filename = uniqid() . '.' . $image->getClientOriginalExtension();
                 $image->move(public_path('business_images'), $filename);
 
-                // Buscar la imagen existente para esta posición
-                $existingImage = $business->images()->where('id', $i)->first();
+                // Si existe una imagen en esta posición, marcarla para actualizar
+                if (isset($currentImages[$i-1])) {
+                    $imagesToKeep[$i-1] = [
+                        'id' => $currentImages[$i-1]->id,
+                        'filename' => $filename,
+                        'description' => 'Imagen ' . $i . ' de ' . $business->name
+                    ];
+                } else {
+                    // No existe una imagen en esta posición, crearemos una nueva
+                    $imagesToKeep[] = [
+                        'is_new' => true,
+                        'filename' => $filename,
+                        'description' => 'Imagen ' . $i . ' de ' . $business->name,
+                        'position' => $i-1
+                    ];
+                }
+            } elseif (isset($currentImages[$i-1])) {
+                // No se está enviando una nueva imagen para esta posición, mantener la existente
+                $imagesToKeep[$i-1] = [
+                    'id' => $currentImages[$i-1]->id,
+                    'keep_existing' => true
+                ];
+            }
+        }
 
-                if ($existingImage) {
-                    // Eliminar la imagen física anterior si existe
-                    $oldImagePath = public_path($existingImage->url);
+        // Procesar las imágenes que se mantendrán
+        foreach ($imagesToKeep as $position => $imageData) {
+            if (isset($imageData['is_new'])) {
+                // Crear una nueva imagen
+                $business->images()->create([
+                    'url' => 'business_images/' . $imageData['filename'],
+                    'is_primary' => false,
+                    'description' => $imageData['description']
+                ]);
+                Log::info("Nueva imagen creada para posición " . ($position+1), ['filename' => $imageData['filename']]);
+            } elseif (isset($imageData['filename'])) {
+                // Actualizar una imagen existente
+                $image = $business->images()->find($imageData['id']);
+                if ($image) {
+                    // Eliminar la imagen física anterior
+                    $oldImagePath = public_path($image->url);
                     if (file_exists($oldImagePath)) {
                         unlink($oldImagePath);
                     }
 
-                    // Actualizar la imagen existente
-                    $existingImage->update([
-                        'url' => 'business_images/' . $filename,
-                        'description' => 'Imagen ' . $i . ' de ' . $business->name
+                    // Actualizar la imagen
+                    $image->update([
+                        'url' => 'business_images/' . $imageData['filename'],
+                        'description' => $imageData['description']
                     ]);
-                } else {
-                    // Crear una nueva imagen
-                    $business->images()->create([
-                        'url' => 'business_images/' . $filename,
-                        'is_primary' => false,
-                        'description' => 'Imagen ' . $i . ' de ' . $business->name
-                    ]);
+                    Log::info("Imagen actualizada para posición " . ($position+1) . " (ID: {$imageData['id']})", ['filename' => $imageData['filename']]);
                 }
+            }
+            // Si solo tiene 'keep_existing', no hacemos nada, se mantiene como está
+        }
 
-                Log::info("Imagen $imageField actualizada", ['filename' => $filename]);
+        // Eliminar imágenes que ya no están en uso (las que no están en $imagesToKeep)
+        foreach ($currentImages as $index => $currentImage) {
+            if (!isset($imagesToKeep[$index])) {
+                // Esta imagen no está en $imagesToKeep, debe eliminarse
+                $oldImagePath = public_path($currentImage->url);
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+                $currentImage->delete();
+                Log::info("Imagen eliminada para posición " . ($index+1) . " (ID: {$currentImage->id})");
             }
         }
     }
