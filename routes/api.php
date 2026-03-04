@@ -150,7 +150,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/businesses-with-images', [BusinessController::class, 'storeWithImages'])->middleware('auth:sanctum');
     Route::post('/businesses/{business}/update2', [BusinessController::class, 'update2']);
 
-    Route::post('/api/businesses/{business}/update', [BusinessController::class, 'update']);
+    Route::post('/businesses/{business}/update', [BusinessController::class, 'update']);
    
    // Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessImageController::class, 'store']);
 
