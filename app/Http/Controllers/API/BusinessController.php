@@ -232,7 +232,7 @@ class BusinessController extends Controller
  * @OA\Post(
  *     path="/api/businesses/{business}/update",
  *     summary="Actualizar un negocio",
- *     description="Actualiza la información de un negocio. Solo valida los campos que tienen valores significativos.",
+ *     description="Actualiza la información de un negocio. Maneja correctamente los campos nulos y la estructura de la base de datos.",
  *     tags={"Negocios"},
  *     security={{"bearerAuth": {}}},
  *     @OA\Parameter(
@@ -278,42 +278,42 @@ public function update(Request $request, Business $business)
         'categories' => $request->input('categories'),
     ]);
 
-    // Validar SOLO los campos que tienen valores significativos (no nulos)
+    // Validar SOLO los campos que tienen valores significativos
     $validationRules = [];
-    $inputData = $request->all();
 
     // Validar solo los campos que existen y no son nulos
-    foreach ($inputData as $field => $value) {
-        // Saltar archivos y campos especiales
-        if (strpos($field, 'imagen') !== false || $field === 'cover_image' || is_null($value)) {
-            continue;
-        }
+    if ($request->has('name') && !is_null($request->input('name'))) {
+        $validationRules['name'] = [
+            'string',
+            'max:255',
+            Rule::unique('businesses')->ignore($business->id)->where(function ($query) {
+                return $query->where('user_id', Auth::id());
+            })
+        ];
+    }
 
-        // Aplicar reglas de validación según el campo
-        switch ($field) {
-            case 'name':
-                $validationRules[$field] = [
-                    'string',
-                    'max:255',
-                    Rule::unique('businesses')->ignore($business->id)->where(function ($query) {
-                        return $query->where('user_id', Auth::id());
-                    })
-                ];
-                break;
-            case 'description':
-                $validationRules[$field] = 'string';
-                break;
-            case 'address':
-                $validationRules[$field] = 'nullable|string'; // Permitir null
-                break;
-            case 'lat':
-            case 'lon':
-                $validationRules[$field] = 'nullable|numeric';
-                break;
-            case 'categories':
-                $validationRules[$field] = 'string'; // Validar como string primero
-                break;
+    if ($request->has('description') && !is_null($request->input('description'))) {
+        $validationRules['description'] = 'string';
+    }
+
+    // Validar address solo si se envía y no es nulo
+    if ($request->has('address')) {
+        // Si se envía address como null, no validamos (permitimos null)
+        if (!is_null($request->input('address'))) {
+            $validationRules['address'] = 'string';
         }
+    }
+
+    if ($request->has('lat') && !is_null($request->input('lat'))) {
+        $validationRules['lat'] = 'numeric|between:-90,90';
+    }
+
+    if ($request->has('lon') && !is_null($request->input('lon'))) {
+        $validationRules['lon'] = 'numeric|between:-180,180';
+    }
+
+    if ($request->has('categories') && !is_null($request->input('categories'))) {
+        $validationRules['categories'] = 'string';
     }
 
     // Validar archivos si existen
@@ -327,9 +327,9 @@ public function update(Request $request, Business $business)
         }
     }
 
-    // Validar solo los campos que tienen reglas
+    // Validar solo si hay reglas
     if (!empty($validationRules)) {
-        $validator = Validator::make($inputData, $validationRules);
+        $validator = Validator::make($request->all(), $validationRules);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 422);
@@ -349,9 +349,11 @@ public function update(Request $request, Business $business)
             $businessData['description'] = $request->input('description');
         }
 
-        // Permitir address null
+        // Manejo especial para address
         if ($request->has('address')) {
-            $businessData['address'] = $request->input('address');
+            // Si se envía address como null, establecerlo como string vacío
+            $addressValue = $request->input('address');
+            $businessData['address'] = is_null($addressValue) ? '' : $addressValue;
         }
 
         if ($request->has('lat') && !is_null($request->input('lat'))) {
@@ -364,8 +366,24 @@ public function update(Request $request, Business $business)
 
         // Actualizar solo si hay datos para actualizar
         if (!empty($businessData)) {
-            $business->update($businessData);
-            Log::info('Datos básicos del negocio actualizados:', $businessData);
+            // Usar query builder para manejar el caso de address null
+            if (array_key_exists('address', $businessData)) {
+                // Si address es string vacío, establecerlo como tal
+                DB::table('businesses')
+                    ->where('id', $business->id)
+                    ->update([
+                        'address' => $businessData['address'],
+                        'updated_at' => now()
+                    ]);
+
+                // Eliminar address de businessData para evitar conflicto en el update
+                unset($businessData['address']);
+            }
+
+            // Actualizar el resto de los campos
+            if (!empty($businessData)) {
+                $business->update($businessData);
+            }
         }
 
         // Procesar categorías si existen y no son nulas
@@ -375,7 +393,6 @@ public function update(Request $request, Business $business)
                 $categoriesArray = json_decode($categories, true);
                 if (is_array($categoriesArray)) {
                     $business->categories()->sync($categoriesArray);
-                    Log::info('Categorías actualizadas:', ['categories' => $categoriesArray]);
                 }
             }
         }
