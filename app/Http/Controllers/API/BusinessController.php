@@ -232,7 +232,7 @@ class BusinessController extends Controller
  * @OA\Post(
  *     path="/api/businesses/{business}/update",
  *     summary="Actualizar un negocio",
- *     description="Actualiza la información de un negocio, incluyendo su imagen de portada y múltiples imágenes.",
+ *     description="Actualiza la información de un negocio. Solo valida los campos que se envían.",
  *     tags={"Negocios"},
  *     security={{"bearerAuth": {}}},
  *     @OA\Parameter(
@@ -247,7 +247,6 @@ class BusinessController extends Controller
  *         @OA\MediaType(
  *             mediaType="multipart/form-data",
  *             @OA\Schema(
- *                 required={"name"},
  *                 @OA\Property(property="name", type="string", example="Panadería San Jorge (Actualizado)"),
  *                 @OA\Property(property="description", type="string, example="Panadería artesanal..."),
  *                 @OA\Property(property="address", type="string, example="Calle Falsa 456"),
@@ -269,41 +268,67 @@ public function update(Request $request, Business $business)
 {
     $this->authorize('update', $business);
 
-    // Log de diagnóstico (opcional, puedes comentarlo después)
+    // Log de diagnóstico (opcional)
     Log::info('Datos recibidos en update:', [
-        'name' => $request->input('name'),
-        'description' => $request->input('description'),
-        'address' => $request->input('address'),
-        'lat' => $request->input('lat'),
-        'lon' => $request->input('lon'),
-        'categories' => $request->input('categories'),
+        'name' => $request->has('name'),
+        'description' => $request->has('description'),
+        'address' => $request->has('address'),
+        'lat' => $request->has('lat'),
+        'lon' => $request->has('lon'),
+        'categories' => $request->has('categories'),
         'has_cover_image' => $request->hasFile('cover_image'),
         'has_imagen1' => $request->hasFile('imagen1'),
     ]);
 
-    // Validar datos del negocio
-    $validator = Validator::make($request->all(), [
-        'name' => [
-            'sometimes',
-            'required',
+    // Validar SOLO los campos que se envían
+    $validationRules = [];
+
+    // Solo validar 'name' si se envía
+    if ($request->has('name')) {
+        $validationRules['name'] = [
             'string',
             'max:255',
             Rule::unique('businesses')->ignore($business->id)->where(function ($query) {
                 return $query->where('user_id', Auth::id());
             })
-        ],
-        'description' => 'nullable|string',
-        'address' => 'sometimes|required|string',
-        'lat' => 'nullable|numeric|between:-90,90',
-        'lon' => 'nullable|numeric|between:-180,180',
-        'categories' => 'nullable|string',
-        'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'imagen1' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'imagen2' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'imagen3' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'imagen4' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'imagen5' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-    ]);
+        ];
+    }
+
+    // Solo validar 'address' si se envía
+    if ($request->has('address')) {
+        $validationRules['address'] = 'string';
+    }
+
+    // Validar otros campos si se envían
+    if ($request->has('description')) {
+        $validationRules['description'] = 'string';
+    }
+
+    if ($request->has('lat')) {
+        $validationRules['lat'] = 'numeric|between:-90,90';
+    }
+
+    if ($request->has('lon')) {
+        $validationRules['lon'] = 'numeric|between:-180,180';
+    }
+
+    if ($request->has('categories')) {
+        $validationRules['categories'] = 'string'; // Primero validamos como string
+    }
+
+    // Validar archivos si se envían
+    if ($request->hasFile('cover_image')) {
+        $validationRules['cover_image'] = 'image|mimes:jpeg,png,jpg,gif|max:2048';
+    }
+
+    for ($i = 1; $i <= 5; $i++) {
+        if ($request->hasFile('imagen' . $i)) {
+            $validationRules['imagen' . $i] = 'image|mimes:jpeg,png,jpg,gif|max:2048';
+        }
+    }
+
+    // Validar solo los campos que se envían
+    $validator = Validator::make($request->all(), $validationRules);
 
     if ($validator->fails()) {
         return response()->json($validator->errors(), 422);
@@ -338,9 +363,11 @@ public function update(Request $request, Business $business)
         if (!empty($businessData)) {
             $business->update($businessData);
             Log::info('Datos básicos del negocio actualizados:', $businessData);
+        } else {
+            Log::info('No se proporcionaron datos básicos para actualizar');
         }
 
-        // Procesar categorías
+        // Procesar categorías si existen
         if ($request->has('categories')) {
             $categories = $request->input('categories');
             if (is_string($categories)) {
@@ -349,8 +376,6 @@ public function update(Request $request, Business $business)
                     $business->categories()->sync($categoriesArray);
                     Log::info('Categorías actualizadas:', ['categories' => $categoriesArray]);
                 }
-            } elseif (is_array($categories)) {
-                $business->categories()->sync($categories);
             }
         }
 
@@ -377,6 +402,7 @@ public function update(Request $request, Business $business)
         ], 500);
     }
 }
+
 
 
 /**
