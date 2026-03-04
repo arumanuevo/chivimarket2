@@ -228,8 +228,6 @@ class BusinessController extends Controller
         return response()->json($business->load('categories'), 201);
     }
 
-
-
 /**
  * @OA\Post(
  *     path="/api/businesses/{business}/update",
@@ -249,7 +247,7 @@ class BusinessController extends Controller
  *         @OA\MediaType(
  *             mediaType="multipart/form-data",
  *             @OA\Schema(
- *                 required={"name", "address"},
+ *                 required={"name"},
  *                 @OA\Property(property="name", type="string", example="Panadería San Jorge (Actualizado)"),
  *                 @OA\Property(property="description", type="string, example="Panadería artesanal..."),
  *                 @OA\Property(property="address", type="string, example="Calle Falsa 456"),
@@ -271,7 +269,7 @@ public function update(Request $request, Business $business)
 {
     $this->authorize('update', $business);
 
-    // Log simple de los datos recibidos
+    // Log de diagnóstico (opcional, puedes comentarlo después)
     Log::info('Datos recibidos en update:', [
         'name' => $request->input('name'),
         'description' => $request->input('description'),
@@ -281,11 +279,6 @@ public function update(Request $request, Business $business)
         'categories' => $request->input('categories'),
         'has_cover_image' => $request->hasFile('cover_image'),
         'has_imagen1' => $request->hasFile('imagen1'),
-        'has_imagen2' => $request->hasFile('imagen2'),
-        'has_imagen3' => $request->hasFile('imagen3'),
-        'has_imagen4' => $request->hasFile('imagen4'),
-        'has_imagen5' => $request->hasFile('imagen5'),
-        'all_files' => $request->file() ? array_keys($request->file()) : []
     ]);
 
     // Validar datos del negocio
@@ -317,10 +310,22 @@ public function update(Request $request, Business $business)
     }
 
     try {
-        // Actualizar datos básicos del negocio
-        $businessData = $request->only(['name', 'description', 'address']);
+        // Preparar datos para actualizar el negocio
+        $businessData = [];
 
-        // Manejar lat y lon (que en FlutterFlow se llaman lat y lon, no latitude y longitude)
+        // Solo actualizar los campos que se proporcionaron
+        if ($request->has('name')) {
+            $businessData['name'] = $request->input('name');
+        }
+
+        if ($request->has('description')) {
+            $businessData['description'] = $request->input('description');
+        }
+
+        if ($request->has('address')) {
+            $businessData['address'] = $request->input('address');
+        }
+
         if ($request->has('lat')) {
             $businessData['latitude'] = $request->input('lat');
         }
@@ -329,16 +334,23 @@ public function update(Request $request, Business $business)
             $businessData['longitude'] = $request->input('lon');
         }
 
-        $business->update($businessData);
+        // Actualizar solo si hay datos para actualizar
+        if (!empty($businessData)) {
+            $business->update($businessData);
+            Log::info('Datos básicos del negocio actualizados:', $businessData);
+        }
 
-        // Actualizar categorías si existen
+        // Procesar categorías
         if ($request->has('categories')) {
             $categories = $request->input('categories');
             if (is_string($categories)) {
                 $categoriesArray = json_decode($categories, true);
                 if (is_array($categoriesArray)) {
                     $business->categories()->sync($categoriesArray);
+                    Log::info('Categorías actualizadas:', ['categories' => $categoriesArray]);
                 }
+            } elseif (is_array($categories)) {
+                $business->categories()->sync($categories);
             }
         }
 
@@ -357,13 +369,15 @@ public function update(Request $request, Business $business)
 
     } catch (\Exception $e) {
         Log::error('Error al actualizar el negocio:', [
-            'error' => $e->getMessage()
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
         ]);
         return response()->json([
             'message' => 'Error al actualizar el negocio: ' . $e->getMessage()
         ], 500);
     }
 }
+
 
 /**
  * Actualiza la imagen de portada del negocio
@@ -375,6 +389,7 @@ protected function updateCoverImage(Request $request, Business $business)
         $oldImagePath = public_path($business->cover_image_url);
         if (file_exists($oldImagePath)) {
             unlink($oldImagePath);
+            Log::info('Imagen de portada anterior eliminada', ['path' => $oldImagePath]);
         }
     }
 
@@ -386,6 +401,10 @@ protected function updateCoverImage(Request $request, Business $business)
     // Actualizar el modelo
     $business->cover_image_url = 'business_covers/' . $filename;
     $business->save();
+
+    Log::info('Imagen de portada actualizada', [
+        'cover_image_url' => $business->cover_image_url
+    ]);
 }
 
 /**
@@ -393,6 +412,12 @@ protected function updateCoverImage(Request $request, Business $business)
  */
 protected function updateBusinessImages(Request $request, Business $business)
 {
+    // Asegurarse de que el directorio exista
+    if (!file_exists(public_path('business_images'))) {
+        mkdir(public_path('business_images'), 0777, true);
+    }
+
+    // Procesar cada imagen individual
     for ($i = 1; $i <= 5; $i++) {
         $imageField = 'imagen' . $i;
 
@@ -407,6 +432,8 @@ protected function updateBusinessImages(Request $request, Business $business)
                 'is_primary' => false,
                 'description' => 'Imagen ' . $i . ' de ' . $business->name
             ]);
+
+            Log::info("Imagen $imageField creada", ['filename' => $filename]);
         }
     }
 }
