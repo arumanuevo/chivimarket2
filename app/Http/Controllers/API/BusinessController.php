@@ -232,7 +232,7 @@ class BusinessController extends Controller
  * @OA\Post(
  *     path="/api/businesses/{business}/update",
  *     summary="Actualizar un negocio",
- *     description="Actualiza la información de un negocio. Solo valida los campos que se envían.",
+ *     description="Actualiza la información de un negocio. Solo valida los campos que tienen valores significativos.",
  *     tags={"Negocios"},
  *     security={{"bearerAuth": {}}},
  *     @OA\Parameter(
@@ -270,53 +270,53 @@ public function update(Request $request, Business $business)
 
     // Log de diagnóstico (opcional)
     Log::info('Datos recibidos en update:', [
-        'name' => $request->has('name'),
-        'description' => $request->has('description'),
-        'address' => $request->has('address'),
-        'lat' => $request->has('lat'),
-        'lon' => $request->has('lon'),
-        'categories' => $request->has('categories'),
-        'has_cover_image' => $request->hasFile('cover_image'),
-        'has_imagen1' => $request->hasFile('imagen1'),
+        'name' => $request->input('name'),
+        'description' => $request->input('description'),
+        'address' => $request->input('address'),
+        'lat' => $request->input('lat'),
+        'lon' => $request->input('lon'),
+        'categories' => $request->input('categories'),
     ]);
 
-    // Validar SOLO los campos que se envían
+    // Validar SOLO los campos que tienen valores significativos (no nulos)
     $validationRules = [];
+    $inputData = $request->all();
 
-    // Solo validar 'name' si se envía
-    if ($request->has('name')) {
-        $validationRules['name'] = [
-            'string',
-            'max:255',
-            Rule::unique('businesses')->ignore($business->id)->where(function ($query) {
-                return $query->where('user_id', Auth::id());
-            })
-        ];
+    // Validar solo los campos que existen y no son nulos
+    foreach ($inputData as $field => $value) {
+        // Saltar archivos y campos especiales
+        if (strpos($field, 'imagen') !== false || $field === 'cover_image' || is_null($value)) {
+            continue;
+        }
+
+        // Aplicar reglas de validación según el campo
+        switch ($field) {
+            case 'name':
+                $validationRules[$field] = [
+                    'string',
+                    'max:255',
+                    Rule::unique('businesses')->ignore($business->id)->where(function ($query) {
+                        return $query->where('user_id', Auth::id());
+                    })
+                ];
+                break;
+            case 'description':
+                $validationRules[$field] = 'string';
+                break;
+            case 'address':
+                $validationRules[$field] = 'nullable|string'; // Permitir null
+                break;
+            case 'lat':
+            case 'lon':
+                $validationRules[$field] = 'nullable|numeric';
+                break;
+            case 'categories':
+                $validationRules[$field] = 'string'; // Validar como string primero
+                break;
+        }
     }
 
-    // Solo validar 'address' si se envía
-    if ($request->has('address')) {
-        $validationRules['address'] = 'string';
-    }
-
-    // Validar otros campos si se envían
-    if ($request->has('description')) {
-        $validationRules['description'] = 'string';
-    }
-
-    if ($request->has('lat')) {
-        $validationRules['lat'] = 'numeric|between:-90,90';
-    }
-
-    if ($request->has('lon')) {
-        $validationRules['lon'] = 'numeric|between:-180,180';
-    }
-
-    if ($request->has('categories')) {
-        $validationRules['categories'] = 'string'; // Primero validamos como string
-    }
-
-    // Validar archivos si se envían
+    // Validar archivos si existen
     if ($request->hasFile('cover_image')) {
         $validationRules['cover_image'] = 'image|mimes:jpeg,png,jpg,gif|max:2048';
     }
@@ -327,35 +327,38 @@ public function update(Request $request, Business $business)
         }
     }
 
-    // Validar solo los campos que se envían
-    $validator = Validator::make($request->all(), $validationRules);
+    // Validar solo los campos que tienen reglas
+    if (!empty($validationRules)) {
+        $validator = Validator::make($inputData, $validationRules);
 
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 422);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
     }
 
     try {
         // Preparar datos para actualizar el negocio
         $businessData = [];
 
-        // Solo actualizar los campos que se proporcionaron
-        if ($request->has('name')) {
+        // Solo actualizar los campos que tienen valores significativos
+        if ($request->has('name') && !is_null($request->input('name'))) {
             $businessData['name'] = $request->input('name');
         }
 
-        if ($request->has('description')) {
+        if ($request->has('description') && !is_null($request->input('description'))) {
             $businessData['description'] = $request->input('description');
         }
 
+        // Permitir address null
         if ($request->has('address')) {
             $businessData['address'] = $request->input('address');
         }
 
-        if ($request->has('lat')) {
+        if ($request->has('lat') && !is_null($request->input('lat'))) {
             $businessData['latitude'] = $request->input('lat');
         }
 
-        if ($request->has('lon')) {
+        if ($request->has('lon') && !is_null($request->input('lon'))) {
             $businessData['longitude'] = $request->input('lon');
         }
 
@@ -363,12 +366,10 @@ public function update(Request $request, Business $business)
         if (!empty($businessData)) {
             $business->update($businessData);
             Log::info('Datos básicos del negocio actualizados:', $businessData);
-        } else {
-            Log::info('No se proporcionaron datos básicos para actualizar');
         }
 
-        // Procesar categorías si existen
-        if ($request->has('categories')) {
+        // Procesar categorías si existen y no son nulas
+        if ($request->has('categories') && !is_null($request->input('categories'))) {
             $categories = $request->input('categories');
             if (is_string($categories)) {
                 $categoriesArray = json_decode($categories, true);
@@ -402,7 +403,6 @@ public function update(Request $request, Business $business)
         ], 500);
     }
 }
-
 
 
 /**
