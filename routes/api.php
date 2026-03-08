@@ -156,10 +156,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('businesses/{business}/images/{image}', [\App\Http\Controllers\API\BusinessImageController::class, 'destroy']);
     // Rutas para gestión individual de imágenes de negocios (simplificadas)
-    Route::post('/api/my-business/images/{position}', [BusinessController::class, 'updateMyBusinessImage']);
-    Route::delete('/api/my-business/images/{position}', [BusinessController::class, 'deleteMyBusinessImage']);
-    Route::get('/api/my-business/images/{position}', [BusinessController::class, 'getMyBusinessImage']);
-    Route::get('/api/my-business/images', [BusinessController::class, 'listMyBusinessImages']);
+    Route::post('/my-business/images/{position}', [BusinessController::class, 'updateMyBusinessImage']);
+    Route::delete('/my-business/images/{position}', [BusinessController::class, 'deleteMyBusinessImage']);
+    Route::get('/my-business/images/{position}', [BusinessController::class, 'getMyBusinessImage']);
+    Route::get('/my-business/images', [BusinessController::class, 'listMyBusinessImages']);
 
 
     // Productos
