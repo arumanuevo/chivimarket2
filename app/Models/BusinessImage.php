@@ -32,19 +32,21 @@ class BusinessImage extends Model
      * Accesor para obtener la URL completa de la imagen.
      * Útil si las imágenes se almacenan en un servicio como S3.
      */
-    public function getFullUrlAttribute(): string
+    public function getFullUrlAttribute()
     {
-        //return config('app.url') . '/storage/' . $this->url;
-        //return asset('storage/' . $this->url);
-       // return env('APP_URL') . '/' . $this->url;
-       return rtrim(env('APP_URL'), '/') . '/' . $this->url;
+        if (strpos($this->url, 'http') === 0) {
+            return $this->url; // Si ya es una URL completa, devolverla tal cual
+        }
+
+        return rtrim(env('APP_URL'), '/') . '/' . ltrim($this->url, '/');
     }
+
 
     public function scopePrimary($query)
     {
         return $query->where('is_primary', true);
     }
    
-
+    
 
 }

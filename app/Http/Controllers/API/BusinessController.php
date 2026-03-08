@@ -1716,11 +1716,14 @@ public function updateMyBusinessImage(Request $request, $position)
         $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
         $imageFile->move(public_path('business_images'), $filename);
 
+        // Construir la URL completa
+        $fullUrl = rtrim(env('APP_URL'), '/') . '/business_images/' . $filename;
+
         // Si ya existe una imagen en esta posición, actualizarla
         if (isset($currentImages[$position-1])) {
             $existingImage = $currentImages[$position-1];
 
-            // Eliminar la imagen física anterior
+            // Eliminar la imagen física anterior si existe
             $oldImagePath = public_path($existingImage->url);
             if (file_exists($oldImagePath)) {
                 unlink($oldImagePath);
@@ -1728,7 +1731,7 @@ public function updateMyBusinessImage(Request $request, $position)
 
             // Actualizar la imagen existente
             $existingImage->update([
-                'url' => 'business_images/' . $filename,
+                'url' => $fullUrl, // Guardar la URL completa
                 'description' => 'Imagen ' . $position . ' de ' . $business->name
             ]);
 
@@ -1741,7 +1744,7 @@ public function updateMyBusinessImage(Request $request, $position)
         } else {
             // No existe una imagen en esta posición, crear una nueva
             $newImage = $business->images()->create([
-                'url' => 'business_images/' . $filename,
+                'url' => $fullUrl, // Guardar la URL completa
                 'is_primary' => false,
                 'description' => 'Imagen ' . $position . ' de ' . $business->name
             ]);
@@ -1914,6 +1917,13 @@ public function getMyBusinessImage($position)
 
         $image = $currentImages[$position-1];
 
+        // Si la URL no es completa, construirla
+        if (strpos($image->url, 'http') !== 0) {
+            $image->full_url = rtrim(env('APP_URL'), '/') . '/' . ltrim($image->url, '/');
+        } else {
+            $image->full_url = $image->url;
+        }
+
         return response()->json($image);
     } catch (\Exception $e) {
         Log::error('Error al obtener la imagen en posición ' . $position, [
@@ -1963,7 +1973,19 @@ public function listMyBusinessImages()
         // Obtener las imágenes del negocio ordenadas por ID
         $images = $business->images()->orderBy('id')->get();
 
-        return response()->json($images);
+        // Construir URLs completas para cada imagen
+        $imagesWithFullUrls = $images->map(function ($image) {
+            // Si la URL ya es completa, no hacer nada
+            if (strpos($image->url, 'http') === 0) {
+                return $image;
+            }
+
+            // Construir la URL completa
+            $image->full_url = rtrim(env('APP_URL'), '/') . '/' . ltrim($image->url, '/');
+            return $image;
+        });
+
+        return response()->json($imagesWithFullUrls);
     } catch (\Exception $e) {
         Log::error('Error al listar imágenes del negocio', [
             'error' => $e->getMessage(),
