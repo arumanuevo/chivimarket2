@@ -232,7 +232,7 @@ class BusinessController extends Controller
  * @OA\Post(
  *     path="/api/businesses/{business}/update",
  *     summary="Actualizar un negocio",
- *     description="Actualiza la información de un negocio. Maneja correctamente los campos nulos y la estructura de la base de datos.",
+ *     description="Actualiza la información de un negocio. Solo valida los campos que tienen valores significativos.",
  *     tags={"Negocios"},
  *     security={{"bearerAuth": {}}},
  *     @OA\Parameter(
@@ -248,10 +248,10 @@ class BusinessController extends Controller
  *             mediaType="multipart/form-data",
  *             @OA\Schema(
  *                 @OA\Property(property="name", type="string", example="Panadería San Jorge (Actualizado)"),
- *                 @OA\Property(property="description", type="string, example="Panadería artesanal..."),
- *                 @OA\Property(property="address", type="string, example="Calle Falsa 456"),
- *                 @OA\Property(property="lat", type="number", format="float", nullable=true, example=-34.6037),
- *                 @OA\Property(property="lon", type="number", format="float", nullable=true, example=-58.3816),
+ *                 @OA\Property(property="description", type="string", example="Panadería artesanal..."),
+ *                 @OA\Property(property="address", type="string", example="Calle Falsa 456"),
+ *                 @OA\Property(property="lat", type="number", format="float", example=-34.6037),
+ *                 @OA\Property(property="lon", type="number", format="float", example=-58.3816),
  *                 @OA\Property(property="categories", type="string", example="[1,2,3]"),
  *                 @OA\Property(property="cover_image", type="string", format="binary"),
  *                 @OA\Property(property="imagen1", type="string", format="binary"),
@@ -261,6 +261,23 @@ class BusinessController extends Controller
  *                 @OA\Property(property="imagen5", type="string", format="binary")
  *             )
  *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Negocio actualizado correctamente",
+ *         @OA\JsonContent(ref="#/components/schemas/Business")
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="No autorizado para actualizar este negocio"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Error de validación de los datos enviados"
+ *     ),
+ *     @OA\Response(
+ *         response=500,
+ *         description="Error interno del servidor"
  *     )
  * )
  */
@@ -422,33 +439,33 @@ public function update(Request $request, Business $business)
 }
 
 
-/**
- * Actualiza la imagen de portada del negocio
- */
-protected function updateCoverImage(Request $request, Business $business)
-{
-    // Eliminar la imagen anterior si existe
-    if ($business->cover_image_url) {
-        $oldImagePath = public_path($business->cover_image_url);
-        if (file_exists($oldImagePath)) {
-            unlink($oldImagePath);
-            Log::info('Imagen de portada anterior eliminada', ['path' => $oldImagePath]);
+    /**
+     * Actualiza la imagen de portada del negocio
+     */
+    protected function updateCoverImage(Request $request, Business $business)
+    {
+        // Eliminar la imagen anterior si existe
+        if ($business->cover_image_url) {
+            $oldImagePath = public_path($business->cover_image_url);
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+                Log::info('Imagen de portada anterior eliminada', ['path' => $oldImagePath]);
+            }
         }
+
+        // Guardar la nueva imagen
+        $imageFile = $request->file('cover_image');
+        $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+        $imageFile->move(public_path('business_covers'), $filename);
+
+        // Actualizar el modelo
+        $business->cover_image_url = 'business_covers/' . $filename;
+        $business->save();
+
+        Log::info('Imagen de portada actualizada', [
+            'cover_image_url' => $business->cover_image_url
+        ]);
     }
-
-    // Guardar la nueva imagen
-    $imageFile = $request->file('cover_image');
-    $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
-    $imageFile->move(public_path('business_covers'), $filename);
-
-    // Actualizar el modelo
-    $business->cover_image_url = 'business_covers/' . $filename;
-    $business->save();
-
-    Log::info('Imagen de portada actualizada', [
-        'cover_image_url' => $business->cover_image_url
-    ]);
-}
 
     /**
      * Actualiza las imágenes del negocio
@@ -1470,9 +1487,7 @@ protected function updateCoverImage(Request $request, Business $business)
     }
 
 
-    /**
- * Método de prueba minimalista para diagnosticar qué datos están llegando desde FlutterFlow
- *
+/**
  * @OA\Post(
  *     path="/api/businesses/{business}/update2",
  *     summary="Actualizar negocio (versión de prueba)",
@@ -1491,12 +1506,11 @@ protected function updateCoverImage(Request $request, Business $business)
  *         @OA\MediaType(
  *             mediaType="multipart/form-data",
  *             @OA\Schema(
- *                 required={"name"},
  *                 @OA\Property(property="name", type="string", example="Panadería San Jorge (Actualizado)"),
- *                 @OA\Property(property="description", type="string, example="Panadería artesanal..."),
- *                 @OA\Property(property="address", type="string, example="Calle Falsa 456"),
- *                 @OA\Property(property="lat", type="number", format="float", nullable=true, example=-34.6037),
- *                 @OA\Property(property="lon", type="number", format="float", nullable=true, example=-58.3816),
+ *                 @OA\Property(property="description", type="string", example="Panadería artesanal con más de 25 años de experiencia"),
+ *                 @OA\Property(property="address", type="string", example="Calle Falsa 456"),
+ *                 @OA\Property(property="lat", type="number", format="float", example=-34.6037),
+ *                 @OA\Property(property="lon", type="number", format="float", example=-58.3816),
  *                 @OA\Property(property="categories", type="string", example="[1,2,3]")
  *             )
  *         )
@@ -1507,7 +1521,11 @@ protected function updateCoverImage(Request $request, Business $business)
  *         @OA\JsonContent(
  *             type="object",
  *             @OA\Property(property="message", type="string", example="Datos recibidos correctamente"),
- *             @OA\Property(property="received_data", type="object", description="Datos recibidos en la solicitud")
+ *             @OA\Property(
+ *                 property="received_data",
+ *                 type="object",
+ *                 description="Datos recibidos en la solicitud"
+ *             )
  *         )
  *     )
  * )
@@ -1611,6 +1629,350 @@ public function update2(Request $request, Business $business)
     Log::info('=== FIN DIAGNÓSTICO UPDATE2 ===');
 
     return response()->json($responseData);
+}
+
+/**
+ * @OA\Post(
+ *     path="/api/my-business/images/{position}",
+ *     summary="Agregar o actualizar una imagen específica del negocio del usuario",
+ *     description="Agrega o actualiza una imagen en una posición específica (1-5) del negocio del usuario autenticado.",
+ *     tags={"Negocios"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Parameter(
+ *         name="position",
+ *         in="path",
+ *         required=true,
+ *         description="Posición de la imagen (1-5)",
+ *         @OA\Schema(type="integer", minimum=1, maximum=5)
+ *     ),
+ *     @OA\RequestBody(
+ *         required=true,
+ *         @OA\MediaType(
+ *             mediaType="multipart/form-data",
+ *             @OA\Schema(
+ *                 required={"image"},
+ *                 @OA\Property(property="image", type="string", format="binary", description="Archivo de imagen (JPEG, PNG, JPG, GIF). Máximo 2MB.")
+ *             )
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Imagen actualizada correctamente",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="message", type="string", example="Imagen actualizada correctamente"),
+ *             @OA\Property(property="image", ref="#/components/schemas/BusinessImage")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="No autorizado o el usuario no tiene un negocio"
+ *     ),
+ *     @OA\Response(
+ *         response=422,
+ *         description="Error de validación de los datos enviados"
+ *     )
+ * )
+ */
+public function updateMyBusinessImage(Request $request, $position)
+{
+    // Obtener el negocio del usuario autenticado
+    $user = Auth::user();
+    $business = $user->businesses()->first();
+
+    if (!$business) {
+        return response()->json([
+            'message' => 'El usuario no tiene un negocio asociado'
+        ], 403);
+    }
+
+    // Validar la posición
+    if (!is_numeric($position) || $position < 1 || $position > 5) {
+        return response()->json([
+            'message' => 'La posición debe ser un número entre 1 y 5'
+        ], 422);
+    }
+
+    // Validar la imagen
+    $validator = Validator::make($request->all(), [
+        'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 422);
+    }
+
+    try {
+        // Asegurarse de que el directorio exista
+        if (!file_exists(public_path('business_images'))) {
+            mkdir(public_path('business_images'), 0777, true);
+        }
+
+        // Obtener las imágenes actuales del negocio
+        $currentImages = $business->images()->orderBy('id')->get();
+
+        // Procesar la imagen
+        $imageFile = $request->file('image');
+        $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
+        $imageFile->move(public_path('business_images'), $filename);
+
+        // Si ya existe una imagen en esta posición, actualizarla
+        if (isset($currentImages[$position-1])) {
+            $existingImage = $currentImages[$position-1];
+
+            // Eliminar la imagen física anterior
+            $oldImagePath = public_path($existingImage->url);
+            if (file_exists($oldImagePath)) {
+                unlink($oldImagePath);
+            }
+
+            // Actualizar la imagen existente
+            $existingImage->update([
+                'url' => 'business_images/' . $filename,
+                'description' => 'Imagen ' . $position . ' de ' . $business->name
+            ]);
+
+            Log::info("Imagen en posición $position actualizada (ID: {$existingImage->id})", ['filename' => $filename]);
+
+            return response()->json([
+                'message' => 'Imagen actualizada correctamente',
+                'image' => $existingImage->fresh()
+            ]);
+        } else {
+            // No existe una imagen en esta posición, crear una nueva
+            $newImage = $business->images()->create([
+                'url' => 'business_images/' . $filename,
+                'is_primary' => false,
+                'description' => 'Imagen ' . $position . ' de ' . $business->name
+            ]);
+
+            Log::info("Nueva imagen creada en posición $position (ID: {$newImage->id})", ['filename' => $filename]);
+
+            return response()->json([
+                'message' => 'Imagen creada correctamente',
+                'image' => $newImage
+            ]);
+        }
+    } catch (\Exception $e) {
+        Log::error('Error al actualizar la imagen en posición ' . $position, [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json([
+            'message' => 'Error al actualizar la imagen: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * @OA\Delete(
+ *     path="/api/my-business/images/{position}",
+ *     summary="Eliminar una imagen específica del negocio del usuario",
+ *     description="Elimina una imagen en una posición específica (1-5) del negocio del usuario autenticado.",
+ *     tags={"Negocios"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Parameter(
+ *         name="position",
+ *         in="path",
+ *         required=true,
+ *         description="Posición de la imagen (1-5)",
+ *         @OA\Schema(type="integer", minimum=1, maximum=5)
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Imagen eliminada correctamente",
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="message", type="string", example="Imagen eliminada correctamente")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="No autorizado o el usuario no tiene un negocio"
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="No se encontró una imagen en esa posición"
+ *     )
+ * )
+ */
+public function deleteMyBusinessImage($position)
+{
+    // Obtener el negocio del usuario autenticado
+    $user = Auth::user();
+    $business = $user->businesses()->first();
+
+    if (!$business) {
+        return response()->json([
+            'message' => 'El usuario no tiene un negocio asociado'
+        ], 403);
+    }
+
+    // Validar la posición
+    if (!is_numeric($position) || $position < 1 || $position > 5) {
+        return response()->json([
+            'message' => 'La posición debe ser un número entre 1 y 5'
+        ], 422);
+    }
+
+    try {
+        // Obtener las imágenes actuales del negocio
+        $currentImages = $business->images()->orderBy('id')->get();
+
+        // Verificar si existe una imagen en esa posición
+        if (!isset($currentImages[$position-1])) {
+            return response()->json([
+                'message' => 'No se encontró una imagen en la posición ' . $position
+            ], 404);
+        }
+
+        $imageToDelete = $currentImages[$position-1];
+
+        // Eliminar la imagen física
+        $imagePath = public_path($imageToDelete->url);
+        if (file_exists($imagePath)) {
+            unlink($imagePath);
+        }
+
+        // Eliminar el registro de la base de datos
+        $imageToDelete->delete();
+
+        Log::info("Imagen en posición $position eliminada (ID: {$imageToDelete->id})");
+
+        return response()->json([
+            'message' => 'Imagen eliminada correctamente'
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Error al eliminar la imagen en posición ' . $position, [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json([
+            'message' => 'Error al eliminar la imagen: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * @OA\Get(
+ *     path="/api/my-business/images/{position}",
+ *     summary="Obtener una imagen específica del negocio del usuario",
+ *     description="Devuelve la información de una imagen en una posición específica (1-5) del negocio del usuario autenticado.",
+ *     tags={"Negocios"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Parameter(
+ *         name="position",
+ *         in="path",
+ *         required=true,
+ *         description="Posición de la imagen (1-5)",
+ *         @OA\Schema(type="integer", minimum=1, maximum=5)
+ *     ),
+ *     @OA\Response(
+ *         response=200,
+ *         description="Información de la imagen",
+ *         @OA\JsonContent(ref="#/components/schemas/BusinessImage")
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="No autorizado o el usuario no tiene un negocio"
+ *     ),
+ *     @OA\Response(
+ *         response=404,
+ *         description="No se encontró una imagen en esa posición"
+ *     )
+ * )
+ */
+public function getMyBusinessImage($position)
+{
+    // Obtener el negocio del usuario autenticado
+    $user = Auth::user();
+    $business = $user->businesses()->first();
+
+    if (!$business) {
+        return response()->json([
+            'message' => 'El usuario no tiene un negocio asociado'
+        ], 403);
+    }
+
+    // Validar la posición
+    if (!is_numeric($position) || $position < 1 || $position > 5) {
+        return response()->json([
+            'message' => 'La posición debe ser un número entre 1 y 5'
+        ], 422);
+    }
+
+    try {
+        // Obtener las imágenes actuales del negocio
+        $currentImages = $business->images()->orderBy('id')->get();
+
+        // Verificar si existe una imagen en esa posición
+        if (!isset($currentImages[$position-1])) {
+            return response()->json([
+                'message' => 'No se encontró una imagen en la posición ' . $position
+            ], 404);
+        }
+
+        $image = $currentImages[$position-1];
+
+        return response()->json($image);
+    } catch (\Exception $e) {
+        Log::error('Error al obtener la imagen en posición ' . $position, [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json([
+            'message' => 'Error al obtener la imagen: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * @OA\Get(
+ *     path="/api/my-business/images",
+ *     summary="Listar todas las imágenes del negocio del usuario",
+ *     description="Devuelve todas las imágenes del negocio del usuario autenticado, ordenadas por su posición.",
+ *     tags={"Negocios"},
+ *     security={{"bearerAuth": {}}},
+ *     @OA\Response(
+ *         response=200,
+ *         description="Lista de imágenes del negocio",
+ *         @OA\JsonContent(
+ *             type="array",
+ *             @OA\Items(ref="#/components/schemas/BusinessImage")
+ *         )
+ *     ),
+ *     @OA\Response(
+ *         response=403,
+ *         description="No autorizado o el usuario no tiene un negocio"
+ *     )
+ * )
+ */
+public function listMyBusinessImages()
+{
+    // Obtener el negocio del usuario autenticado
+    $user = Auth::user();
+    $business = $user->businesses()->first();
+
+    if (!$business) {
+        return response()->json([
+            'message' => 'El usuario no tiene un negocio asociado'
+        ], 403);
+    }
+
+    try {
+        // Obtener las imágenes del negocio ordenadas por ID
+        $images = $business->images()->orderBy('id')->get();
+
+        return response()->json($images);
+    } catch (\Exception $e) {
+        Log::error('Error al listar imágenes del negocio', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json([
+            'message' => 'Error al listar imágenes: ' . $e->getMessage()
+        ], 500);
+    }
 }
 
 

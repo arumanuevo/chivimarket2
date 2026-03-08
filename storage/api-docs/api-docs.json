@@ -217,123 +217,6 @@
                     }
                 ]
             },
-            "put": {
-                "tags": [
-                    "Negocios"
-                ],
-                "summary": "Actualizar un negocio",
-                "description": "Actualiza la información de un negocio, incluyendo su imagen de portada y múltiples imágenes. Solo el dueño del negocio puede actualizarlo.",
-                "operationId": "cd3ec13e27b92b89bb83a6dc56aafd20",
-                "parameters": [
-                    {
-                        "name": "business",
-                        "in": "path",
-                        "description": "ID del negocio",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "multipart/form-data": {
-                            "schema": {
-                                "required": [
-                                    "name",
-                                    "address"
-                                ],
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "example": "Panadería San Jorge (Actualizado)"
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "example": "Panadería artesanal con más de 25 años de experiencia"
-                                    },
-                                    "address": {
-                                        "type": "string",
-                                        "example": "Calle Falsa 456"
-                                    },
-                                    "latitude": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "example": -34.6037,
-                                        "nullable": true
-                                    },
-                                    "longitude": {
-                                        "type": "number",
-                                        "format": "float",
-                                        "example": -58.3816,
-                                        "nullable": true
-                                    },
-                                    "categories": {
-                                        "description": "Array de categorías en formato JSON string",
-                                        "type": "string",
-                                        "example": "[1,2,3]"
-                                    },
-                                    "cover_image": {
-                                        "description": "Nueva imagen de portada (opcional)",
-                                        "type": "string",
-                                        "format": "binary"
-                                    },
-                                    "imagen1": {
-                                        "description": "Imagen adicional 1 (opcional)",
-                                        "type": "string",
-                                        "format": "binary"
-                                    },
-                                    "imagen2": {
-                                        "description": "Imagen adicional 2 (opcional)",
-                                        "type": "string",
-                                        "format": "binary"
-                                    },
-                                    "imagen3": {
-                                        "description": "Imagen adicional 3 (opcional)",
-                                        "type": "string",
-                                        "format": "binary"
-                                    },
-                                    "imagen4": {
-                                        "description": "Imagen adicional 4 (opcional)",
-                                        "type": "string",
-                                        "format": "binary"
-                                    },
-                                    "imagen5": {
-                                        "description": "Imagen adicional 5 (opcional)",
-                                        "type": "string",
-                                        "format": "binary"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Negocio actualizado correctamente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Business"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "No autorizado para actualizar este negocio"
-                    },
-                    "422": {
-                        "description": "Error de validación de los datos enviados"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
             "delete": {
                 "tags": [
                     "Negocios"
@@ -374,6 +257,115 @@
                     },
                     "500": {
                         "description": "Error al eliminar el negocio o sus datos asociados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/businesses/{business}/update": {
+            "post": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Actualizar un negocio",
+                "description": "Actualiza la información de un negocio. Solo valida los campos que tienen valores significativos.",
+                "operationId": "4b3ec82b92d6a290c1d3a8fe2bc755f7",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Panadería San Jorge (Actualizado)"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Panadería artesanal..."
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Calle Falsa 456"
+                                    },
+                                    "lat": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -34.6037
+                                    },
+                                    "lon": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -58.3816
+                                    },
+                                    "categories": {
+                                        "type": "string",
+                                        "example": "[1,2,3]"
+                                    },
+                                    "cover_image": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen1": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen2": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen3": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen4": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "imagen5": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Negocio actualizado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Business"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado para actualizar este negocio"
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    },
+                    "500": {
+                        "description": "Error interno del servidor"
                     }
                 },
                 "security": [
@@ -772,71 +764,6 @@
                 }
             }
         },
-        "/api/businesses/{business}/cover-image": {
-            "post": {
-                "tags": [
-                    "Negocios"
-                ],
-                "summary": "Subir o actualizar la imagen de portada de un negocio",
-                "description": "Sube o actualiza la imagen de portada de un negocio específico. Solo el dueño del negocio puede subir imágenes. La imagen se redimensiona automáticamente a 1200x630 píxeles (proporción 16:9) para optimizar el almacenamiento y la visualización.",
-                "operationId": "e1a6069c0ae332486196886105fcda81",
-                "parameters": [
-                    {
-                        "name": "business",
-                        "in": "path",
-                        "description": "ID del negocio",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "description": "Imagen de portada",
-                    "required": true,
-                    "content": {
-                        "multipart/form-data": {
-                            "schema": {
-                                "required": [
-                                    "cover_image"
-                                ],
-                                "properties": {
-                                    "cover_image": {
-                                        "description": "Archivo de imagen de portada (JPEG, PNG, JPG, GIF). Máximo 2MB.",
-                                        "type": "string",
-                                        "format": "binary"
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Imagen de portada subida correctamente",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Business"
-                                }
-                            }
-                        }
-                    },
-                    "403": {
-                        "description": "No autorizado para subir imágenes a este negocio"
-                    },
-                    "422": {
-                        "description": "Error de validación de los datos enviados"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
         "/api/businesses-with-images": {
             "post": {
                 "tags": [
@@ -936,6 +863,294 @@
                     },
                     "422": {
                         "description": "Error de validación"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/businesses/{business}/update2": {
+            "post": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Actualizar negocio (versión de prueba)",
+                "description": "Endpoint de prueba para diagnosticar qué datos están llegando desde FlutterFlow. Solo acepta datos de texto, sin imágenes.",
+                "operationId": "f05f5732d9f8731d2027e57067ffb36c",
+                "parameters": [
+                    {
+                        "name": "business",
+                        "in": "path",
+                        "description": "ID del negocio",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Panadería San Jorge (Actualizado)"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Panadería artesanal con más de 25 años de experiencia"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "example": "Calle Falsa 456"
+                                    },
+                                    "lat": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -34.6037
+                                    },
+                                    "lon": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -58.3816
+                                    },
+                                    "categories": {
+                                        "type": "string",
+                                        "example": "[1,2,3]"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Datos recibidos correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Datos recibidos correctamente"
+                                        },
+                                        "received_data": {
+                                            "description": "Datos recibidos en la solicitud",
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/my-business/images/{position}": {
+            "get": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Obtener una imagen específica del negocio del usuario",
+                "description": "Devuelve la información de una imagen en una posición específica (1-5) del negocio del usuario autenticado.",
+                "operationId": "5efa1c453ad042b67bc7c239858f2028",
+                "parameters": [
+                    {
+                        "name": "position",
+                        "in": "path",
+                        "description": "Posición de la imagen (1-5)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 5,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Información de la imagen",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BusinessImage"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado o el usuario no tiene un negocio"
+                    },
+                    "404": {
+                        "description": "No se encontró una imagen en esa posición"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Agregar o actualizar una imagen específica del negocio del usuario",
+                "description": "Agrega o actualiza una imagen en una posición específica (1-5) del negocio del usuario autenticado.",
+                "operationId": "e4d9bcd61f0b11c42fe68bd0b1af6d28",
+                "parameters": [
+                    {
+                        "name": "position",
+                        "in": "path",
+                        "description": "Posición de la imagen (1-5)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 5,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "image"
+                                ],
+                                "properties": {
+                                    "image": {
+                                        "description": "Archivo de imagen (JPEG, PNG, JPG, GIF). Máximo 2MB.",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Imagen actualizada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Imagen actualizada correctamente"
+                                        },
+                                        "image": {
+                                            "$ref": "#/components/schemas/BusinessImage"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado o el usuario no tiene un negocio"
+                    },
+                    "422": {
+                        "description": "Error de validación de los datos enviados"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Eliminar una imagen específica del negocio del usuario",
+                "description": "Elimina una imagen en una posición específica (1-5) del negocio del usuario autenticado.",
+                "operationId": "14c4fff91c896b396bc93c5fd9276cb4",
+                "parameters": [
+                    {
+                        "name": "position",
+                        "in": "path",
+                        "description": "Posición de la imagen (1-5)",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 5,
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Imagen eliminada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Imagen eliminada correctamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado o el usuario no tiene un negocio"
+                    },
+                    "404": {
+                        "description": "No se encontró una imagen en esa posición"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/my-business/images": {
+            "get": {
+                "tags": [
+                    "Negocios"
+                ],
+                "summary": "Listar todas las imágenes del negocio del usuario",
+                "description": "Devuelve todas las imágenes del negocio del usuario autenticado, ordenadas por su posición.",
+                "operationId": "b197b7190ae177780d7948f2242fbe45",
+                "responses": {
+                    "200": {
+                        "description": "Lista de imágenes del negocio",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/BusinessImage"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "No autorizado o el usuario no tiene un negocio"
                     }
                 },
                 "security": [
