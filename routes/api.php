@@ -159,6 +159,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/my-business/images/{position}', [BusinessController::class, 'updateMyBusinessImage']);
     Route::delete('/my-business/images/{position}', [BusinessController::class, 'deleteMyBusinessImage']);
     Route::get('/my-business/images/{position}', [BusinessController::class, 'getMyBusinessImage']);
+   
     Route::get('/my-business/images', [BusinessController::class, 'listMyBusinessImages']);
 
 
