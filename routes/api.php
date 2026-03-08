@@ -147,7 +147,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('businesses/{business}/categories', [BusinessController::class, 'updateCategories']);
     Route::delete('businesses/{business}/categories/{category}', [BusinessController::class, 'removeCategory']);
     Route::post('businesses/{business}/categories/{category}', [BusinessController::class, 'addCategory']);
-    Route::post('/businesses-with-images', [BusinessController::class, 'storeWithImages'])->middleware('auth:sanctum');
+    Route::post('/businesses-with-images', [BusinessController::class, 'storeWithImages']);
+    
     Route::post('/businesses/{business}/update2', [BusinessController::class, 'update2']);
 
     Route::post('/businesses/{business}/update', [BusinessController::class, 'update']);
@@ -159,7 +160,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/my-business/images/{position}', [BusinessController::class, 'updateMyBusinessImage']);
     Route::delete('/my-business/images/{position}', [BusinessController::class, 'deleteMyBusinessImage']);
     Route::get('/my-business/images/{position}', [BusinessController::class, 'getMyBusinessImage']);
-   
+
+
     Route::get('/my-business/images', [BusinessController::class, 'listMyBusinessImages']);
 
 

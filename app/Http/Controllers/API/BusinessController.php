@@ -603,58 +603,41 @@ public function update(Request $request, Business $business)
      *     )
      * )
      */
-    public function destroy(Business $business)
-    {
-        $this->authorize('update', $business);
+    public function destroy(Business $business, BusinessImage $image)
+{
+    $this->authorize('update', $business);
 
-        // Registrar los datos del negocio en los logs para depuración
-        Log::info('Iniciando eliminación del negocio', [
-            'business_id' => $business->id,
-            'business_data' => $business->toArray(),
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            // 1. Eliminar productos asociados al negocio
-            $this->deleteBusinessProducts($business);
-
-            // 2. Eliminar imágenes asociadas al negocio
-            $this->deleteBusinessImages($business);
-
-            // 3. Eliminar calificaciones del negocio
-            $this->deleteBusinessRatings($business);
-
-            // 4. Eliminar registros de contacto asociados al negocio
-            $this->deleteBusinessContacts($business);
-
-            // 5. Eliminar el negocio
-            $business->delete();
-
-            DB::commit();
-
-            Log::info('Negocio y datos asociados eliminados correctamente', [
-                'business_id' => $business->id,
-            ]);
-
-            return response()->json([
-                'message' => 'Negocio y datos asociados eliminados correctamente'
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            Log::error('Error al eliminar el negocio o sus datos asociados', [
-                'business_id' => $business->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            return response()->json([
-                'message' => 'Error al eliminar el negocio o sus datos asociados: ' . $e->getMessage()
-            ], 500);
-        }
+    // Verificar que la imagen pertenece al negocio
+    if ($image->business_id != $business->id) {
+        return response()->json([
+            'message' => 'La imagen no pertenece a este negocio'
+        ], 403);
     }
+
+    try {
+        // Eliminar la imagen física
+        $imagePath = public_path($image->url);
+        if (file_exists($imagePath)) {
+            unlink($imagePath);
+        }
+
+        // Eliminar el registro de la base de datos
+        $image->delete();
+
+        return response()->json([
+            'message' => 'Imagen eliminada correctamente'
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Error al eliminar la imagen', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json([
+            'message' => 'Error al eliminar la imagen: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
 
     /**
      * Elimina todos los productos asociados a un negocio.
@@ -1716,8 +1699,8 @@ public function updateMyBusinessImage(Request $request, $position)
         $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
         $imageFile->move(public_path('business_images'), $filename);
 
-        // Construir la URL completa
-        $fullUrl = rtrim(env('APP_URL'), '/') . '/business_images/' . $filename;
+        // Ruta relativa
+        $relativePath = 'business_images/' . $filename;
 
         // Si ya existe una imagen en esta posición, actualizarla
         if (isset($currentImages[$position-1])) {
@@ -1731,29 +1714,35 @@ public function updateMyBusinessImage(Request $request, $position)
 
             // Actualizar la imagen existente
             $existingImage->update([
-                'url' => $fullUrl, // Guardar la URL completa
+                'url' => $relativePath,
                 'description' => 'Imagen ' . $position . ' de ' . $business->name
             ]);
 
             Log::info("Imagen en posición $position actualizada (ID: {$existingImage->id})", ['filename' => $filename]);
 
+            // Construir la URL completa
+            $fullUrl = rtrim(env('APP_URL'), '/') . '/' . $relativePath;
+
             return response()->json([
                 'message' => 'Imagen actualizada correctamente',
-                'image' => $existingImage->fresh()
+                'image' => array_merge($existingImage->fresh()->toArray(), ['full_url' => $fullUrl])
             ]);
         } else {
             // No existe una imagen en esta posición, crear una nueva
             $newImage = $business->images()->create([
-                'url' => $fullUrl, // Guardar la URL completa
+                'url' => $relativePath,
                 'is_primary' => false,
                 'description' => 'Imagen ' . $position . ' de ' . $business->name
             ]);
 
             Log::info("Nueva imagen creada en posición $position (ID: {$newImage->id})", ['filename' => $filename]);
 
+            // Construir la URL completa
+            $fullUrl = rtrim(env('APP_URL'), '/') . '/' . $relativePath;
+
             return response()->json([
                 'message' => 'Imagen creada correctamente',
-                'image' => $newImage
+                'image' => array_merge($newImage->toArray(), ['full_url' => $fullUrl])
             ]);
         }
     } catch (\Exception $e) {
@@ -1917,14 +1906,19 @@ public function getMyBusinessImage($position)
 
         $image = $currentImages[$position-1];
 
-        // Si la URL no es completa, construirla
-        if (strpos($image->url, 'http') !== 0) {
-            $image->full_url = rtrim(env('APP_URL'), '/') . '/' . ltrim($image->url, '/');
-        } else {
-            $image->full_url = $image->url;
-        }
+        // Construir la URL completa
+        $fullUrl = rtrim(env('APP_URL'), '/') . '/' . ltrim($image->url, '/');
 
-        return response()->json($image);
+        return response()->json([
+            'id' => $image->id,
+            'business_id' => $image->business_id,
+            'url' => $image->url,
+            'full_url' => $fullUrl,
+            'is_primary' => $image->is_primary,
+            'description' => $image->description,
+            'created_at' => $image->created_at,
+            'updated_at' => $image->updated_at
+        ]);
     } catch (\Exception $e) {
         Log::error('Error al obtener la imagen en posición ' . $position, [
             'error' => $e->getMessage(),
@@ -1935,7 +1929,6 @@ public function getMyBusinessImage($position)
         ], 500);
     }
 }
-
 /**
  * @OA\Get(
  *     path="/api/my-business/images",
@@ -1975,14 +1968,19 @@ public function listMyBusinessImages()
 
         // Construir URLs completas para cada imagen
         $imagesWithFullUrls = $images->map(function ($image) {
-            // Si la URL ya es completa, no hacer nada
-            if (strpos($image->url, 'http') === 0) {
-                return $image;
-            }
-
             // Construir la URL completa
-            $image->full_url = rtrim(env('APP_URL'), '/') . '/' . ltrim($image->url, '/');
-            return $image;
+            $fullUrl = rtrim(env('APP_URL'), '/') . '/' . ltrim($image->url, '/');
+
+            return [
+                'id' => $image->id,
+                'business_id' => $image->business_id,
+                'url' => $image->url,
+                'full_url' => $fullUrl,
+                'is_primary' => $image->is_primary,
+                'description' => $image->description,
+                'created_at' => $image->created_at,
+                'updated_at' => $image->updated_at
+            ];
         });
 
         return response()->json($imagesWithFullUrls);
