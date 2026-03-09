@@ -2505,7 +2505,7 @@
                     "200": {
                         "description": "Imagen de portada del negocio en formato binario (PNG, JPEG, etc.).",
                         "content": {
-                            "image/png": {
+                            "image/*": {
                                 "schema": {
                                     "type": "string",
                                     "format": "binary"
@@ -2542,7 +2542,7 @@
                     "200": {
                         "description": "Imagen del negocio en formato binario (PNG, JPEG, etc.).",
                         "content": {
-                            "image/png": {
+                            "image/*": {
                                 "schema": {
                                     "type": "string",
                                     "format": "binary"
@@ -5476,10 +5476,6 @@
             "description": "API para registrar y gestionar contactos con negocios/productos"
         },
         {
-            "name": "Imágenes",
-            "description": "Endpoints relacionados con la gestión de imágenes de negocios."
-        },
-        {
             "name": "Messaging",
             "description": "API para el sistema de mensajería entre usuarios"
         },
@@ -5510,6 +5506,10 @@
         {
             "name": "DiscountTokens",
             "description": "DiscountTokens"
+        },
+        {
+            "name": "Imágenes",
+            "description": "Imágenes"
         },
         {
             "name": "Categorías de Productos",

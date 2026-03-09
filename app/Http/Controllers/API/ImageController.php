@@ -4,16 +4,10 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-/**
- * @OA\Tag(
- *     name="Imágenes",
- *     description="Endpoints relacionados con la gestión de imágenes de negocios."
- * )
- */
 class ImageController extends Controller
 {
     /**
@@ -33,7 +27,7 @@ class ImageController extends Controller
      *         response=200,
      *         description="Imagen de portada del negocio en formato binario (PNG, JPEG, etc.).",
      *         @OA\MediaType(
-     *             mediaType="image/png",
+     *             mediaType="image/*",
      *             @OA\Schema(type="string", format="binary")
      *         )
      *     ),
@@ -45,19 +39,7 @@ class ImageController extends Controller
      */
     public function show($filename)
     {
-        $path = public_path("business_covers/{$filename}");
-
-        if (!file_exists($path)) {
-            abort(404);
-        }
-
-        $file = file_get_contents($path);
-        $response = response($file, 200);
-        $response->header('Content-Type', 'image/png');
-        $response->header('Cache-Control', 'public, max-age=31536000');
-        $response->header('Access-Control-Allow-Origin', '*');
-
-        return $response;
+        return $this->serveImage("business_covers/{$filename}");
     }
 
     /**
@@ -77,7 +59,7 @@ class ImageController extends Controller
      *         response=200,
      *         description="Imagen del negocio en formato binario (PNG, JPEG, etc.).",
      *         @OA\MediaType(
-     *             mediaType="image/png",
+     *             mediaType="image/*",
      *             @OA\Schema(type="string", format="binary")
      *         )
      *     ),
@@ -90,24 +72,41 @@ class ImageController extends Controller
     public function showBusinessImage($filename)
     {
         Log::info('Solicitud de imagen de negocio', ['filename' => $filename]);
+        return $this->serveImage("business_images/{$filename}");
+    }
 
-        $path = public_path("business_images/{$filename}");
+    /**
+     * Sirve una imagen con los encabezados adecuados.
+     */
+    protected function serveImage($relativePath)
+    {
+        $path = public_path($relativePath);
 
         if (!file_exists($path)) {
-            Log::warning('Imagen no encontrada', ['filename' => $filename, 'path' => $path]);
-            abort(404);
+            Log::warning('Imagen no encontrada', ['path' => $path]);
+            abort(404, 'Imagen no encontrada');
         }
 
         // Determinar el tipo MIME de la imagen
         $mimeType = $this->getImageMimeType($path);
 
-        $file = file_get_contents($path);
-        $response = response($file, 200);
+        // Obtener el tamaño del archivo
+        $fileSize = filesize($path);
+
+        // Crear una respuesta de archivo binario
+        $response = Response::make(file_get_contents($path), 200);
         $response->header('Content-Type', $mimeType);
+        $response->header('Content-Length', $fileSize);
         $response->header('Cache-Control', 'public, max-age=31536000');
         $response->header('Access-Control-Allow-Origin', '*');
+        $response->header('Access-Control-Allow-Methods', 'GET');
+        $response->header('Content-Disposition', 'inline; filename="' . basename($path) . '"');
 
-        Log::info('Imagen servida correctamente', ['filename' => $filename, 'mimeType' => $mimeType]);
+        Log::info('Imagen servida correctamente', [
+            'path' => $path,
+            'mimeType' => $mimeType,
+            'fileSize' => $fileSize
+        ]);
 
         return $response;
     }
@@ -129,7 +128,16 @@ class ImageController extends Controller
                 return 'image/gif';
             case 'webp':
                 return 'image/webp';
+            case 'svg':
+                return 'image/svg+xml';
             default:
+                // Intentar detectar el tipo MIME usando finfo
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                if ($finfo) {
+                    $mime = finfo_file($finfo, $path);
+                    finfo_close($finfo);
+                    return $mime ?: 'image/png'; // Default si no se puede detectar
+                }
                 return 'image/png'; // Default
         }
     }
