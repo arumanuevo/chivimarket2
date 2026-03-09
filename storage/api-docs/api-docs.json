@@ -964,7 +964,7 @@
                     "Negocios"
                 ],
                 "summary": "Obtener una imagen específica del negocio del usuario",
-                "description": "Devuelve la información de una imagen en una posición específica (1-5) del negocio del usuario autenticado.",
+                "description": "Devuelve la información de una imagen en una posición específica (1-5) del negocio del usuario autenticado, incluyendo la URL completa para acceder a la imagen.",
                 "operationId": "5efa1c453ad042b67bc7c239858f2028",
                 "parameters": [
                     {
@@ -985,7 +985,47 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/BusinessImage"
+                                    "properties": {
+                                        "id": {
+                                            "type": "integer",
+                                            "example": 18
+                                        },
+                                        "business_id": {
+                                            "type": "integer",
+                                            "example": 74
+                                        },
+                                        "url": {
+                                            "type": "string",
+                                            "example": "business_images/69a9cee003b25.png"
+                                        },
+                                        "full_url": {
+                                            "type": "string",
+                                            "example": "https://chivimarket.arumasoft.com/business_images/69a9cee003b25.png"
+                                        },
+                                        "api_url": {
+                                            "type": "string",
+                                            "example": "https://chivimarket.arumasoft.com/api/business-image/69a9cee003b25.png"
+                                        },
+                                        "is_primary": {
+                                            "type": "string",
+                                            "example": "0"
+                                        },
+                                        "description": {
+                                            "type": "string",
+                                            "example": "Imagen 1 de Modificacion De Prueba De Negocio"
+                                        },
+                                        "created_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2026-02-17T19:54:00.000000Z"
+                                        },
+                                        "updated_at": {
+                                            "type": "string",
+                                            "format": "date-time",
+                                            "example": "2026-03-05T18:43:44.000000Z"
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -1133,7 +1173,7 @@
                     "Negocios"
                 ],
                 "summary": "Listar todas las imágenes del negocio del usuario",
-                "description": "Devuelve todas las imágenes del negocio del usuario autenticado, ordenadas por su posición.",
+                "description": "Devuelve todas las imágenes del negocio del usuario autenticado, ordenadas por su posición, incluyendo las URLs completas para acceder a las imágenes.",
                 "operationId": "b197b7190ae177780d7948f2242fbe45",
                 "responses": {
                     "200": {
@@ -1143,7 +1183,47 @@
                                 "schema": {
                                     "type": "array",
                                     "items": {
-                                        "$ref": "#/components/schemas/BusinessImage"
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 18
+                                            },
+                                            "business_id": {
+                                                "type": "integer",
+                                                "example": 74
+                                            },
+                                            "url": {
+                                                "type": "string",
+                                                "example": "business_images/69a9cee003b25.png"
+                                            },
+                                            "full_url": {
+                                                "type": "string",
+                                                "example": "https://chivimarket.arumasoft.com/business_images/69a9cee003b25.png"
+                                            },
+                                            "api_url": {
+                                                "type": "string",
+                                                "example": "https://chivimarket.arumasoft.com/api/business-image/69a9cee003b25.png"
+                                            },
+                                            "is_primary": {
+                                                "type": "string",
+                                                "example": "0"
+                                            },
+                                            "description": {
+                                                "type": "string",
+                                                "example": "Imagen 1 de Modificacion De Prueba De Negocio"
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2026-02-17T19:54:00.000000Z"
+                                            },
+                                            "updated_at": {
+                                                "type": "string",
+                                                "format": "date-time",
+                                                "example": "2026-03-05T18:43:44.000000Z"
+                                            }
+                                        },
+                                        "type": "object"
                                     }
                                 }
                             }

@@ -1849,7 +1849,7 @@ public function deleteMyBusinessImage($position)
  * @OA\Get(
  *     path="/api/my-business/images/{position}",
  *     summary="Obtener una imagen específica del negocio del usuario",
- *     description="Devuelve la información de una imagen en una posición específica (1-5) del negocio del usuario autenticado.",
+ *     description="Devuelve la información de una imagen en una posición específica (1-5) del negocio del usuario autenticado, incluyendo la URL completa para acceder a la imagen.",
  *     tags={"Negocios"},
  *     security={{"bearerAuth": {}}},
  *     @OA\Parameter(
@@ -1862,7 +1862,18 @@ public function deleteMyBusinessImage($position)
  *     @OA\Response(
  *         response=200,
  *         description="Información de la imagen",
- *         @OA\JsonContent(ref="#/components/schemas/BusinessImage")
+ *         @OA\JsonContent(
+ *             type="object",
+ *             @OA\Property(property="id", type="integer", example=18),
+ *             @OA\Property(property="business_id", type="integer", example=74),
+ *             @OA\Property(property="url", type="string", example="business_images/69a9cee003b25.png"),
+ *             @OA\Property(property="full_url", type="string", example="https://chivimarket.arumasoft.com/business_images/69a9cee003b25.png"),
+ *             @OA\Property(property="api_url", type="string", example="https://chivimarket.arumasoft.com/api/business-image/69a9cee003b25.png"),
+ *             @OA\Property(property="is_primary", type="string", example="0"),
+ *             @OA\Property(property="description", type="string", example="Imagen 1 de Modificacion De Prueba De Negocio"),
+ *             @OA\Property(property="created_at", type="string", format="date-time", example="2026-02-17T19:54:00.000000Z"),
+ *             @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-05T18:43:44.000000Z")
+ *         )
  *     ),
  *     @OA\Response(
  *         response=403,
@@ -1906,19 +1917,17 @@ public function getMyBusinessImage($position)
 
         $image = $currentImages[$position-1];
 
-        // Construir la URL completa
-        $fullUrl = rtrim(env('APP_URL'), '/') . '/' . ltrim($image->url, '/');
+        // Obtener el nombre del archivo de la URL
+        $filename = basename($image->url);
 
-        return response()->json([
-            'id' => $image->id,
-            'business_id' => $image->business_id,
-            'url' => $image->url,
+        // Construir las URLs
+        $fullUrl = rtrim(env('APP_URL'), '/') . '/' . ltrim($image->url, '/');
+        $apiUrl = rtrim(env('APP_URL'), '/') . '/api/business-image/' . $filename;
+
+        return response()->json(array_merge($image->toArray(), [
             'full_url' => $fullUrl,
-            'is_primary' => $image->is_primary,
-            'description' => $image->description,
-            'created_at' => $image->created_at,
-            'updated_at' => $image->updated_at
-        ]);
+            'api_url' => $apiUrl
+        ]));
     } catch (\Exception $e) {
         Log::error('Error al obtener la imagen en posición ' . $position, [
             'error' => $e->getMessage(),
@@ -1929,11 +1938,12 @@ public function getMyBusinessImage($position)
         ], 500);
     }
 }
+
 /**
  * @OA\Get(
  *     path="/api/my-business/images",
  *     summary="Listar todas las imágenes del negocio del usuario",
- *     description="Devuelve todas las imágenes del negocio del usuario autenticado, ordenadas por su posición.",
+ *     description="Devuelve todas las imágenes del negocio del usuario autenticado, ordenadas por su posición, incluyendo las URLs completas para acceder a las imágenes.",
  *     tags={"Negocios"},
  *     security={{"bearerAuth": {}}},
  *     @OA\Response(
@@ -1941,7 +1951,18 @@ public function getMyBusinessImage($position)
  *         description="Lista de imágenes del negocio",
  *         @OA\JsonContent(
  *             type="array",
- *             @OA\Items(ref="#/components/schemas/BusinessImage")
+ *             @OA\Items(
+ *                 type="object",
+ *                 @OA\Property(property="id", type="integer", example=18),
+ *                 @OA\Property(property="business_id", type="integer", example=74),
+ *                 @OA\Property(property="url", type="string", example="business_images/69a9cee003b25.png"),
+ *                 @OA\Property(property="full_url", type="string", example="https://chivimarket.arumasoft.com/business_images/69a9cee003b25.png"),
+ *                 @OA\Property(property="api_url", type="string", example="https://chivimarket.arumasoft.com/api/business-image/69a9cee003b25.png"),
+ *                 @OA\Property(property="is_primary", type="string", example="0"),
+ *                 @OA\Property(property="description", type="string", example="Imagen 1 de Modificacion De Prueba De Negocio"),
+ *                 @OA\Property(property="created_at", type="string", format="date-time", example="2026-02-17T19:54:00.000000Z"),
+ *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2026-03-05T18:43:44.000000Z")
+ *             )
  *         )
  *     ),
  *     @OA\Response(
@@ -1966,24 +1987,22 @@ public function listMyBusinessImages()
         // Obtener las imágenes del negocio ordenadas por ID
         $images = $business->images()->orderBy('id')->get();
 
-        // Construir URLs completas para cada imagen
-        $imagesWithFullUrls = $images->map(function ($image) {
-            // Construir la URL completa
-            $fullUrl = rtrim(env('APP_URL'), '/') . '/' . ltrim($image->url, '/');
+        // Procesar cada imagen para añadir las URLs completas
+        $imagesWithUrls = $images->map(function ($image) {
+            // Obtener el nombre del archivo de la URL
+            $filename = basename($image->url);
 
-            return [
-                'id' => $image->id,
-                'business_id' => $image->business_id,
-                'url' => $image->url,
+            // Construir las URLs
+            $fullUrl = rtrim(env('APP_URL'), '/') . '/' . ltrim($image->url, '/');
+            $apiUrl = rtrim(env('APP_URL'), '/') . '/api/business-image/' . $filename;
+
+            return array_merge($image->toArray(), [
                 'full_url' => $fullUrl,
-                'is_primary' => $image->is_primary,
-                'description' => $image->description,
-                'created_at' => $image->created_at,
-                'updated_at' => $image->updated_at
-            ];
+                'api_url' => $apiUrl
+            ]);
         });
 
-        return response()->json($imagesWithFullUrls);
+        return response()->json($imagesWithUrls);
     } catch (\Exception $e) {
         Log::error('Error al listar imágenes del negocio', [
             'error' => $e->getMessage(),
