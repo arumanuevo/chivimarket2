@@ -75,41 +75,42 @@ class ImageController extends Controller
         return $this->serveImage("business_images/{$filename}");
     }
 
-    /**
-     * Sirve una imagen con los encabezados adecuados.
-     */
     protected function serveImage($relativePath)
     {
         $path = public_path($relativePath);
-
+    
         if (!file_exists($path)) {
             Log::warning('Imagen no encontrada', ['path' => $path]);
             abort(404, 'Imagen no encontrada');
         }
-
+    
+        // Obtener información de la imagen
+        $imageInfo = getimagesize($path);
+        if (!$imageInfo) {
+            Log::error('No se pudo obtener información de la imagen', ['path' => $path]);
+            abort(500, 'Error al procesar la imagen');
+        }
+    
         // Determinar el tipo MIME de la imagen
-        $mimeType = $this->getImageMimeType($path);
-
-        // Obtener el tamaño del archivo
-        $fileSize = filesize($path);
-
-        // Crear una respuesta de archivo binario
-        $response = Response::make(file_get_contents($path), 200);
-        $response->header('Content-Type', $mimeType);
-        $response->header('Content-Length', $fileSize);
-        $response->header('Cache-Control', 'public, max-age=31536000');
-        $response->header('Access-Control-Allow-Origin', '*');
-        $response->header('Access-Control-Allow-Methods', 'GET');
-        $response->header('Content-Disposition', 'inline; filename="' . basename($path) . '"');
-
-        Log::info('Imagen servida correctamente', [
-            'path' => $path,
-            'mimeType' => $mimeType,
-            'fileSize' => $fileSize
+        $mimeType = $imageInfo['mime'];
+    
+        // Obtener el contenido del archivo
+        $fileContent = file_get_contents($path);
+        if ($fileContent === false) {
+            Log::error('No se pudo leer el archivo de imagen', ['path' => $path]);
+            abort(500, 'Error al leer la imagen');
+        }
+    
+        // Crear la respuesta con los encabezados adecuados
+        return response($fileContent, 200, [
+            'Content-Type' => $mimeType,
+            'Content-Length' => filesize($path),
+            'Cache-Control' => 'public, max-age=31536000',
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET',
         ]);
-
-        return $response;
     }
+    
 
     /**
      * Determina el tipo MIME de una imagen a partir de su ruta.
