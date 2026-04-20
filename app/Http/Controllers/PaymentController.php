@@ -284,10 +284,11 @@ public function createSimplePreference(Request $request)
             "auto_return" => "approved"
         ]);
 
-        return response()->json(['preferenceId' => $preference['id']]);
+        // Acceder al ID de la preferencia como propiedad del objeto
+        return response()->json(['preferenceId' => $preference->id]);
 
     } catch (\Exception $e) {
-        \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage());
+        \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage() . "\n" . $e->getTraceAsString());
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
