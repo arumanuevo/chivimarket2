@@ -36,20 +36,21 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="/generate-token" class="mt-4">
-                        @csrf
-                        <input type="hidden" name="device_id" value="{{ $deviceId }}">
-                        <input type="hidden" name="temp_token" value="{{ $tempToken }}">
-                        <button type="submit" class="btn btn-primary btn-custom w-100">
-                            Generar Token de Acceso
-                        </button>
-                    </form>
+                    <!-- Botón para redirigir a Mercado Pago -->
+                    <form method="GET" action="https://chivimarket.arumasoft.com/create-payment" class="mt-4">
+                            @csrf
+                            <input type="hidden" name="device_id" value="{{ $deviceId }}">
+                            <input type="hidden" name="temp_token" value="{{ $tempToken }}">
+                            <button type="submit" class="btn btn-success btn-custom w-100">
+                                Pagar $2 por Sesión de Ducha
+                            </button>
+                        </form>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS (opcional, solo si necesitas funcionalidades interactivas) -->
+    <!-- Bootstrap JS (opcional) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
