@@ -294,7 +294,7 @@ public function createSimplePreference(Request $request)
 //APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898
 public function handleWebhook(Request $request)
 {
-    Log::info("Webhook recibido:", $request->all());
+    Log::info("Webhook recibidofffffffffffffffffffff:", $request->all());
 
     try {
         $data = $request->all();
