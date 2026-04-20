@@ -83,3 +83,5 @@ Route::get('/test-payment-failure', [PaymentController::class, 'handleTestPaymen
 Route::get('/test-payment-pending', [PaymentController::class, 'handleTestPaymentPending'])->name('test.payment.pending');
 
 Route::get('/test-connection', [PaymentController::class, 'testConnection'])->name('test.connection');
+
+Route::get('/test-sdk', [PaymentController::class, 'testSDK'])->name('test.sdk');

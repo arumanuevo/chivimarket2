@@ -220,7 +220,7 @@ public function testConnection(Request $request)
 {
     try {
         MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
-        MercadoPagoConfig::enableDebugMode();
+        //MercadoPagoConfig::enableDebugMode();
 
         $client = new PreferenceClient();
 
@@ -241,6 +241,16 @@ public function testConnection(Request $request)
 
     } catch (\Exception $e) {
         \Log::error("Error detallado al probar la conexión: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
+
+public function testSDK()
+{
+    try {
+        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
+        return response()->json(['message' => 'SDK configurado correctamente']);
+    } catch (\Exception $e) {
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
