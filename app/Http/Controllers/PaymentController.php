@@ -50,39 +50,38 @@ class PaymentController extends Controller
     }
 
     public function handleSuccess(Request $request)
-    {
-        $deviceId = $request->input('device_id');
-        $tempToken = $request->input('temp_token');
+{
+    $deviceId = $request->input('device_id');
+    $tempToken = $request->input('temp_token');
 
-        // Redirigir a la ruta que genera el token
-        return redirect()->route('generate.token.view', ['device_id' => $deviceId, 'temp_token' => $tempToken]);
-    }
+    return redirect()->route('generate.token.view', ['device_id' => $deviceId, 'temp_token' => $tempToken]);
+}
 
-    public function handleFailure(Request $request)
-    {
-        $deviceId = $request->input('device_id');
-        $tempToken = $request->input('temp_token');
+public function handleFailure(Request $request)
+{
+    $deviceId = $request->input('device_id');
+    $tempToken = $request->input('temp_token');
 
-        return view('payment-failure', [
-            'deviceId' => $deviceId,
-            'tempToken' => $tempToken
-        ]);
-    }
+    return view('payment-failure', [
+        'deviceId' => $deviceId,
+        'tempToken' => $tempToken
+    ]);
+}
 
-    public function handlePending(Request $request)
-    {
-        $deviceId = $request->input('device_id');
-        $tempToken = $request->input('temp_token');
+public function handlePending(Request $request)
+{
+    $deviceId = $request->input('device_id');
+    $tempToken = $request->input('temp_token');
 
-        return view('payment-pending', [
-            'deviceId' => $deviceId,
-            'tempToken' => $tempToken
-        ]);
-    }
+    return view('payment-pending', [
+        'deviceId' => $deviceId,
+        'tempToken' => $tempToken
+    ]);
+}
 
     
 
-    public function handleWebhook(Request $request)
+public function handleWebhook(Request $request)
 {
     \Log::info("Webhook recibido: ", $request->all());
 
@@ -115,5 +114,34 @@ class PaymentController extends Controller
     }
 
     return response()->json(['status' => 'ok']);
+}
+
+public function createPreference(Request $request)
+{
+    $deviceId = $request->input('device_id');
+    $tempToken = $request->input('temp_token');
+
+    MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898');
+
+    $client = new PreferenceClient();
+
+    $preference = $client->create([
+        "items" => [
+            [
+                "title" => "Sesión de Ducha",
+                "quantity" => 1,
+                "unit_price" => 2.00
+            ]
+        ],
+        "back_urls" => [
+            "success" => route('payment.success', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+            "failure" => route('payment.failure', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+            "pending" => route('payment.pending', ['device_id' => $deviceId, 'temp_token' => $tempToken])
+        ],
+        "auto_return" => "approved",
+        "external_reference" => $deviceId . '&' . $tempToken
+    ]);
+
+    return response()->json(['preferenceId' => $preference['id']]);
 }
 }

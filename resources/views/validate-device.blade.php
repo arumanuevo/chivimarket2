@@ -21,6 +21,9 @@
             border-radius: 8px;
             margin-bottom: 10px;
         }
+        #walletBrick_container {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -47,21 +50,57 @@
                         </button>
                     </form>
 
-                    <!-- Botón para pagar con Mercado Pago -->
-                    <form method="GET" action="/create-payment" class="mt-2">
-                        @csrf
-                        <input type="hidden" name="device_id" value="{{ $deviceId }}">
-                        <input type="hidden" name="temp_token" value="{{ $tempToken }}">
-                        <button type="submit" class="btn btn-success btn-custom w-100">
-                            Pagar $2 por Sesión de Ducha
-                        </button>
-                    </form>
+                    <!-- Contenedor para el botón de pago de Mercado Pago -->
+                    <div id="walletBrick_container"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS (opcional) -->
+    <!-- SDK de Mercado Pago -->
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+
+    <!-- Script para inicializar el botón de pago -->
+    <script>
+        // Configurar el SDK de Mercado Pago con tu Public Key
+        const mp = new MercadoPago('APP_USR-24f06e09-3b17-4c64-bb41-1e1979237495');
+
+        // Crear el botón de pago
+        const bricksBuilder = mp.bricks();
+
+        // Renderizar el botón de pago
+        async function renderWalletBrick(preferenceId) {
+            await bricksBuilder.create("wallet", "walletBrick_container", {
+                initialization: {
+                    preferenceId: preferenceId,
+                },
+            });
+        }
+
+        // Crear la preferencia de pago al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/create-preference', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                },
+                body: JSON.stringify({
+                    device_id: '{{ $deviceId }}',
+                    temp_token: '{{ $tempToken }}'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.preferenceId) {
+                    renderWalletBrick(data.preferenceId);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+
+    <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

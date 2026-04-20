@@ -65,7 +65,12 @@ Route::post('/payment/webhook', [PaymentController::class, 'handleWebhook'])->na
 
 // Rutas para el pago con Mercado Pago
 Route::get('/create-payment', [PaymentController::class, 'createPayment'])->name('payment.create');
+/*Route::get('/payment/success', [PaymentController::class, 'handleSuccess'])->name('payment.success');
+Route::get('/payment/failure', [PaymentController::class, 'handleFailure'])->name('payment.failure');
+Route::get('/payment/pending', [PaymentController::class, 'handlePending'])->name('payment.pending');*/
+
 Route::get('/payment/success', [PaymentController::class, 'handleSuccess'])->name('payment.success');
 Route::get('/payment/failure', [PaymentController::class, 'handleFailure'])->name('payment.failure');
 Route::get('/payment/pending', [PaymentController::class, 'handlePending'])->name('payment.pending');
 
+Route::post('/create-preference', [PaymentController::class, 'createPreference'])->name('create.preference');
