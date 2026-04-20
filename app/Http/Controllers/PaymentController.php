@@ -166,7 +166,7 @@ public function showTestPayment()
 public function createTestPreference(Request $request)
 {
     try {
-        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898');
+        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
 
         $client = new PreferenceClient();
 
