@@ -296,7 +296,7 @@ public function handleWebhook(Request $request)
 {
     Log::info("Webhook recibidofffffffffffffffffffff:", $request->all());
 
-    try {
+   /* try {
         $data = $request->all();
 
         if (isset($data['action']) && $data['action'] == 'payment.updated') {
@@ -319,7 +319,7 @@ public function handleWebhook(Request $request)
     } catch (\Exception $e) {
         Log::error("Error en el webhook: " . $e->getMessage(), ['exception' => $e]);
         return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
-    }
+    }*/
 }
 public function handleSimplePaymentSuccess(Request $request)
 {
