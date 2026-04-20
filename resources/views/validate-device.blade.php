@@ -19,6 +19,7 @@
             font-size: 1.2rem;
             font-weight: 600;
             border-radius: 8px;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -36,15 +37,25 @@
                         </div>
                     @endif
 
-                    <!-- Botón para redirigir a Mercado Pago -->
-                    <form method="GET" action="https://chivimarket.arumasoft.com/create-payment" class="mt-4">
-                            @csrf
-                            <input type="hidden" name="device_id" value="{{ $deviceId }}">
-                            <input type="hidden" name="temp_token" value="{{ $tempToken }}">
-                            <button type="submit" class="btn btn-success btn-custom w-100">
-                                Pagar $2 por Sesión de Ducha
-                            </button>
-                        </form>
+                    <!-- Botón original para generar token directamente -->
+                    <form method="POST" action="/generate-token" class="mt-4">
+                        @csrf
+                        <input type="hidden" name="device_id" value="{{ $deviceId }}">
+                        <input type="hidden" name="temp_token" value="{{ $tempToken }}">
+                        <button type="submit" class="btn btn-primary btn-custom w-100">
+                            Generar Token de Acceso (Sin Pago)
+                        </button>
+                    </form>
+
+                    <!-- Botón para pagar con Mercado Pago -->
+                    <form method="GET" action="/create-payment" class="mt-2">
+                        @csrf
+                        <input type="hidden" name="device_id" value="{{ $deviceId }}">
+                        <input type="hidden" name="temp_token" value="{{ $tempToken }}">
+                        <button type="submit" class="btn btn-success btn-custom w-100">
+                            Pagar $2 por Sesión de Ducha
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

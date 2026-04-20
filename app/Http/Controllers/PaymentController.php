@@ -7,49 +7,55 @@ use Illuminate\Http\Request;
 use MercadoPago\SDK;
 use MercadoPago\Preference;
 use MercadoPago\Item;
+use App\Models\AccessToken;
 
 class PaymentController extends Controller
 {
     public function __construct()
     {
-        SDK::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898');
+        // Configurar el ACCESS_TOKEN de Mercado Pago
+        SDK::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898'); // Reemplaza con tu ACCESS_TOKEN de prueba
     }
 
     public function createPayment(Request $request)
-{
-    $deviceId = $request->input('device_id');
-    $tempToken = $request->input('temp_token');
+    {
+        $deviceId = $request->input('device_id');
+        $tempToken = $request->input('temp_token');
 
-    $preference = new Preference();
+        // Crear una preferencia de pago
+        $preference = new Preference();
 
-    $item = new Item();
-    $item->title = 'Sesión de Ducha';
-    $item->quantity = 1;
-    $item->unit_price = 2.00;
+        // Configurar el ítem a pagar
+        $item = new Item();
+        $item->title = 'Sesión de Ducha';
+        $item->quantity = 1;
+        $item->unit_price = 2.00; // Precio de $2
 
-    $preference->items = [$item];
+        $preference->items = [$item];
 
-    // Configurar las URLs de retorno con tu dominio de producción
-    $preference->back_urls = [
-        'success' => 'https://chivimarket.arumasoft.com/payment/success?device_id=' . $deviceId . '&temp_token=' . $tempToken,
-        'failure' => 'https://chivimarket.arumasoft.com/payment/failure?device_id=' . $deviceId . '&temp_token=' . $tempToken,
-        'pending' => 'https://chivimarket.arumasoft.com/payment/pending?device_id=' . $deviceId . '&temp_token=' . $tempToken
-    ];
+        // Configurar las URLs de retorno
+        $preference->back_urls = [
+            'success' => route('payment.success', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+            'failure' => route('payment.failure', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+            'pending' => route('payment.pending', ['device_id' => $deviceId, 'temp_token' => $tempToken])
+        ];
 
-    $preference->auto_return = 'approved';
-    $preference->save();
+        $preference->auto_return = 'approved'; // Redirigir automáticamente al éxito
 
-    return redirect()->away($preference->init_point);
-}
+        // Guardar la preferencia
+        $preference->save();
+
+        // Redirigir al usuario a Mercado Pago
+        return redirect()->away($preference->init_point);
+    }
 
     public function handleSuccess(Request $request)
     {
         $deviceId = $request->input('device_id');
         $tempToken = $request->input('temp_token');
 
-        // Aquí podrías validar el pago antes de generar el token
-        // Por ahora, generamos el token directamente
-        return redirect()->route('generate.token', ['device_id' => $deviceId, 'temp_token' => $tempToken]);
+        // Redirigir a la ruta que genera el token
+        return redirect()->route('generate.token.view', ['device_id' => $deviceId, 'temp_token' => $tempToken]);
     }
 
     public function handleFailure(Request $request)
