@@ -294,8 +294,7 @@ public function createSimplePreference(Request $request)
 //APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898
 public function handleWebhook(Request $request)
 {
-    Log::info("Webhook recibidofffffffffffffffffffff:", $request->all());
-
+   
    /* try {
         $data = $request->all();
 
@@ -320,6 +319,49 @@ public function handleWebhook(Request $request)
         Log::error("Error en el webhook: " . $e->getMessage(), ['exception' => $e]);
         return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
     }*/
+    Log::info("Webhook recibido:", $request->all());
+
+    try {
+        $data = $request->all();
+
+        // Verificar que sea una notificación de pago actualizado
+        if (!isset($data['action']) || $data['action'] != 'payment.updated') {
+            Log::info("Notificación no es de pago actualizado. Acción: " . ($data['action'] ?? 'No especificada'));
+            return response()->json(['status' => 'ignored']);
+        }
+
+        // Obtener el ID del pago
+        if (!isset($data['data']['id'])) {
+            Log::error("ID de pago no encontrado en la notificación.");
+            return response()->json(['status' => 'error', 'message' => 'ID de pago no encontrado'], 400);
+        }
+
+        $paymentId = $data['data']['id'];
+
+        // Configurar el SDK de Mercado Pago
+        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898');
+
+        // Obtener detalles del pago
+        $client = new PaymentClient();
+        $payment = $client->get($paymentId);
+
+        // Verificar el estado del pago
+        if ($payment->status === 'approved') {
+            Log::info("Pago aprobado con ID: " . $paymentId, ['payment' => $payment]);
+            // Aquí puedes agregar la lógica para manejar el pago aprobado
+            return response()->json(['status' => 'success']);
+        } else {
+            Log::info("Pago no aprobado. Estado: " . $payment->status, ['payment' => $payment]);
+            return response()->json(['status' => 'received']);
+        }
+
+    } catch (MPApiException $e) {
+        Log::error("Error en la API de Mercado Pago: " . $e->getMessage(), ['exception' => $e]);
+        return response()->json(['status' => 'error', 'message' => 'Error en la API de Mercado Pago'], 500);
+    } catch (\Exception $e) {
+        Log::error("Error en el webhook: " . $e->getMessage(), ['exception' => $e]);
+        return response()->json(['status' => 'error', 'message' => 'Error interno del servidor'], 500);
+    }
 }
 public function handleSimplePaymentSuccess(Request $request)
 {
