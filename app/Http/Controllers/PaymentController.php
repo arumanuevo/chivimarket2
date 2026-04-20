@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Preference;
+use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Item;
 use Illuminate\Support\Str;
 use App\Models\AccessToken;
+use MercadoPago\Client\Payment\PaymentClient;
 
 class PaymentController extends Controller
 {
@@ -22,31 +24,29 @@ class PaymentController extends Controller
         $deviceId = $request->input('device_id');
         $tempToken = $request->input('temp_token');
 
-        // Crear una preferencia de pago
-        $preference = new Preference();
+        // Crear un cliente de preferencias
+        $client = new PreferenceClient();
 
-        // Configurar el ítem a pagar
-        $item = new Item();
-        $item->title = 'Sesión de Ducha';
-        $item->quantity = 1;
-        $item->unit_price = 2.00;
-
-        $preference->items = [$item];
-
-        // Configurar las URLs de retorno
-        $preference->back_urls = [
-            'success' => route('payment.success', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
-            'failure' => route('payment.failure', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
-            'pending' => route('payment.pending', ['device_id' => $deviceId, 'temp_token' => $tempToken])
-        ];
-
-        $preference->auto_return = 'approved';
-
-        // Guardar la preferencia
-        $preference->save();
+        // Crear la preferencia de pago
+        $preference = $client->create([
+            "items" => [
+                [
+                    "title" => "Sesión de Ducha",
+                    "quantity" => 1,
+                    "unit_price" => 2.00
+                ]
+            ],
+            "back_urls" => [
+                "success" => route('payment.success', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+                "failure" => route('payment.failure', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+                "pending" => route('payment.pending', ['device_id' => $deviceId, 'temp_token' => $tempToken])
+            ],
+            "auto_return" => "approved",
+            "external_reference" => $deviceId . '&' . $tempToken
+        ]);
 
         // Redirigir al usuario a Mercado Pago
-        return redirect()->away($preference->init_point);
+        return redirect()->away($preference['init_point']);
     }
 
     public function handleSuccess(Request $request)
@@ -79,22 +79,25 @@ class PaymentController extends Controller
             'tempToken' => $tempToken
         ]);
     }
+
+    
+
     public function handleWebhook(Request $request)
 {
     \Log::info("Webhook recibido: ", $request->all());
 
-    $payment = $request->all();
+    $paymentData = $request->all();
 
-    if (isset($payment['action']) && $payment['action'] == 'payment.created') {
-        $paymentId = $payment['data']['id'];
+    if (isset($paymentData['action']) && $paymentData['action'] == 'payment.created') {
+        $paymentId = $paymentData['data']['id'];
 
-        SDK::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898');
+        $client = new PaymentClient();
+        $payment = $client->get($paymentId);
 
-        $paymentInfo = MercadoPago\Payment::find_by_id($paymentId);
-
-        if ($paymentInfo->status == 'approved') {
-            $externalReference = explode('&', $paymentInfo->external_reference);
-            parse_str($paymentInfo->external_reference, $externalData);
+        if ($payment['status'] == 'approved') {
+            $externalReference = $payment['external_reference'];
+            $externalData = [];
+            parse_str($externalReference, $externalData);
 
             $deviceId = $externalData['device_id'];
             $tempToken = $externalData['temp_token'];
