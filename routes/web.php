@@ -74,3 +74,10 @@ Route::get('/payment/failure', [PaymentController::class, 'handleFailure'])->nam
 Route::get('/payment/pending', [PaymentController::class, 'handlePending'])->name('payment.pending');
 
 Route::post('/create-preference', [PaymentController::class, 'createPreference'])->name('create.preference');
+/*_____________________testing mercado pago_____________________________________*/
+
+Route::get('/test-payment', [PaymentController::class, 'showTestPayment'])->name('test.payment');
+Route::post('/create-test-preference', [PaymentController::class, 'createTestPreference'])->name('create.test.preference');
+Route::get('/test-payment-success', [PaymentController::class, 'handleTestPaymentSuccess'])->name('test.payment.success');
+Route::get('/test-payment-failure', [PaymentController::class, 'handleTestPaymentFailure'])->name('test.payment.failure');
+Route::get('/test-payment-pending', [PaymentController::class, 'handleTestPaymentPending'])->name('test.payment.pending');

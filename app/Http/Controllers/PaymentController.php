@@ -155,4 +155,57 @@ public function createPreference(Request $request)
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
+/* testing mercado <pago>*/
+
+
+public function showTestPayment()
+{
+    return view('test-payment');
+}
+
+public function createTestPreference(Request $request)
+{
+    try {
+        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898');
+
+        $client = new PreferenceClient();
+
+        $preference = $client->create([
+            "items" => [
+                [
+                    "title" => "Prueba de Pago",
+                    "quantity" => 1,
+                    "unit_price" => (float)10.00,
+                    "currency_id" => "ARS"
+                ]
+            ],
+            "back_urls" => [
+                "success" => url("/test-payment-success"),
+                "failure" => url("/test-payment-failure"),
+                "pending" => url("/test-payment-pending")
+            ],
+            "auto_return" => "approved"
+        ]);
+
+        return response()->json(['preferenceId' => $preference['id']]);
+
+    } catch (\Exception $e) {
+        \Log::error("Error detallado al crear la preferencia de prueba: " . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
+public function handleTestPaymentSuccess(Request $request)
+{
+    return view('test-payment-success');
+}
+
+public function handleTestPaymentFailure(Request $request)
+{
+    return view('test-payment-failure');
+}
+
+public function handleTestPaymentPending(Request $request)
+{
+    return view('test-payment-pending');
+}
 }
