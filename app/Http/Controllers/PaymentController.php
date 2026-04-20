@@ -82,7 +82,7 @@ public function handlePending(Request $request)
 
     
 
-public function handleWebhook(Request $request)
+/*public function handleWebhook(Request $request)
 {
     \Log::info("Webhook recibido: ", $request->all());
 
@@ -115,7 +115,7 @@ public function handleWebhook(Request $request)
     }
 
     return response()->json(['status' => 'ok']);
-}
+}*/
 
 public function createPreference(Request $request)
 {
@@ -277,22 +277,51 @@ public function createSimplePreference(Request $request)
                 ]
             ],
             "back_urls" => [
-                "success" => url("/simple-payment-success"),
-                "failure" => url("/simple-payment-failure"),
-                "pending" => url("/simple-payment-pending")
+                "success" => "https://chivimarket.arumasoft.com/simple-payment-success",
+                "failure" => "https://chivimarket.arumasoft.com/simple-payment-failure",
+                "pending" => "https://chivimarket.arumasoft.com/simple-payment-pending"
             ],
             "auto_return" => "approved"
         ]);
 
-        // Acceder al ID de la preferencia como propiedad del objeto
         return response()->json(['preferenceId' => $preference->id]);
 
     } catch (\Exception $e) {
-        \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+        \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage());
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
 
+public function handleWebhook(Request $request)
+{
+    Log::info("Webhook recibido:", $request->all());
+
+    $data = $request->all();
+
+    if (isset($data['action']) && $data['action'] == 'payment.updated') {
+        $paymentId = $data['data']['id'];
+
+        try {
+            MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
+            $client = new \MercadoPago\Client\Payment\PaymentClient();
+            $payment = $client->get($paymentId);
+
+            Log::info("Detalles del pago:", $payment);
+
+            if ($payment['status'] == 'approved') {
+                Log::info("Pago aprobado con ID: " . $paymentId);
+                // Aquí puedes agregar la lógica para manejar el pago aprobado
+                return response()->json(['status' => 'success']);
+            }
+
+        } catch (\Exception $e) {
+            Log::error("Error al procesar el pago: " . $e->getMessage());
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    return response()->json(['status' => 'received']);
+}
 public function handleSimplePaymentSuccess(Request $request)
 {
     return view('simple-payment-success');
