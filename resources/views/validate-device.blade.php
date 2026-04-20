@@ -67,7 +67,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Configurar el SDK de Mercado Pago con tu Public Key
             const mp = new MercadoPago('APP_USR-24f06e09-3b17-4c64-bb41-1e1979237495');
-
+console.log(mp);
             // Crear el botón de pago
             const bricksBuilder = mp.bricks();
 
