@@ -85,3 +85,11 @@ Route::get('/test-payment-pending', [PaymentController::class, 'handleTestPaymen
 Route::get('/test-connection', [PaymentController::class, 'testConnection'])->name('test.connection');
 
 Route::get('/test-sdk', [PaymentController::class, 'testSDK'])->name('test.sdk');
+
+Route::get('/simple-payment', [PaymentController::class, 'showSimplePayment'])->name('simple.payment');
+
+Route::post('/create-simple-preference', [PaymentController::class, 'createSimplePreference'])->name('create.simple.preference');
+
+Route::get('/simple-payment-success', [PaymentController::class, 'handleSimplePaymentSuccess'])->name('simple.payment.success');
+Route::get('/simple-payment-failure', [PaymentController::class, 'handleSimplePaymentFailure'])->name('simple.payment.failure');
+Route::get('/simple-payment-pending', [PaymentController::class, 'handleSimplePaymentPending'])->name('simple.payment.pending');

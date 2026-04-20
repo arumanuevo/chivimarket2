@@ -254,4 +254,57 @@ public function testSDK()
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
+
+public function showSimplePayment()
+{
+    return view('simple-payment');
+}
+
+public function createSimplePreference(Request $request)
+{
+    try {
+        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
+
+        $client = new PreferenceClient();
+
+        $preference = $client->create([
+            "items" => [
+                [
+                    "title" => "Pago Simple",
+                    "quantity" => 1,
+                    "unit_price" => (float)10.00,
+                    "currency_id" => "ARS"
+                ]
+            ],
+            "back_urls" => [
+                "success" => url("/simple-payment-success"),
+                "failure" => url("/simple-payment-failure"),
+                "pending" => url("/simple-payment-pending")
+            ],
+            "auto_return" => "approved"
+        ]);
+
+        return response()->json(['preferenceId' => $preference['id']]);
+
+    } catch (\Exception $e) {
+        \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
+
+public function handleSimplePaymentSuccess(Request $request)
+{
+    return view('simple-payment-success');
+}
+
+public function handleSimplePaymentFailure(Request $request)
+{
+    return view('simple-payment-failure');
+}
+
+public function handleSimplePaymentPending(Request $request)
+{
+    return view('simple-payment-pending');
+}
+
 }
