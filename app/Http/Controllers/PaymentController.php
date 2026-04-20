@@ -10,6 +10,7 @@ use MercadoPago\Item;
 use Illuminate\Support\Str;
 use App\Models\AccessToken;
 use MercadoPago\Client\Payment\PaymentClient;
+use Illuminate\Support\Facades\Log;
 
 class PaymentController extends Controller
 {
@@ -118,30 +119,40 @@ public function handleWebhook(Request $request)
 
 public function createPreference(Request $request)
 {
-    $deviceId = $request->input('device_id');
-    $tempToken = $request->input('temp_token');
+    try {
+        $deviceId = $request->input('device_id');
+        $tempToken = $request->input('temp_token');
 
-    MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898');
+        Log::info("Creando preferencia para device_id: $deviceId, temp_token: $tempToken");
 
-    $client = new PreferenceClient();
+        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898');
 
-    $preference = $client->create([
-        "items" => [
-            [
-                "title" => "Sesión de Ducha",
-                "quantity" => 1,
-                "unit_price" => 2.00
-            ]
-        ],
-        "back_urls" => [
-            "success" => route('payment.success', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
-            "failure" => route('payment.failure', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
-            "pending" => route('payment.pending', ['device_id' => $deviceId, 'temp_token' => $tempToken])
-        ],
-        "auto_return" => "approved",
-        "external_reference" => $deviceId . '&' . $tempToken
-    ]);
+        $client = new PreferenceClient();
 
-    return response()->json(['preferenceId' => $preference['id']]);
+        $preference = $client->create([
+            "items" => [
+                [
+                    "title" => "Sesión de Ducha",
+                    "quantity" => 1,
+                    "unit_price" => 2.00
+                ]
+            ],
+            "back_urls" => [
+                "success" => route('payment.success', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+                "failure" => route('payment.failure', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+                "pending" => route('payment.pending', ['device_id' => $deviceId, 'temp_token' => $tempToken])
+            ],
+            "auto_return" => "approved",
+            "external_reference" => $deviceId . '&' . $tempToken
+        ]);
+
+        Log::info("Preferencia creada con éxito. ID: " . $preference['id']);
+
+        return response()->json(['preferenceId' => $preference['id']]);
+
+    } catch (\Exception $e) {
+        Log::error("Error al crear la preferencia: " . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
 }
 }
