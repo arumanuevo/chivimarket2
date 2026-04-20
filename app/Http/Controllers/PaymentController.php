@@ -167,10 +167,11 @@ public function createTestPreference(Request $request)
 {
     try {
         MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
+        MercadoPagoConfig::enableDebugMode();
 
         $client = new PreferenceClient();
 
-        $preference = $client->create([
+        $body = [
             "items" => [
                 [
                     "title" => "Prueba de Pago",
@@ -185,12 +186,18 @@ public function createTestPreference(Request $request)
                 "pending" => url("/test-payment-pending")
             ],
             "auto_return" => "approved"
-        ]);
+        ];
+
+        \Log::info("Cuerpo de la preferencia:", $body);
+
+        $preference = $client->create($body);
+
+        \Log::info("Preferencia creada:", $preference);
 
         return response()->json(['preferenceId' => $preference['id']]);
 
     } catch (\Exception $e) {
-        \Log::error("Error detallado al crear la preferencia de prueba: " . $e->getMessage());
+        \Log::error("Error detallado al crear la preferencia de prueba: " . $e->getMessage() . "\n" . $e->getTraceAsString());
         return response()->json(['error' => $e->getMessage()], 500);
     }
 }
@@ -207,5 +214,34 @@ public function handleTestPaymentFailure(Request $request)
 public function handleTestPaymentPending(Request $request)
 {
     return view('test-payment-pending');
+}
+
+public function testConnection(Request $request)
+{
+    try {
+        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
+        MercadoPagoConfig::enableDebugMode();
+
+        $client = new PreferenceClient();
+
+        $body = [
+            "items" => [
+                [
+                    "title" => "Test Product",
+                    "quantity" => 1,
+                    "unit_price" => (float)10.00,
+                    "currency_id" => "ARS"
+                ]
+            ]
+        ];
+
+        $preference = $client->create($body);
+
+        return response()->json(['preferenceId' => $preference['id']]);
+
+    } catch (\Exception $e) {
+        \Log::error("Error detallado al probar la conexión: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
 }
 }

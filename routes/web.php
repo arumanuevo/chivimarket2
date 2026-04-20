@@ -81,3 +81,5 @@ Route::post('/create-test-preference', [PaymentController::class, 'createTestPre
 Route::get('/test-payment-success', [PaymentController::class, 'handleTestPaymentSuccess'])->name('test.payment.success');
 Route::get('/test-payment-failure', [PaymentController::class, 'handleTestPaymentFailure'])->name('test.payment.failure');
 Route::get('/test-payment-pending', [PaymentController::class, 'handleTestPaymentPending'])->name('test.payment.pending');
+
+Route::get('/test-connection', [PaymentController::class, 'testConnection'])->name('test.connection');
