@@ -1,20 +1,20 @@
 <?php
 
-// app/Http/Controllers/PaymentController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use MercadoPago\SDK;
+use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Preference;
 use MercadoPago\Item;
+use Illuminate\Support\Str;
 use App\Models\AccessToken;
 
 class PaymentController extends Controller
 {
     public function __construct()
     {
-        // Configurar el ACCESS_TOKEN de Mercado Pago
-        SDK::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898'); // Reemplaza con tu ACCESS_TOKEN de prueba
+        // Configurar el ACCESS_TOKEN de Mercado Pago con la nueva sintaxis
+        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898');
     }
 
     public function createPayment(Request $request)
@@ -29,7 +29,7 @@ class PaymentController extends Controller
         $item = new Item();
         $item->title = 'Sesión de Ducha';
         $item->quantity = 1;
-        $item->unit_price = 2.00; // Precio de $2
+        $item->unit_price = 2.00;
 
         $preference->items = [$item];
 
@@ -40,7 +40,7 @@ class PaymentController extends Controller
             'pending' => route('payment.pending', ['device_id' => $deviceId, 'temp_token' => $tempToken])
         ];
 
-        $preference->auto_return = 'approved'; // Redirigir automáticamente al éxito
+        $preference->auto_return = 'approved';
 
         // Guardar la preferencia
         $preference->save();
