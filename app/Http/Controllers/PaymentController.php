@@ -342,7 +342,7 @@ public function handleWebhook(Request $request)
         Log::info("llego hasta aca");
         // Configurar el SDK de Mercado Pago
         MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
-
+        Log::info("llego hasta aca 2");
         // Obtener detalles del pago
         $client = new PaymentClient();
         $payment = $client->get($paymentId);
