@@ -443,19 +443,25 @@ public function handleSimplePaymentSuccess(Request $request)
     \Log::info("Pago exitoso: device_id = " . $deviceId . ", temp_token = " . $tempToken);
 
     if (empty($tempToken)) {
-        return redirect()->route('validate.device', ['device_id' => $deviceId])
-                         ->with('error', 'El código QR ha caducado. Escanea el QR nuevamente.');
+        return view('token-generated', [
+            'deviceId' => $deviceId,
+            'error' => 'El código QR ha caducado. Escanea el QR nuevamente.',
+            'token' => 'ERROR'
+        ]);
     }
 
     if (Session::has('used_temp_token_' . $tempToken)) {
-        return redirect()->route('validate.device', ['device_id' => $deviceId])
-                         ->with('error', 'El código QR ya ha sido usado. Escanea el QR nuevamente.');
+        $token = Session::get('generated_token_' . $tempToken, Str::random(16));
+        return view('token-generated', [
+            'deviceId' => $deviceId,
+            'token' => $token,
+            'tempToken' => $tempToken
+        ]);
     }
 
     Session::put('used_temp_token_' . $tempToken, true);
 
-    // Verificar si ya existe un token en la sesión
-    if (!Session::has('generated_token')) {
+    if (!Session::has('generated_token_' . $tempToken)) {
         $token = Str::random(16);
         $accessToken = AccessToken::create([
             'device_id' => $deviceId,
@@ -466,9 +472,9 @@ public function handleSimplePaymentSuccess(Request $request)
 
         \Log::info("Pago exitoso: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
 
-        Session::put('generated_token', $token);
+        Session::put('generated_token_' . $tempToken, $token);
     } else {
-        $token = Session::get('generated_token');
+        $token = Session::get('generated_token_' . $tempToken);
     }
 
     return view('token-generated', [

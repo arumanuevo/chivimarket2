@@ -47,10 +47,11 @@
                         <div id="activationCountdown" class="fs-3 fw-bold text-primary">05:00</div>
                     </div>
 
-                    <!-- Cuenta regresiva para redirigir -->
-                    <div class="mt-4">
-                        <p class="fs-5">Serás redirigido automáticamente cuando finalice la sesión:</p>
-                        <div id="redirectCountdown" class="fs-3 fw-bold text-primary">20</div>
+                    <div id="sessionCompletedMessage" class="mt-4" style="display: none;">
+                        <div class="alert alert-warning">
+                            <p class="mb-0">La sesión de ducha ha finalizado.</p>
+                            <p class="mb-0">Si deseas otra sesión, escanea nuevamente el código QR del dispositivo.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -61,6 +62,7 @@
         // Cuenta regresiva de 5 minutos (300 segundos) para activación
         let activationTimeLeft = 300;
         const activationCountdownElement = document.getElementById('activationCountdown');
+        const sessionCompletedMessage = document.getElementById('sessionCompletedMessage');
 
         const activationTimer = setInterval(() => {
             activationTimeLeft--;
@@ -73,41 +75,29 @@
                 activationCountdownElement.textContent = "00:00";
                 activationCountdownElement.classList.remove('text-primary');
                 activationCountdownElement.classList.add('text-danger');
-            }
-        }, 1000);
-
-        // Cuenta regresiva de 20 segundos para redirigir
-        let redirectTimeLeft = 20;
-        const redirectCountdownElement = document.getElementById('redirectCountdown');
-
-        const redirectTimer = setInterval(() => {
-            redirectTimeLeft--;
-            redirectCountdownElement.textContent = redirectTimeLeft;
-
-            if (redirectTimeLeft <= 0) {
-                clearInterval(redirectTimer);
-                window.location.href = "/session-completed";
+                sessionCompletedMessage.style.display = 'block';
             }
         }, 1000);
 
         // Deshabilitar la recarga de la página
         window.onbeforeunload = function(e) {
             e.preventDefault();
-            e.returnValue = '';
-            return '';
+            e.returnValue = 'No puedes recargar esta página.';
+            return 'No puedes recargar esta página.';
         };
 
         // Evitar que el usuario recargue la página con F5 o Ctrl+R
         document.onkeydown = function(e) {
             if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
+                e.preventValue = true;
                 e.preventDefault();
                 alert('No puedes recargar esta página.');
+                return false;
             }
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
 
 
