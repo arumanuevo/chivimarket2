@@ -96,7 +96,7 @@ Route::post('/create-simple-preference', [PaymentController::class, 'createSimpl
 //Route::get('/simple-payment-success', [PaymentController::class, 'handleSimplePaymentSuccess'])->name('simple.payment.success');
 Route::get('/simple-payment-failure', [PaymentController::class, 'handleSimplePaymentFailure'])->name('simple.payment.failure');
 Route::get('/simple-payment-pending', [PaymentController::class, 'handleSimplePaymentPending'])->name('simple.payment.pending');
-//Route::post('/simple-payment-success', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
+Route::post('/simple-payment-success', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
 Route::post('/payment/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
 
 // Pago exitoso
