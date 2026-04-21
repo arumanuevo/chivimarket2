@@ -321,7 +321,7 @@ public function handleWebhook(Request $request)
     }*/
     Log::info("Webhook recibidouuuuuuuuuuuuuuuu:", $request->all());
 
-    /*try {
+    try {
         $data = $request->all();
 
         // Verificar que sea una notificación de pago actualizado
@@ -361,7 +361,7 @@ public function handleWebhook(Request $request)
     } catch (\Exception $e) {
         Log::error("Error en el webhook: " . $e->getMessage(), ['exception' => $e]);
         return response()->json(['status' => 'error', 'message' => 'Error interno del servidor'], 500);
-    }*/
+    }
 }
 public function handleSimplePaymentSuccess(Request $request)
 {
