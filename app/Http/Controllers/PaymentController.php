@@ -19,7 +19,8 @@ class PaymentController extends Controller
     public function __construct()
     {
         // Configurar el ACCESS_TOKEN de Mercado Pago con la nueva sintaxis
-        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
+        //MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898'); testing
+        MercadoPagoConfig::setAccessToken('APP_USR-4259092094972298-011319-4f372d51d6748a53b1525e0e4dbb88b1-461263618');
     }
 
     public function createPayment(Request $request)
@@ -165,7 +166,7 @@ public function showNewTransaction()
 }
 public function createPreference(Request $request)
 {
-    MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898');
+    // MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898'); testing
 
     $client = new PreferenceClient();
 
@@ -197,7 +198,7 @@ public function showTestPayment()
 public function createTestPreference(Request $request)
 {
     try {
-        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
+        //MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898'); testing
         MercadoPagoConfig::enableDebugMode();
 
         $client = new PreferenceClient();
@@ -250,7 +251,7 @@ public function handleTestPaymentPending(Request $request)
 public function testConnection(Request $request)
 {
     try {
-        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
+        // MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898'); testing
         //MercadoPagoConfig::enableDebugMode();
 
         $client = new PreferenceClient();
@@ -291,10 +292,10 @@ public function showSimplePayment()
     return view('simple-payment');
 }
 
-public function createSimplePreference(Request $request)
+/*public function createSimplePreference(Request $request)
 {
     try {
-        MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
+        //MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898'); testing
 
         $client = new PreferenceClient();
 
@@ -321,7 +322,42 @@ public function createSimplePreference(Request $request)
         \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage());
         return response()->json(['error' => $e->getMessage()], 500);
     }
-}
+}*/
+
+public function createSimplePreference(Request $request)
+    {
+        try {
+            $deviceId = $request->input('device_id');
+            $tempToken = $request->input('temp_token');
+
+            $client = new PreferenceClient();
+
+            $preference = $client->create([
+                "items" => [
+                    [
+                        "title" => "Sesión de Ducha",
+                        "quantity" => 1,
+                        "unit_price" => 2.00,
+                        "currency_id" => "ARS"
+                    ]
+                ],
+                "back_urls" => [
+                    "success" => route('simple.payment.success', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+                    "failure" => route('simple.payment.failure', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+                    "pending" => route('simple.payment.pending', ['device_id' => $deviceId, 'temp_token' => $tempToken])
+                ],
+                "auto_return" => "approved",
+                "external_reference" => $deviceId . '&' . $tempToken
+            ]);
+
+            return response()->json(['preferenceId' => $preference->id]);
+
+        } catch (\Exception $e) {
+            \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
 //APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898
 public function handleWebhook(Request $request)
 {

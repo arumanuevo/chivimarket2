@@ -68,7 +68,8 @@
             console.log("DOM cargado");
 
             // Configurar el SDK de Mercado Pago con tu Public Key
-            const mp = new MercadoPago('APP_USR-24f06e09-3b17-4c64-bb41-1e1979237495');
+           // const mp = new MercadoPago('APP_USR-24f06e09-3b17-4c64-bb41-1e1979237495'); testing
+           const mp = new MercadoPago('APP_USR-43fbd867-f172-4af8-a28d-baf6d3b30974');
             console.log("SDK de Mercado Pago configurado:", mp);
 
             // Crear el botón de pago
