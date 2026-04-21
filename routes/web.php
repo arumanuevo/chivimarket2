@@ -114,3 +114,7 @@ Route::get('/pago-fallido', function (Request $request) {
 Route::get('/pago-pendiente', function (Request $request) {
     return view('pago-pendiente');
 })->name('pago.pendiente');
+
+Route::get('/session-completed', function () {
+    return view('session-completed');
+})->name('session.completed');

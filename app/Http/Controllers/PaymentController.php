@@ -454,15 +454,22 @@ public function handleSimplePaymentSuccess(Request $request)
 
     Session::put('used_temp_token_' . $tempToken, true);
 
-    $token = Str::random(16);
-    $accessToken = AccessToken::create([
-        'device_id' => $deviceId,
-        'token' => $token,
-        'expires_at' => now()->addMinutes(5),
-        'used' => false
-    ]);
+    // Verificar si ya existe un token en la sesión
+    if (!Session::has('generated_token')) {
+        $token = Str::random(16);
+        $accessToken = AccessToken::create([
+            'device_id' => $deviceId,
+            'token' => $token,
+            'expires_at' => now()->addMinutes(5),
+            'used' => false
+        ]);
 
-    \Log::info("Pago exitoso: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
+        \Log::info("Pago exitoso: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
+
+        Session::put('generated_token', $token);
+    } else {
+        $token = Session::get('generated_token');
+    }
 
     return view('token-generated', [
         'deviceId' => $deviceId,

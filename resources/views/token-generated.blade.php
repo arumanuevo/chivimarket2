@@ -21,11 +21,6 @@
             font-size: 1.3rem;
             word-break: break-all;
         }
-        .btn {
-            padding: 12px;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
     </style>
 </head>
 <body class="bg-light">
@@ -46,10 +41,16 @@
                         El ESP32 activará el relé automáticamente en breve.
                     </div>
 
-                    <!-- Cuenta regresiva visual -->
+                    <!-- Cuenta regresiva visual para activación -->
                     <div class="mt-4">
                         <p class="fs-5">Tiempo restante para activación:</p>
-                        <div id="countdown" class="fs-3 fw-bold text-primary">05:00</div>
+                        <div id="activationCountdown" class="fs-3 fw-bold text-primary">05:00</div>
+                    </div>
+
+                    <!-- Cuenta regresiva para redirigir -->
+                    <div class="mt-4">
+                        <p class="fs-5">Serás redirigido automáticamente cuando finalice la sesión:</p>
+                        <div id="redirectCountdown" class="fs-3 fw-bold text-primary">20</div>
                     </div>
                 </div>
             </div>
@@ -57,31 +58,43 @@
     </div>
 
     <script>
-        // Cuenta regresiva de 5 minutos (300 segundos)
-        let timeLeft = 300;
-        const countdownElement = document.getElementById('countdown');
+        // Cuenta regresiva de 5 minutos (300 segundos) para activación
+        let activationTimeLeft = 300;
+        const activationCountdownElement = document.getElementById('activationCountdown');
 
-        const timer = setInterval(() => {
-            timeLeft--;
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            countdownElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        const activationTimer = setInterval(() => {
+            activationTimeLeft--;
+            const minutes = Math.floor(activationTimeLeft / 60);
+            const seconds = activationTimeLeft % 60;
+            activationCountdownElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-            if (timeLeft <= 0) {
-                clearInterval(timer);
-                countdownElement.textContent = "00:00";
-                countdownElement.classList.remove('text-primary');
-                countdownElement.classList.add('text-danger');
-                alert("El token ha caducado.");
-                window.location.href = "/"; // Redirigir a la página principal
+            if (activationTimeLeft <= 0) {
+                clearInterval(activationTimer);
+                activationCountdownElement.textContent = "00:00";
+                activationCountdownElement.classList.remove('text-primary');
+                activationCountdownElement.classList.add('text-danger');
+            }
+        }, 1000);
+
+        // Cuenta regresiva de 20 segundos para redirigir
+        let redirectTimeLeft = 20;
+        const redirectCountdownElement = document.getElementById('redirectCountdown');
+
+        const redirectTimer = setInterval(() => {
+            redirectTimeLeft--;
+            redirectCountdownElement.textContent = redirectTimeLeft;
+
+            if (redirectTimeLeft <= 0) {
+                clearInterval(redirectTimer);
+                window.location.href = "/session-completed";
             }
         }, 1000);
 
         // Deshabilitar la recarga de la página
         window.onbeforeunload = function(e) {
             e.preventDefault();
-            e.returnValue = 'No puedes recargar esta página.';
-            return 'No puedes recargar esta página.';
+            e.returnValue = '';
+            return '';
         };
 
         // Evitar que el usuario recargue la página con F5 o Ctrl+R
@@ -95,7 +108,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
 
 
 
