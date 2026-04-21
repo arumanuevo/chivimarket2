@@ -61,7 +61,7 @@ Route::post('/generate-token', [DeviceController::class, 'generateToken']);
 Route::get('/payment/success', [PaymentController::class, 'handleSuccess'])->name('payment.success');
 Route::get('/payment/failure', [PaymentController::class, 'handleFailure'])->name('payment.failure');
 Route::get('/payment/pending', [PaymentController::class, 'handlePending'])->name('payment.pending');*/
-Route::post('/payment/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
+//Route::post('/payment/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
 
 // Rutas para el pago con Mercado Pago
 Route::get('/create-payment', [PaymentController::class, 'createPayment'])->name('payment.create');
@@ -93,4 +93,5 @@ Route::post('/create-simple-preference', [PaymentController::class, 'createSimpl
 //Route::get('/simple-payment-success', [PaymentController::class, 'handleSimplePaymentSuccess'])->name('simple.payment.success');
 Route::get('/simple-payment-failure', [PaymentController::class, 'handleSimplePaymentFailure'])->name('simple.payment.failure');
 Route::get('/simple-payment-pending', [PaymentController::class, 'handleSimplePaymentPending'])->name('simple.payment.pending');
-Route::post('/simple-payment-success', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
+//Route::post('/simple-payment-success', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
+Route::post('/payment/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');

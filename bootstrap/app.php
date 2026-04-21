@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->validateCsrfTokens(except: [
-            'simple-payment-success',
+            'payment/webhook',
         ]);
         $middleware->append(\App\Http\Middleware\Cors::class);
         $middleware->append(\App\Http\Middleware\CheckTempToken::class);
