@@ -12,7 +12,7 @@ use Illuminate\Support\Str;
 use App\Models\AccessToken;
 use MercadoPago\Client\Payment\PaymentClient;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\Session;
 
 class PaymentController extends Controller
 {
