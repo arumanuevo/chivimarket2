@@ -344,7 +344,7 @@ public function createSimplePreference(Request $request)
                 "back_urls" => [
                     "success" => route('simple.payment.success', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
                     "failure" => route('simple.payment.failure', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
-                    "pending" => route('simple.payment.pending', ['device_id' => $deviceId, 'temp_token' => $tempToken])
+                    "pending" => route('simple.payment.pending', ['device_id' => $tempToken])
                 ],
                 "auto_return" => "approved",
                 "external_reference" => $deviceId . '&' . $tempToken
@@ -430,9 +430,45 @@ public function handleWebhook(Request $request)
         return response()->json(['status' => 'error', 'message' => 'Error interno del servidor'], 500);
     }*/
 }
-public function handleSimplePaymentSuccess(Request $request)
+/*public function handleSimplePaymentSuccess(Request $request)
 {
     return view('simple-payment-success');
+}*/
+
+public function handleSimplePaymentSuccess(Request $request)
+{
+    $deviceId = $request->query('device_id');
+    $tempToken = $request->query('temp_token');
+
+    \Log::info("Pago exitoso: device_id = " . $deviceId . ", temp_token = " . $tempToken);
+
+    if (empty($tempToken)) {
+        return redirect()->route('validate.device', ['device_id' => $deviceId])
+                         ->with('error', 'El código QR ha caducado. Escanea el QR nuevamente.');
+    }
+
+    if (Session::has('used_temp_token_' . $tempToken)) {
+        return redirect()->route('validate.device', ['device_id' => $deviceId])
+                         ->with('error', 'El código QR ya ha sido usado. Escanea el QR nuevamente.');
+    }
+
+    Session::put('used_temp_token_' . $tempToken, true);
+
+    $token = Str::random(16);
+    $accessToken = AccessToken::create([
+        'device_id' => $deviceId,
+        'token' => $token,
+        'expires_at' => now()->addMinutes(5),
+        'used' => false
+    ]);
+
+    \Log::info("Pago exitoso: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
+
+    return view('token-generated', [
+        'deviceId' => $deviceId,
+        'token' => $token,
+        'tempToken' => $tempToken
+    ]);
 }
 
 public function handleSimplePaymentFailure(Request $request)
