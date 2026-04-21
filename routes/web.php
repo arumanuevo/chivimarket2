@@ -85,6 +85,7 @@ Route::get('/test-payment-success', [PaymentController::class, 'handleTestPaymen
 Route::get('/test-payment-failure', [PaymentController::class, 'handleTestPaymentFailure'])->name('test.payment.failure');
 Route::get('/test-payment-pending', [PaymentController::class, 'handleTestPaymentPending'])->name('test.payment.pending');
 
+
 Route::get('/test-connection', [PaymentController::class, 'testConnection'])->name('test.connection');
 
 Route::get('/test-sdk', [PaymentController::class, 'testSDK'])->name('test.sdk');
@@ -96,9 +97,9 @@ Route::post('/create-simple-preference', [PaymentController::class, 'createSimpl
 //Route::get('/simple-payment-success', [PaymentController::class, 'handleSimplePaymentSuccess'])->name('simple.payment.success');
 Route::get('/simple-payment-failure', [PaymentController::class, 'handleSimplePaymentFailure'])->name('simple.payment.failure');
 Route::get('/simple-payment-pending', [PaymentController::class, 'handleSimplePaymentPending'])->name('simple.payment.pending');
-Route::post('/simple-payment-success', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
+//Route::post('/simple-payment-success', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
 Route::post('/payment/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
-
+Route::get('/simple-payment-success', [PaymentController::class, 'handleSimplePaymentSuccess'])->name('simple.payment.success');
 // Pago exitoso
 Route::get('/pago-exitoso', function (Request $request) {
     return view('pago-exitoso');
