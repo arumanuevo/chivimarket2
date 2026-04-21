@@ -6,11 +6,13 @@ use Illuminate\Http\Request;
 use MercadoPago\MercadoPagoConfig;
 use MercadoPago\Preference;
 use MercadoPago\Client\Preference\PreferenceClient;
+use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\Item;
 use Illuminate\Support\Str;
 use App\Models\AccessToken;
 use MercadoPago\Client\Payment\PaymentClient;
 use Illuminate\Support\Facades\Log;
+
 
 class PaymentController extends Controller
 {
@@ -319,7 +321,7 @@ public function handleWebhook(Request $request)
         Log::error("Error en el webhook: " . $e->getMessage(), ['exception' => $e]);
         return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
     }*/
-    Log::info("Webhook recibidouuuuuuuuuuuuuuuu:", $request->all());
+    Log::info("Webhook recibido:", $request->all());
 
     try {
         $data = $request->all();
@@ -337,7 +339,7 @@ public function handleWebhook(Request $request)
         }
 
         $paymentId = $data['data']['id'];
-
+        Log::info("llego hasta aca");
         // Configurar el SDK de Mercado Pago
         MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898');
 
