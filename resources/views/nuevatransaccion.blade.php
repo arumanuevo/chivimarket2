@@ -5,65 +5,98 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Nueva Transacción</title>
-    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
             background-color: #f8f9fa;
-            margin: 0;
-            padding: 20px;
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         #wallet_container {
+            min-height: 100px;
             margin-top: 20px;
         }
     </style>
 </head>
-<body>
+<body class="bg-light">
     <div class="container">
-        <h1>Nueva Transacción</h1>
-        <p>Haz clic en el botón de abajo para realizar el pago.</p>
-        <div id="wallet_container"></div>
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-6 mt-5">
+                <div class="card p-4 text-center">
+                    <h2 class="mb-4">Nueva Transacción</h2>
+                    <p class="fs-5">Prueba de pago con Mercado Pago.</p>
+                    <!-- Contenedor para el botón de pago de Mercado Pago -->
+                    <div id="wallet_container"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- SDK de Mercado Pago -->
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+
+    <!-- Script para inicializar el botón de pago -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM cargado");
+
             fetch('/create-preference', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                    'Accept': 'application/json'
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log("Respuesta del servidor:", response);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log("Datos recibidos:", data);
                 if (data.preferenceId) {
-                    const mp = new MercadoPago('APP_USR-24f06e09-3b17-4c64-bb41-1e1979237495'); // Reemplaza con tu Public Key
-                    const bricksBuilder = mp.bricks();
+                    console.log("Preferencia ID:", data.preferenceId);
+                    renderWalletBrick(data.preferenceId);
+                } else if (data.error) {
+                    console.error("Error del servidor:", data.error);
+                    alert("Error al crear la preferencia: " + data.error);
+                } else {
+                    console.error("No se recibió un preferenceId válido:", data);
+                }
+            })
+            .catch(error => {
+                console.error('Error en la solicitud:', error);
+                alert("Error en la solicitud: " + error.message);
+            });
 
-                    bricksBuilder.create("wallet", "wallet_container", {
+            // Función para renderizar el botón de pago
+            async function renderWalletBrick(preferenceId) {
+                console.log("Renderizando botón con preferenceId:", preferenceId);
+                try {
+                    const mp = new MercadoPago('APP_USR-24f06e09-3b17-4c64-bb41-1e1979237495');
+                    const bricksBuilder = mp.bricks();
+                    await bricksBuilder.create("wallet", "wallet_container", {
                         initialization: {
-                            preferenceId: data.preferenceId,
+                            preferenceId: preferenceId,
                         },
                     });
-                } else {
-                    console.error('Error al obtener el preferenceId:', data);
+                    console.log("Botón renderizado con éxito");
+                } catch (error) {
+                    console.error("Error al renderizar el botón:", error);
+                    alert("Error al renderizar el botón: " + error.message);
                 }
-            })
-            .catch(error => console.error('Error:', error));
+            }
         });
     </script>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

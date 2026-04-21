@@ -74,6 +74,7 @@ Route::get('/payment/failure', [PaymentController::class, 'handleFailure'])->nam
 Route::get('/payment/pending', [PaymentController::class, 'handlePending'])->name('payment.pending');
 
 Route::post('/create-preference', [PaymentController::class, 'createPreference'])->name('create.preference');
+
 // Ruta para mostrar la vista de nueva transacción
 Route::get('/nueva-transaccion', [PaymentController::class, 'showNewTransaction'])->name('nueva.transaccion');
 /*_____________________testing mercado pago_____________________________________*/
