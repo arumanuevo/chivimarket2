@@ -24,7 +24,7 @@
         }
         #walletBrick_container {
             margin-top: 20px;
-            min-height: 50px;
+            min-height: 100px;
         }
     </style>
 </head>
@@ -67,17 +67,32 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Configurar el SDK de Mercado Pago con tu Public Key
             const mp = new MercadoPago('APP_USR-24f06e09-3b17-4c64-bb41-1e1979237495');
-console.log(mp);
+
             // Crear el botón de pago
             const bricksBuilder = mp.bricks();
 
             // Función para renderizar el botón de pago
             async function renderWalletBrick(preferenceId) {
-                await bricksBuilder.create("wallet", "walletBrick_container", {
-                    initialization: {
-                        preferenceId: preferenceId,
-                    },
-                });
+                try {
+                    await bricksBuilder.create("wallet", "walletBrick_container", {
+                        initialization: {
+                            preferenceId: preferenceId,
+                        },
+                        customization: {
+                            texts: {
+                                action: 'pagar',
+                                valueProps: {
+                                    splitPayment: {
+                                        installmentsLabel: 'cuotas sin interés'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    console.log("Botón de pago renderizado con éxito");
+                } catch (error) {
+                    console.error("Error al renderizar el botón de pago:", error);
+                }
             }
 
             // Obtener el token CSRF
@@ -105,6 +120,7 @@ console.log(mp);
             })
             .then(data => {
                 if (data.preferenceId) {
+                    console.log("Preferencia de pago creada con ID:", data.preferenceId);
                     renderWalletBrick(data.preferenceId);
                 } else {
                     console.error('No se recibió un preferenceId válido:', data);
