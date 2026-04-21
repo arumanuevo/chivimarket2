@@ -74,6 +74,8 @@ Route::get('/payment/failure', [PaymentController::class, 'handleFailure'])->nam
 Route::get('/payment/pending', [PaymentController::class, 'handlePending'])->name('payment.pending');
 
 Route::post('/create-preference', [PaymentController::class, 'createPreference'])->name('create.preference');
+// Ruta para mostrar la vista de nueva transacción
+Route::get('/nueva-transaccion', [PaymentController::class, 'showNewTransaction'])->name('nueva.transaccion');
 /*_____________________testing mercado pago_____________________________________*/
 
 Route::get('/test-payment', [PaymentController::class, 'showTestPayment'])->name('test.payment');
@@ -95,3 +97,18 @@ Route::get('/simple-payment-failure', [PaymentController::class, 'handleSimplePa
 Route::get('/simple-payment-pending', [PaymentController::class, 'handleSimplePaymentPending'])->name('simple.payment.pending');
 //Route::post('/simple-payment-success', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
 Route::post('/payment/webhook', [PaymentController::class, 'handleWebhook'])->name('payment.webhook');
+
+// Pago exitoso
+Route::get('/pago-exitoso', function (Request $request) {
+    return view('pago-exitoso');
+})->name('pago.exitoso');
+
+// Pago fallido
+Route::get('/pago-fallido', function (Request $request) {
+    return view('pago-fallido');
+})->name('pago.fallido');
+
+// Pago pendiente
+Route::get('/pago-pendiente', function (Request $request) {
+    return view('pago-pendiente');
+})->name('pago.pendiente');

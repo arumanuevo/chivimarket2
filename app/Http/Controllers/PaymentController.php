@@ -119,7 +119,7 @@ public function handlePending(Request $request)
     return response()->json(['status' => 'ok']);
 }*/
 
-public function createPreference(Request $request)
+/*public function createPreference(Request $request)
 {
     try {
         $deviceId = $request->input('device_id');
@@ -156,9 +156,38 @@ public function createPreference(Request $request)
         Log::error("Error al crear la preferencia: " . $e->getMessage());
         return response()->json(['error' => $e->getMessage()], 500);
     }
-}
+}*/
 /* testing mercado <pago>*/
 
+public function showNewTransaction()
+{
+    return view('nuevatransaccion');
+}
+public function createPreference(Request $request)
+{
+    MercadoPagoConfig::setAccessToken('APP_USR-6907958184263683-011320-e0f6ee5c1bffec59e87dfc16a3b29e9-3133104898');
+
+    $client = new PreferenceClient();
+
+    $preference = $client->create([
+        "items" => [
+            [
+                "title" => "Mi Producto",
+                "quantity" => 1,
+                "unit_price" => 10.00,
+                "currency_id" => "ARS"
+            ]
+        ],
+        "back_urls" => [
+            "success" => url('/pago-exitoso'),
+            "failure" => url('/pago-fallido'),
+            "pending" => url('/pago-pendiente')
+        ],
+        "auto_return" => "approved"
+    ]);
+
+    return response()->json(['preferenceId' => $preference->id]);
+}
 
 public function showTestPayment()
 {
