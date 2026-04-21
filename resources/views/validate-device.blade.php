@@ -23,8 +23,8 @@
             margin-bottom: 10px;
         }
         #walletBrick_container {
-            margin-top: 20px;
             min-height: 100px;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -65,45 +65,22 @@
     <!-- Script para inicializar el botón de pago -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM cargado");
+
             // Configurar el SDK de Mercado Pago con tu Public Key
             const mp = new MercadoPago('APP_USR-24f06e09-3b17-4c64-bb41-1e1979237495');
+            console.log("SDK de Mercado Pago configurado:", mp);
 
             // Crear el botón de pago
             const bricksBuilder = mp.bricks();
+            console.log("Bricks builder creado:", bricksBuilder);
 
-            // Función para renderizar el botón de pago
-            async function renderWalletBrick(preferenceId) {
-                try {
-                    await bricksBuilder.create("wallet", "walletBrick_container", {
-                        initialization: {
-                            preferenceId: preferenceId,
-                        },
-                        customization: {
-                            texts: {
-                                action: 'pagar',
-                                valueProps: {
-                                    splitPayment: {
-                                        installmentsLabel: 'cuotas sin interés'
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    console.log("Botón de pago renderizado con éxito");
-                } catch (error) {
-                    console.error("Error al renderizar el botón de pago:", error);
-                }
-            }
-
-            // Obtener el token CSRF
-            const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
-
-            // Crear la preferencia de pago al cargar la página
-            fetch('/create-preference', {
+            // Crear la preferencia de pago
+            fetch('/create-simple-preference', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
@@ -113,20 +90,44 @@
                 })
             })
             .then(response => {
+                console.log("Respuesta del servidor:", response);
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error(`Network response was not ok: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
+                console.log("Datos recibidos:", data);
                 if (data.preferenceId) {
-                    console.log("Preferencia de pago creada con ID:", data.preferenceId);
+                    console.log("Preferencia ID:", data.preferenceId);
                     renderWalletBrick(data.preferenceId);
+                } else if (data.error) {
+                    console.error("Error del servidor:", data.error);
+                    alert("Error al crear la preferencia: " + data.error);
                 } else {
-                    console.error('No se recibió un preferenceId válido:', data);
+                    console.error("No se recibió un preferenceId válido:", data);
                 }
             })
-            .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error en la solicitud:', error);
+                alert("Error en la solicitud: " + error.message);
+            });
+
+            // Función para renderizar el botón de pago
+            async function renderWalletBrick(preferenceId) {
+                console.log("Renderizando botón con preferenceId:", preferenceId);
+                try {
+                    await bricksBuilder.create("wallet", "walletBrick_container", {
+                        initialization: {
+                            preferenceId: preferenceId,
+                        },
+                    });
+                    console.log("Botón renderizado con éxito");
+                } catch (error) {
+                    console.error("Error al renderizar el botón:", error);
+                    alert("Error al renderizar el botón: " + error.message);
+                }
+            }
         });
     </script>
 
