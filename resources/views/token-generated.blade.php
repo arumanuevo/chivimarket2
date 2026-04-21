@@ -59,46 +59,52 @@
     </div>
 
     <script>
-        // Obtener el tiempo restante de sessionStorage o establecerlo en 20 segundos
-        let redirectTimeLeft = sessionStorage.getItem('redirectTimeLeft') ? parseInt(sessionStorage.getItem('redirectTimeLeft')) : 20;
-        const redirectCountdownElement = document.getElementById('redirectCountdown');
+        // Verificar si la sesión ya ha finalizado
+        const sessionCompleted = sessionStorage.getItem('sessionCompleted');
         const sessionCompletedMessage = document.getElementById('sessionCompletedMessage');
+        const redirectCountdownElement = document.getElementById('redirectCountdown');
 
-        // Iniciar la cuenta regresiva solo si no ha terminado
-        if (redirectTimeLeft > 0) {
+        if (sessionCompleted) {
+            sessionCompletedMessage.style.display = 'block';
+            redirectCountdownElement.style.display = 'none';
+        } else {
+            // Obtener el tiempo restante de sessionStorage o establecerlo en 20 segundos
+            let redirectTimeLeft = sessionStorage.getItem('redirectTimeLeft') ? parseInt(sessionStorage.getItem('redirectTimeLeft')) : 20;
             redirectCountdownElement.textContent = redirectTimeLeft;
 
-            const redirectTimer = setInterval(() => {
-                redirectTimeLeft--;
-                sessionStorage.setItem('redirectTimeLeft', redirectTimeLeft);
-                redirectCountdownElement.textContent = redirectTimeLeft;
+            // Iniciar la cuenta regresiva solo si no ha terminado
+            if (redirectTimeLeft > 0) {
+                const redirectTimer = setInterval(() => {
+                    redirectTimeLeft--;
+                    sessionStorage.setItem('redirectTimeLeft', redirectTimeLeft);
+                    redirectCountdownElement.textContent = redirectTimeLeft;
 
-                if (redirectTimeLeft <= 0) {
-                    clearInterval(redirectTimer);
-                    sessionStorage.removeItem('redirectTimeLeft');
-                    sessionCompletedMessage.style.display = 'block';
-                }
-            }, 1000);
-        } else {
-            sessionCompletedMessage.style.display = 'block';
+                    if (redirectTimeLeft <= 0) {
+                        clearInterval(redirectTimer);
+                        sessionStorage.setItem('sessionCompleted', 'true');
+                        sessionCompletedMessage.style.display = 'block';
+                    }
+                }, 1000);
+            }
         }
 
-        // Deshabilitar la recarga de la página
-        window.onbeforeunload = function(e) {
-            e.preventDefault();
-            e.returnValue = 'No puedes recargar esta página.';
-            return 'No puedes recargar esta página.';
-        };
-
-        // Evitar que el usuario recargue la página con F5 o Ctrl+R
-        document.onkeydown = function(e) {
-            if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
+        // Deshabilitar la recarga de la página si la sesión no ha finalizado
+        if (!sessionCompleted) {
+            window.onbeforeunload = function(e) {
                 e.preventDefault();
-                alert('No puedes recargar esta página.');
-            }
-        };
+                e.returnValue = 'No puedes recargar esta página.';
+                return 'No puedes recargar esta página.';
+            };
+
+            // Evitar que el usuario recargue la página con F5 o Ctrl+R
+            document.onkeydown = function(e) {
+                if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
+                    e.preventDefault();
+                    alert('No puedes recargar esta página.');
+                }
+            };
+        }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
