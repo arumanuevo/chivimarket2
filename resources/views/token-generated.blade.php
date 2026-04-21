@@ -41,10 +41,10 @@
                         El ESP32 activará el relé automáticamente en breve.
                     </div>
 
-                    <!-- Cuenta regresiva visual para activación -->
+                    <!-- Cuenta regresiva visual para redirigir -->
                     <div class="mt-4">
-                        <p class="fs-5">Tiempo restante para activación:</p>
-                        <div id="activationCountdown" class="fs-3 fw-bold text-primary">05:00</div>
+                        <p class="fs-5">Tiempo restante para finalización:</p>
+                        <div id="redirectCountdown" class="fs-3 fw-bold text-primary">20</div>
                     </div>
 
                     <div id="sessionCompletedMessage" class="mt-4" style="display: none;">
@@ -59,25 +59,29 @@
     </div>
 
     <script>
-        // Cuenta regresiva de 5 minutos (300 segundos) para activación
-        let activationTimeLeft = 300;
-        const activationCountdownElement = document.getElementById('activationCountdown');
+        // Obtener el tiempo restante de sessionStorage o establecerlo en 20 segundos
+        let redirectTimeLeft = sessionStorage.getItem('redirectTimeLeft') ? parseInt(sessionStorage.getItem('redirectTimeLeft')) : 20;
+        const redirectCountdownElement = document.getElementById('redirectCountdown');
         const sessionCompletedMessage = document.getElementById('sessionCompletedMessage');
 
-        const activationTimer = setInterval(() => {
-            activationTimeLeft--;
-            const minutes = Math.floor(activationTimeLeft / 60);
-            const seconds = activationTimeLeft % 60;
-            activationCountdownElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        // Iniciar la cuenta regresiva solo si no ha terminado
+        if (redirectTimeLeft > 0) {
+            redirectCountdownElement.textContent = redirectTimeLeft;
 
-            if (activationTimeLeft <= 0) {
-                clearInterval(activationTimer);
-                activationCountdownElement.textContent = "00:00";
-                activationCountdownElement.classList.remove('text-primary');
-                activationCountdownElement.classList.add('text-danger');
-                sessionCompletedMessage.style.display = 'block';
-            }
-        }, 1000);
+            const redirectTimer = setInterval(() => {
+                redirectTimeLeft--;
+                sessionStorage.setItem('redirectTimeLeft', redirectTimeLeft);
+                redirectCountdownElement.textContent = redirectTimeLeft;
+
+                if (redirectTimeLeft <= 0) {
+                    clearInterval(redirectTimer);
+                    sessionStorage.removeItem('redirectTimeLeft');
+                    sessionCompletedMessage.style.display = 'block';
+                }
+            }, 1000);
+        } else {
+            sessionCompletedMessage.style.display = 'block';
+        }
 
         // Deshabilitar la recarga de la página
         window.onbeforeunload = function(e) {
@@ -89,15 +93,12 @@
         // Evitar que el usuario recargue la página con F5 o Ctrl+R
         document.onkeydown = function(e) {
             if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
-                e.preventValue = true;
                 e.preventDefault();
                 alert('No puedes recargar esta página.');
-                return false;
             }
         };
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
 
