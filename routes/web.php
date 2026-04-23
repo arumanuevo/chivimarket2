@@ -28,6 +28,7 @@ Route::post('/send-to-esp32', [EspMessageController::class, 'store'])->name('sen
 Route::get('/qr/{deviceId}', function ($deviceId) {
     $tempToken = Str::random(16); // Generar un token temporal único
     $url = url("/validate-device?device_id={$deviceId}&temp_token={$tempToken}");
+    Log::info("Generando QR para URL: " . $url);
     // Aquí debes generar el QR con la URL anterior.
     return response()->json(['url' => $url]);
 });
