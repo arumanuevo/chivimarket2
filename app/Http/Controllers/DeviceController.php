@@ -10,27 +10,30 @@ use Illuminate\Support\Facades\Session;
 class DeviceController extends Controller
 {
     public function validateDevice(Request $request)
-    {
-        $deviceId = $request->input('device_id');
-        $tempToken = $request->input('temp_token');
+{
+    $deviceId = $request->input('device_id');
+    $tempToken = $request->input('temp_token');
 
-        if (empty($tempToken)) {
-            return view('validate-device', [
-                'deviceId' => $deviceId,
-                'error' => 'El código QR ha caducado. Escanea el QR nuevamente.'
-            ]);
-        }
+    Log::info("validateDevice: device_id = " . $deviceId);
+    Log::info("validateDevice: temp_token = " . $tempToken);
 
-        $device = Device::firstOrCreate(
-            ['device_id' => $deviceId],
-            ['name' => 'Dispositivo ' . substr($deviceId, -4)]
-        );
-
+    if (empty($tempToken)) {
         return view('validate-device', [
             'deviceId' => $deviceId,
-            'tempToken' => $tempToken
+            'error' => 'El código QR ha caducado. Escanea el QR nuevamente.'
         ]);
     }
+
+    $device = Device::firstOrCreate(
+        ['device_id' => $deviceId],
+        ['name' => 'Dispositivo ' . substr($deviceId, -4)]
+    );
+
+    return view('validate-device', [
+        'deviceId' => $deviceId,
+        'tempToken' => $tempToken
+    ]);
+}
 
    // app/Http/Controllers/DeviceController.php
    // app/Http/Controllers/DeviceController.php

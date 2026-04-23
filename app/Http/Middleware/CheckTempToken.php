@@ -4,19 +4,19 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class CheckTempToken
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
+        $deviceId = $request->input('device_id');
         $tempToken = $request->input('temp_token');
 
-        if (Session::has('used_temp_token_' . $tempToken)) {
-            return redirect()->back()->with('error', 'El código QR ya ha sido usado. Escanea el QR nuevamente.');
-        }
+        Log::info("CheckToken: Buscando token para device_id = " . $deviceId);
+        Log::info("CheckToken: temp_token = " . $tempToken);
 
+        // Solo registramos en el log, no bloqueamos el acceso
         return $next($request);
     }
 }
