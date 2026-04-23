@@ -9,10 +9,7 @@ use Illuminate\Http\Request;
 
 class ShowerAdminController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
+   
 
     // Obtener el precio actual de la ducha
     public function getPrice()
