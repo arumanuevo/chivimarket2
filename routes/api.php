@@ -17,6 +17,7 @@ use App\Http\Controllers\API\TestPusherController;
 use App\Http\Controllers\API\MessageController;
 use App\Http\Controllers\API\ImageController;
 use App\Http\Controllers\API\ActivationController;
+use App\Http\Controllers\ShowerAdminController;
 use App\Http\Resources\SubscriptionResource;
 use App\Http\Resources\UserResource;
 use App\Models\EspMessage;
@@ -204,6 +205,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Listar conversaciones del usuario
     Route::get('/conversations', [MessageController::class, 'listConversations']);
+
+    //_______________________________DUCHA____________________________________
+
+    Route::get('/shower/price', [ShowerAdminController::class, 'getPrice']);
+    Route::post('/shower/price', [ShowerAdminController::class, 'updatePrice']);
+    Route::get('/shower/usage', [ShowerAdminController::class, 'getUsageHistory']);
+    Route::post('/shower/log-usage', [ShowerAdminController::class, 'logUsage']);
     
 });
 

@@ -7,7 +7,7 @@ use App\Models\AccessToken;
 use Illuminate\Http\Request;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\PaymentController;
-
+use App\Http\Controllers\ShowerAdminController;
 
 // Ruta principal (welcome)
 Route::get('/', function () {
@@ -118,3 +118,9 @@ Route::get('/pago-pendiente', function (Request $request) {
 Route::get('/session-completed', function () {
     return view('session-completed');
 })->name('session.completed');
+
+Route::get('/shower-admin', function () {
+    return view('shower-admin');
+})->middleware('auth:sanctum')->name('shower.admin');
+
+Route::post('/shower-admin/login', [ShowerAdminController::class, 'login']);

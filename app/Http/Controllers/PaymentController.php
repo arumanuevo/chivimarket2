@@ -324,7 +324,7 @@ public function showSimplePayment()
     }
 }*/
 
-public function createSimplePreference(Request $request)
+/*public function createSimplePreference(Request $request)
     {
         try {
             $deviceId = $request->input('device_id');
@@ -352,6 +352,43 @@ public function createSimplePreference(Request $request)
 
             return response()->json(['preferenceId' => $preference->id]);
 
+        } catch (\Exception $e) {
+            \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }*/
+
+
+    public function createSimplePreference(Request $request)
+    {
+        try {
+            $deviceId = $request->input('device_id');
+            $tempToken = $request->input('temp_token');
+    
+            $price = ShowerPrice::latest()->first()->price;
+    
+            $client = new PreferenceClient();
+    
+            $preference = $client->create([
+                "items" => [
+                    [
+                        "title" => "Sesión de Ducha",
+                        "quantity" => 1,
+                        "unit_price" => (float)$price,
+                        "currency_id" => "ARS"
+                    ]
+                ],
+                "back_urls" => [
+                    "success" => route('simple.payment.success', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+                    "failure" => route('simple.payment.failure', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+                    "pending" => route('simple.payment.pending', ['device_id' => $deviceId, 'temp_token' => $tempToken])
+                ],
+                "auto_return" => "approved",
+                "external_reference" => $deviceId . '&' . $tempToken
+            ]);
+    
+            return response()->json(['preferenceId' => $preference->id]);
+    
         } catch (\Exception $e) {
             \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
@@ -475,6 +512,16 @@ public function handleSimplePaymentSuccess(Request $request)
         Session::put('generated_token_' . $tempToken, $token);
     } else {
         $token = Session::get('generated_token_' . $tempToken);
+    }
+
+    // Registrar el uso de la ducha
+    if (auth()->check()) {
+        ShowerUsage::create([
+            'device_id' => $deviceId,
+            'token' => $token,
+            'user_id' => auth()->id(),
+            'used_at' => now()
+        ]);
     }
 
     return view('token-generated', [
