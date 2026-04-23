@@ -28,69 +28,48 @@
             <div class="col-12">
                 <div class="card p-4">
                     <h2 class="mb-4 text-center">Administración de Duchas</h2>
+                    <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
 
-                    <!-- Formulario de Login -->
-                    <div id="loginSection">
-                        <div class="row justify-content-center">
+                    <!-- Configuración del Precio -->
+                    <div id="adminContent" class="mb-5">
+                        <h4 class="mb-3">Configuración del Precio</h4>
+                        <div class="row">
                             <div class="col-md-6">
-                                <form id="loginForm">
-                                    <div class="mb-3">
-                                        <label for="email" class="form-label">Email</label>
-                                        <input type="email" class="form-control" id="email" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="password" class="form-label">Contraseña</label>
-                                        <input type="password" class="form-control" id="password" required>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
-                                </form>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">Precio Actual (ARS)</span>
+                                    <input type="number" id="currentPrice" class="form-control" readonly>
+                                    <button class="btn btn-outline-secondary" type="button" id="refreshPrice">🔄</button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">Nuevo Precio (ARS)</span>
+                                    <input type="number" id="newPrice" class="form-control" step="0.01" min="0.01">
+                                    <button class="btn btn-primary" type="button" id="updatePrice">Actualizar</button>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Configuración del Precio (oculta inicialmente) -->
-                    <div id="adminSection" style="display: none;">
-                        <div class="mb-5">
-                            <h4 class="mb-3">Configuración del Precio</h4>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="input-group mb-3">
-                                        <span class="input-group-text">Precio Actual (ARS)</span>
-                                        <input type="number" id="currentPrice" class="form-control" readonly>
-                                        <button class="btn btn-outline-secondary" type="button" id="refreshPrice">🔄</button>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="input-group mb-3">
-                                        <span class="input-group-text">Nuevo Precio (ARS)</span>
-                                        <input type="number" id="newPrice" class="form-control" step="0.01" min="0.01">
-                                        <button class="btn btn-primary" type="button" id="updatePrice">Actualizar</button>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Historial de Uso -->
+                    <div id="usageContent">
+                        <h4 class="mb-3">Historial de Uso</h4>
+                        <div class="table-container mb-3">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Dispositivo</th>
+                                        <th>Token</th>
+                                        <th>Fecha de Uso</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usageHistory">
+                                    <!-- Se llenará con datos de la API -->
+                                </tbody>
+                            </table>
                         </div>
-
-                        <!-- Historial de Uso -->
-                        <div>
-                            <h4 class="mb-3">Historial de Uso</h4>
-                            <div class="table-container mb-3">
-                                <table class="table table-striped table-hover">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Dispositivo</th>
-                                            <th>Token</th>
-                                            <th>Usuario</th>
-                                            <th>Fecha de Uso</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="usageHistory">
-                                        <!-- Se llenará con datos de la API -->
-                                    </tbody>
-                                </table>
-                            </div>
-                            <button class="btn btn-secondary" type="button" id="refreshUsage">Refrescar Historial</button>
-                        </div>
+                        <button class="btn btn-secondary" type="button" id="refreshUsage">Refrescar Historial</button>
                     </div>
                 </div>
             </div>
@@ -119,6 +98,7 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('showerAdminToken');
             const messageModal = new bootstrap.Modal(document.getElementById('messageModal'));
 
             // Función para mostrar mensajes
@@ -133,39 +113,23 @@
                 messageModal.show();
             }
 
-            // Manejar el login
-            document.getElementById('loginForm').addEventListener('submit', function(e) {
-                e.preventDefault();
+            // Función para mostrar mensaje de error
+            function showErrorMessage(message) {
+                const errorMessage = document.getElementById('errorMessage');
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+            }
 
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-
-                axios.post('/api/shower-admin/login', {
-                    email: email,
-                    password: password
-                })
-                .then(response => {
-                    localStorage.setItem('showerAdminToken', response.data.token);
-                    document.getElementById('loginSection').style.display = 'none';
-                    document.getElementById('adminSection').style.display = 'block';
-                    getCurrentPrice();
-                    getUsageHistory();
-                })
-                .catch(error => {
-                    let message = 'Error al iniciar sesión: ';
-                    if (error.response && error.response.data && error.response.data.message) {
-                        message += error.response.data.message;
-                    } else {
-                        message += error.message;
-                    }
-                    showMessage(message, true);
-                });
-            });
+            // Verificar si el usuario está autenticado
+            if (!token) {
+                showErrorMessage('No estás autenticado. Por favor, inicia sesión.');
+                document.getElementById('adminContent').style.display = 'none';
+                document.getElementById('usageContent').style.display = 'none';
+                return;
+            }
 
             // Función para obtener el precio actual
             function getCurrentPrice() {
-                const token = localStorage.getItem('showerAdminToken');
-
                 axios.get('/api/shower-admin/price', {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -175,13 +139,19 @@
                     document.getElementById('currentPrice').value = response.data.price;
                 })
                 .catch(error => {
-                    showMessage('Error al obtener el precio actual: ' + (error.response?.data?.message || error.message), true);
+                    if (error.response && error.response.status === 401) {
+                        localStorage.removeItem('showerAdminToken');
+                        showErrorMessage('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                        document.getElementById('adminContent').style.display = 'none';
+                        document.getElementById('usageContent').style.display = 'none';
+                    } else {
+                        showMessage('Error al obtener el precio actual: ' + (error.response?.data?.message || error.message), true);
+                    }
                 });
             }
 
             // Función para actualizar el precio
             document.getElementById('updatePrice').addEventListener('click', function() {
-                const token = localStorage.getItem('showerAdminToken');
                 const newPrice = document.getElementById('newPrice').value;
 
                 if (!newPrice || newPrice <= 0) {
@@ -200,14 +170,19 @@
                     document.getElementById('newPrice').value = '';
                 })
                 .catch(error => {
-                    showMessage('Error al actualizar el precio: ' + (error.response?.data?.message || error.message), true);
+                    if (error.response && error.response.status === 401) {
+                        localStorage.removeItem('showerAdminToken');
+                        showErrorMessage('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                        document.getElementById('adminContent').style.display = 'none';
+                        document.getElementById('usageContent').style.display = 'none';
+                    } else {
+                        showMessage('Error al actualizar el precio: ' + (error.response?.data?.message || error.message), true);
+                    }
                 });
             });
 
             // Función para obtener el historial de uso
             function getUsageHistory() {
-                const token = localStorage.getItem('showerAdminToken');
-
                 axios.get('/api/shower-admin/usage', {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -223,14 +198,20 @@
                             <td>${usage.id}</td>
                             <td>${usage.device_id}</td>
                             <td>${usage.token}</td>
-                            <td>${usage.user ? usage.user.email : 'N/A'}</td>
                             <td>${new Date(usage.used_at).toLocaleString()}</td>
                         `;
                         usageHistory.appendChild(row);
                     });
                 })
                 .catch(error => {
-                    showMessage('Error al obtener el historial de uso: ' + (error.response?.data?.message || error.message), true);
+                    if (error.response && error.response.status === 401) {
+                        localStorage.removeItem('showerAdminToken');
+                        showErrorMessage('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                        document.getElementById('adminContent').style.display = 'none';
+                        document.getElementById('usageContent').style.display = 'none';
+                    } else {
+                        showMessage('Error al obtener el historial de uso: ' + (error.response?.data?.message || error.message), true);
+                    }
                 });
             }
 
@@ -239,6 +220,10 @@
 
             // Botón para refrescar el historial de uso
             document.getElementById('refreshUsage').addEventListener('click', getUsageHistory);
+
+            // Cargar datos al inicio
+            getCurrentPrice();
+            getUsageHistory();
         });
     </script>
 </body>

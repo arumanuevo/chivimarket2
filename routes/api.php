@@ -208,10 +208,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //_______________________________DUCHA____________________________________
 
-    Route::get('/shower/price', [ShowerAdminController::class, 'getPrice']);
+    /*Route::get('/shower/price', [ShowerAdminController::class, 'getPrice']);
     Route::post('/shower/price', [ShowerAdminController::class, 'updatePrice']);
     Route::get('/shower/usage', [ShowerAdminController::class, 'getUsageHistory']);
-    Route::post('/shower/log-usage', [ShowerAdminController::class, 'logUsage']);
+    Route::post('/shower/log-usage', [ShowerAdminController::class, 'logUsage']);*/
     
 });
 
@@ -345,6 +345,14 @@ Route::get('/check-token', function (Request $request) {
         \Log::info("CheckToken: No se encontró un token válido");
         return response()->json(['status' => 'invalid']);
     }
+});
+
+Route::post('/shower-admin/login', [ShowerAdminController::class, 'login']);
+
+Route::middleware(['auth:sanctum', 'shower.admin'])->group(function () {
+    Route::get('/shower-admin/price', [ShowerAdminController::class, 'getPrice']);
+    Route::post('/shower-admin/price', [ShowerAdminController::class, 'updatePrice']);
+    Route::get('/shower-admin/usage', [ShowerAdminController::class, 'getUsageHistory']);
 });
 
 

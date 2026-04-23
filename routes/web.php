@@ -137,10 +137,12 @@ Route::get('/session-completed', function () {
 
 //Route::post('/shower-admin/login', [ShowerAdminController::class, 'login']);
 
+// Ruta para el login del panel de administración
 Route::get('/shower-admin/login', function () {
     return view('shower-admin-login');
 })->name('shower.admin.login');
 
+// Ruta para el panel de administración
 Route::get('/shower-admin', function () {
     return view('shower-admin');
 })->name('shower.admin');

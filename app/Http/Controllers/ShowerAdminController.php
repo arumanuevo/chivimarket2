@@ -37,13 +37,10 @@ class ShowerAdminController extends Controller
 
     // Obtener el historial de uso de duchas
     public function getUsageHistory(Request $request)
-    {
-        $usageHistory = ShowerUsage::with('user')
-            ->orderBy('used_at', 'desc')
-            ->get();
-
-        return response()->json($usageHistory);
-    }
+{
+    $usageHistory = ShowerUsage::orderBy('used_at', 'desc')->get();
+    return response()->json($usageHistory);
+}
 
     // Registrar el uso de una ducha
     public function logUsage(Request $request)

@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'payment/webhook',
         ]);
+        $middleware->alias([
+            'shower.admin' => \App\Http\Middleware\CheckShowerAdminToken::class,
+        ]);
         $middleware->append(\App\Http\Middleware\Cors::class);
         $middleware->append(\App\Http\Middleware\CheckTempToken::class);
     })
