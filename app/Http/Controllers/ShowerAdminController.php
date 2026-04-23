@@ -68,28 +68,30 @@ class ShowerAdminController extends Controller
     {
         Log::info('=== INICIO DE SOLICITUD DE LOGIN PARA DUCHAS ===');
         Log::info('Email recibido:', [$request->input('email')]);
-
+    
         $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
-
+    
         if (!Auth::attempt($request->only('email', 'password'))) {
             Log::warning('Credenciales incorrectas para email:', ['email' => $request->input('email')]);
             return response()->json(['message' => 'Credenciales incorrectas'], 422);
         }
-
+    
         $user = Auth::user();
-
+    
+        Log::info('Usuario autenticado:', ['user_id' => $user->id, 'email' => $user->email]);
+    
         if (!$user->hasRole('admin')) {
             Log::warning('Usuario sin permisos para acceder al panel de duchas:', ['email' => $user->email]);
             return response()->json(['message' => 'No tienes permisos para acceder a esta sección'], 403);
         }
-
+    
         $token = $user->createToken('shower-admin-token', ['shower-admin'])->plainTextToken;
-
+    
         Log::info('Login exitoso para usuario de duchas:', ['user_id' => $user->id, 'email' => $user->email]);
-
+    
         return response()->json([
             'user' => $user,
             'token' => $token,
