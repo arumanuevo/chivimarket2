@@ -9,6 +9,8 @@ class ShowerUsage extends Model
 {
     use HasFactory;
 
+    protected $table = 'shower_usages';
+
     protected $fillable = ['device_id', 'user_id', 'used_at'];
 
     protected $dates = ['used_at'];
