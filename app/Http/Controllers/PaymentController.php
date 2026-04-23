@@ -14,6 +14,7 @@ use MercadoPago\Client\Payment\PaymentClient;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 use App\Models\ShowerUsage;
+use App\Models\ShowerPrice;
 
 class PaymentController extends Controller
 {
@@ -340,7 +341,7 @@ public function createSimplePreference(Request $request)
                     [
                         "title" => "Sesión de Ducha",
                         "quantity" => 1,
-                        "unit_price" =>$price,
+                        "unit_price" => (float)2.00,
                         "currency_id" => "ARS"
                     ]
                 ],
