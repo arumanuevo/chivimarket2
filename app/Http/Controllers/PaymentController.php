@@ -341,7 +341,7 @@ public function createSimplePreference(Request $request)
                     [
                         "title" => "Sesión de Ducha",
                         "quantity" => 1,
-                        "unit_price" => (float)2.00,
+                        "unit_price" => (float)$price,
                         "currency_id" => "ARS"
                     ]
                 ],
