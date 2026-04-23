@@ -20,16 +20,16 @@ Route::post('/send-to-esp32', [EspMessageController::class, 'store'])->name('sen
 
 
 // Ruta para generar un QR (opcional, si decides usarla)
-/*Route::get('/qr/{token}', function ($token) {
+Route::get('/qr/{token}', function ($token) {
     // Lógica para generar el QR (usando SimpleSoftwareIO/qr-code)
     // Ejemplo: return QrCode::size(200)->generate("ESP32-ACTIVATE:{$token}");
     return response()->json(['qr' => "QR para token: {$token}"]);
-});*/
-Route::get('/qr/{deviceId}/{tempToken}', function ($deviceId, $tempToken) {
+});
+/*Route::get('/qr/{deviceId}/{tempToken}', function ($deviceId, $tempToken) {
     $url = url("/validate-device?device_id={$deviceId}&temp_token={$tempToken}");
     // Aquí debes generar el QR con la URL anterior.
     return response()->json(['url' => $url]);
-});
+});*/
 
 Route::get('/validate-device', [DeviceController::class, 'validateDevice']);
 Route::post('/generate-token', [DeviceController::class, 'generateToken']);
