@@ -27,7 +27,10 @@
         <div class="row justify-content-center">
             <div class="col-12">
                 <div class="card p-4">
-                    <h2 class="mb-4 text-center">Administración de Duchas</h2>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="mb-0 text-center flex-grow-1">Administración de Duchas</h2>
+                        <button id="logoutButton" class="btn btn-danger">Cerrar Sesión</button>
+                    </div>
                     <div id="errorMessage" class="alert alert-danger" style="display: none;"></div>
 
                     <!-- Configuración del Precio -->
@@ -60,7 +63,6 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Dispositivo</th>
-                                        <th>Token</th>
                                         <th>Fecha de Uso</th>
                                     </tr>
                                 </thead>
@@ -127,6 +129,12 @@
                 document.getElementById('usageContent').style.display = 'none';
                 return;
             }
+
+            // Función para manejar el logout
+            document.getElementById('logoutButton').addEventListener('click', function() {
+                localStorage.removeItem('showerAdminToken');
+                window.location.href = '/shower-admin/login';
+            });
 
             // Función para obtener el precio actual
             function getCurrentPrice() {
@@ -197,8 +205,7 @@
                         row.innerHTML = `
                             <td>${usage.id}</td>
                             <td>${usage.device_id}</td>
-                            <td>${usage.token}</td>
-                            <td>${new Date(usage.used_at).toLocaleString()}</td>
+                            <td>${new Date(usage.used_at).toLocaleString('es-AR')}</td>
                         `;
                         usageHistory.appendChild(row);
                     });

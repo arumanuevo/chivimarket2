@@ -579,6 +579,9 @@ public function handleSimplePaymentSuccess(Request $request)
         $token = Session::get('generated_token_' . $tempToken);
     }
 
+    // Configurar la zona horaria a Argentina
+    date_default_timezone_set('America/Argentina/Buenos_Aires');
+
     // Registrar el uso de la ducha
     ShowerUsage::create([
         'device_id' => $deviceId,
