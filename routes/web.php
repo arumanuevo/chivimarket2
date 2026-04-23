@@ -60,7 +60,7 @@ Route::get('/activate', [DeviceController::class, 'showActivateForm']);
 
 //Route::post('/generate-token', [DeviceController::class, 'generateToken'])->middleware('check.temp.token');
 //Route::post('/generate-token', [DeviceController::class, 'generateToken'])->middleware('check.temp.token');
-Route::post('/generate-token', [DeviceController::class, 'generateToken']); 
+//Route::post('/generate-token', [DeviceController::class, 'generateToken']); 
 
 /*Route::get('/create-payment', [PaymentController::class, 'createPayment'])->name('payment.create');
 Route::get('/payment/success', [PaymentController::class, 'handleSuccess'])->name('payment.success');

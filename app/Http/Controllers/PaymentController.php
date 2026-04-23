@@ -324,7 +324,7 @@ public function showSimplePayment()
     }
 }*/
 
-/*public function createSimplePreference(Request $request)
+public function createSimplePreference(Request $request)
     {
         try {
             $deviceId = $request->input('device_id');
@@ -356,10 +356,10 @@ public function showSimplePayment()
             \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
-    }*/
+    }
 
 
-    public function createSimplePreference(Request $request)
+    /*public function createSimplePreference(Request $request)
     {
         try {
             $deviceId = $request->input('device_id');
@@ -393,7 +393,7 @@ public function showSimplePayment()
             \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage());
             return response()->json(['error' => $e->getMessage()], 500);
         }
-    }
+    }*/
 
 //APP_USR-6907958184263683-011320-e0f6eee5c1bffec59e87dfc16a3b29e9-3133104898
 public function handleWebhook(Request $request)
