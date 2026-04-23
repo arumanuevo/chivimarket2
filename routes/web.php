@@ -131,9 +131,9 @@ Route::get('/session-completed', function () {
     return view('session-completed');
 })->name('session.completed');
 
-Route::get('/shower-admin', function () {
+/*Route::get('/shower-admin', function () {
     return view('shower-admin');
-})->middleware('auth:sanctum')->name('shower.admin');
+})->middleware('auth:sanctum')->name('shower.admin');*/
 
 //Route::post('/shower-admin/login', [ShowerAdminController::class, 'login']);
 
