@@ -6,6 +6,8 @@ use App\Models\ShowerPrice;
 use App\Models\ShowerUsage;
 use App\Models\AccessToken;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class ShowerAdminController extends Controller
 {
