@@ -70,36 +70,34 @@ class ShowerAdminController extends Controller
     }
 
     public function login(Request $request)
-{
-    \Log::info('=== INICIO DE SOLICITUD DE LOGIN PARA DUCHAS ===');
-    \Log::info('Email recibido:', [$request->input('email')]);
-    \Log::info('Password recibido:', [$request->input('password') ? '*****' : 'No recibido']);
-
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
-
-    if (!Auth::attempt($request->only('email', 'password'))) {
-        \Log::warning('Credenciales incorrectas para email:', ['email' => $request->input('email')]);
-        return response()->json(['message' => 'Credenciales incorrectas'], 422);
+    {
+        \Log::info('=== INICIO DE SOLICITUD DE LOGIN PARA DUCHAS ===');
+        \Log::info('Email recibido:', [$request->input('email')]);
+    
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+    
+        if (!Auth::attempt($request->only('email', 'password'))) {
+            \Log::warning('Credenciales incorrectas para email:', ['email' => $request->input('email')]);
+            return response()->json(['message' => 'Credenciales incorrectas'], 422);
+        }
+    
+        $user = Auth::user();
+    
+        if (!$user->hasRole('admin')) {
+            \Log::warning('Usuario sin permisos para acceder al panel de duchas:', ['email' => $user->email]);
+            return response()->json(['message' => 'No tienes permisos para acceder a esta sección'], 403);
+        }
+    
+        $token = $user->createToken('shower-admin-token', ['shower-admin'])->plainTextToken;
+    
+        \Log::info('Login exitoso para usuario de duchas:', ['user_id' => $user->id, 'email' => $user->email]);
+    
+        return response()->json([
+            'user' => $user,
+            'token' => $token,
+        ]);
     }
-
-    $user = Auth::user();
-
-    // Verificar si el usuario tiene permisos para acceder al panel de duchas
-    if (!$user->hasRole('admin')) {
-        \Log::warning('Usuario sin permisos para acceder al panel de duchas:', ['email' => $user->email]);
-        return response()->json(['message' => 'No tienes permisos para acceder a esta sección'], 403);
-    }
-
-    $token = $user->createToken('shower-admin-token', ['shower-admin'])->plainTextToken;
-
-    \Log::info('Login exitoso para usuario de duchas:', ['user_id' => $user->id, 'email' => $user->email]);
-
-    return response()->json([
-        'user' => $user,
-        'token' => $token,
-    ]);
-}
 }

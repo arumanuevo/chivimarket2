@@ -135,4 +135,12 @@ Route::get('/shower-admin', function () {
     return view('shower-admin');
 })->middleware('auth:sanctum')->name('shower.admin');
 
-Route::post('/shower-admin/login', [ShowerAdminController::class, 'login']);
+//Route::post('/shower-admin/login', [ShowerAdminController::class, 'login']);
+
+Route::get('/shower-admin/login', function () {
+    return view('shower-admin-login');
+})->name('shower.admin.login');
+
+Route::get('/shower-admin', function () {
+    return view('shower-admin');
+})->name('shower.admin');
