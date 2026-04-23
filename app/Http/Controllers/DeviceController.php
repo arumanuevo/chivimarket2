@@ -6,6 +6,7 @@ use App\Models\AccessToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 class DeviceController extends Controller
 {
