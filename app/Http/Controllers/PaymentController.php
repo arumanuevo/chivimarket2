@@ -472,7 +472,7 @@ public function handleWebhook(Request $request)
     return view('simple-payment-success');
 }*/
 
-public function handleSimplePaymentSuccess(Request $request)
+/*public function handleSimplePaymentSuccess(Request $request)
 {
     $deviceId = $request->query('device_id');
     $tempToken = $request->query('temp_token');
@@ -523,6 +523,67 @@ public function handleSimplePaymentSuccess(Request $request)
             'used_at' => now()
         ]);
     }
+
+    return view('token-generated', [
+        'deviceId' => $deviceId,
+        'token' => $token,
+        'tempToken' => $tempToken
+    ]);
+}*/
+
+public function handleSimplePaymentSuccess(Request $request)
+{
+    $deviceId = $request->query('device_id');
+    $tempToken = $request->query('temp_token');
+
+    Log::info("Pago exitoso: device_id = " . $deviceId . ", temp_token = " . $tempToken);
+
+    if (empty($tempToken)) {
+        $tempToken = Session::get('temp_token_' . $deviceId);
+        Log::info("handleSimplePaymentSuccess: Obteniendo temp_token de la sesión = " . $tempToken);
+    }
+
+    if (empty($tempToken)) {
+        return view('token-generated', [
+            'deviceId' => $deviceId,
+            'error' => 'El código QR ha caducado. Escanea el QR nuevamente.',
+            'token' => 'ERROR'
+        ]);
+    }
+
+    if (Session::has('used_temp_token_' . $tempToken)) {
+        $token = Session::get('generated_token_' . $tempToken, Str::random(16));
+        return view('token-generated', [
+            'deviceId' => $deviceId,
+            'token' => $token,
+            'tempToken' => $tempToken
+        ]);
+    }
+
+    Session::put('used_temp_token_' . $tempToken, true);
+
+    if (!Session::has('generated_token_' . $tempToken)) {
+        $token = Str::random(16);
+        $accessToken = AccessToken::create([
+            'device_id' => $deviceId,
+            'token' => $token,
+            'expires_at' => now()->addMinutes(5),
+            'used' => false
+        ]);
+
+        \Log::info("Pago exitoso: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
+
+        Session::put('generated_token_' . $tempToken, $token);
+    } else {
+        $token = Session::get('generated_token_' . $tempToken);
+    }
+
+    // Registrar el uso de la ducha
+    ShowerUsage::create([
+        'device_id' => $deviceId,
+        'user_id' => auth()->check() ? auth()->id() : null,
+        'used_at' => now()
+    ]);
 
     return view('token-generated', [
         'deviceId' => $deviceId,

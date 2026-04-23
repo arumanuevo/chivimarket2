@@ -41,27 +41,19 @@ class ShowerAdminController extends Controller
 
     // Registrar el uso de una ducha
     public function logUsage(Request $request)
-    {
-        $request->validate([
-            'device_id' => 'required|string',
-            'token' => 'required|string'
-        ]);
+{
+    $request->validate([
+        'device_id' => 'required|string'
+    ]);
 
-        $accessToken = AccessToken::where('token', $request->token)->first();
+    $usage = ShowerUsage::create([
+        'device_id' => $request->device_id,
+        'user_id' => auth()->id(),
+        'used_at' => now()
+    ]);
 
-        if (!$accessToken) {
-            return response()->json(['message' => 'Token no encontrado'], 404);
-        }
-
-        $usage = ShowerUsage::create([
-            'device_id' => $request->device_id,
-            'token' => $request->token,
-            'user_id' => auth()->id(),
-            'used_at' => now()
-        ]);
-
-        return response()->json(['message' => 'Uso registrado correctamente', 'usage' => $usage]);
-    }
+    return response()->json(['message' => 'Uso registrado correctamente', 'usage' => $usage]);
+}
 
     // Método para manejar el login
     public function login(Request $request)

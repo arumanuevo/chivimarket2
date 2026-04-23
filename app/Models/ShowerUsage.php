@@ -9,7 +9,7 @@ class ShowerUsage extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['device_id', 'token', 'user_id', 'used_at'];
+    protected $fillable = ['device_id', 'user_id', 'used_at'];
 
     protected $dates = ['used_at'];
 
