@@ -11,7 +11,7 @@ class ShowerUsage extends Model
 
     protected $table = 'shower_usages';
 
-    protected $fillable = ['device_id', 'user_id', 'used_at'];
+    protected $fillable = ['device_id', 'user_id', 'used_at', 'amount'];
 
     protected $dates = ['used_at'];
 

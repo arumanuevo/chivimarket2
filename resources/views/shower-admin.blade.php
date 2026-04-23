@@ -63,6 +63,8 @@
                                     <tr>
                                         <th>ID</th>
                                         <th>Dispositivo</th>
+                                        <th>Monto (ARS)</th>
+                                        <th>Consumo de Agua (L)</th>
                                         <th>Fecha de Uso</th>
                                     </tr>
                                 </thead>
@@ -71,7 +73,11 @@
                                 </tbody>
                             </table>
                         </div>
-                        <button class="btn btn-secondary" type="button" id="refreshUsage">Refrescar Historial</button>
+                        <div class="d-flex justify-content-between">
+                            <button class="btn btn-secondary me-2" type="button" id="refreshUsage">Refrescar Historial</button>
+                            <button class="btn btn-primary" type="button" id="sumByDevice">Sumar por Dispositivo</button>
+                        </div>
+                        <div id="sumResult" class="mt-3"></div>
                     </div>
                 </div>
             </div>
@@ -205,6 +211,8 @@
                         row.innerHTML = `
                             <td>${usage.id}</td>
                             <td>${usage.device_id}</td>
+                            <td>${usage.amount ? usage.amount.toFixed(2) : '0.00'}</td>
+                            <td>${usage.water_consumption ? usage.water_consumption.toFixed(2) : '0.00'}</td>
                             <td>${new Date(usage.used_at).toLocaleString('es-AR')}</td>
                         `;
                         usageHistory.appendChild(row);
@@ -221,6 +229,62 @@
                     }
                 });
             }
+
+            // Función para sumar por dispositivo
+            document.getElementById('sumByDevice').addEventListener('click', function() {
+                axios.get('/api/shower-admin/usage', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(response => {
+                    const sumResult = document.getElementById('sumResult');
+                    sumResult.innerHTML = '<h5>Totales por Dispositivo</h5>';
+
+                    // Agrupar por dispositivo
+                    const devices = {};
+                    response.data.forEach(usage => {
+                        if (!devices[usage.device_id]) {
+                            devices[usage.device_id] = {
+                                totalAmount: 0,
+                                totalWaterConsumption: 0,
+                                count: 0
+                            };
+                        }
+                        devices[usage.device_id].totalAmount += parseFloat(usage.amount || 0);
+                        devices[usage.device_id].totalWaterConsumption += parseFloat(usage.water_consumption || 0);
+                        devices[usage.device_id].count++;
+                    });
+
+                    // Crear tabla con los resultados
+                    let tableHTML = '<table class="table table-bordered"><thead class="table-dark"><tr><th>Dispositivo</th><th>Total (ARS)</th><th>Total Agua (Litros)</th><th>Número de Usos</th></tr></thead><tbody>';
+
+                    for (const deviceId in devices) {
+                        const device = devices[deviceId];
+                        tableHTML += `
+                            <tr>
+                                <td>${deviceId}</td>
+                                <td>${device.totalAmount.toFixed(2)}</td>
+                                <td>${device.totalWaterConsumption.toFixed(2)}</td>
+                                <td>${device.count}</td>
+                            </tr>
+                        `;
+                    }
+
+                    tableHTML += '</tbody></table>';
+                    sumResult.innerHTML += tableHTML;
+                })
+                .catch(error => {
+                    if (error.response && error.response.status === 401) {
+                        localStorage.removeItem('showerAdminToken');
+                        showErrorMessage('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                        document.getElementById('adminContent').style.display = 'none';
+                        document.getElementById('usageContent').style.display = 'none';
+                    } else {
+                        showMessage('Error al obtener el historial de uso: ' + (error.response?.data?.message || error.message), true);
+                    }
+                });
+            });
 
             // Botón para refrescar el precio
             document.getElementById('refreshPrice').addEventListener('click', getCurrentPrice);

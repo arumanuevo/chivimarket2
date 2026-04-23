@@ -331,6 +331,8 @@ public function createSimplePreference(Request $request)
             $deviceId = $request->input('device_id');
             $tempToken = $request->input('temp_token');
 
+            // Obtener el precio actual de la tabla shower_prices
+            $price = ShowerPrice::latest()->first()->price;
             $client = new PreferenceClient();
 
             $preference = $client->create([
@@ -338,7 +340,7 @@ public function createSimplePreference(Request $request)
                     [
                         "title" => "Sesión de Ducha",
                         "quantity" => 1,
-                        "unit_price" => 2.00,
+                        "unit_price" =>(float)$price,
                         "currency_id" => "ARS"
                     ]
                 ],
@@ -582,11 +584,15 @@ public function handleSimplePaymentSuccess(Request $request)
     // Configurar la zona horaria a Argentina
     date_default_timezone_set('America/Argentina/Buenos_Aires');
 
+    // Obtener el precio actual de la tabla shower_prices
+    $price = ShowerPrice::latest()->first()->price;
+
     // Registrar el uso de la ducha
     ShowerUsage::create([
         'device_id' => $deviceId,
         'user_id' => auth()->check() ? auth()->id() : null,
-        'used_at' => now()
+        'used_at' => now(),
+        'amount' => $price
     ]);
 
     return view('token-generated', [
