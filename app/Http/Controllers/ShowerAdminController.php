@@ -33,11 +33,40 @@ class ShowerAdminController extends Controller
     }
 
     // Obtener el historial de uso de duchas
-    public function getUsageHistory(Request $request)
-    {
-        $usageHistory = ShowerUsage::orderBy('used_at', 'desc')->get();
-        return response()->json($usageHistory);
-    }
+   // Función para obtener el historial de uso
+function getUsageHistory() {
+    axios.get('/api/shower-admin/usage', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+    .then(response => {
+        const usageHistory = document.getElementById('usageHistory');
+        usageHistory.innerHTML = '';
+
+        response.data.forEach(usage => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${usage.id}</td>
+                <td>${usage.device_id}</td>
+                <td>${usage.amount ? usage.amount.toFixed(2) : '0.00'}</td>
+                <td>${usage.water_consumption ? usage.water_consumption.toFixed(2) : '0.00'}</td>
+                <td>${new Date(usage.used_at).toLocaleString('es-AR')}</td>
+            `;
+            usageHistory.appendChild(row);
+        });
+    })
+    .catch(error => {
+        if (error.response && error.response.status === 401) {
+            localStorage.removeItem('showerAdminToken');
+            showErrorMessage('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+            document.getElementById('adminContent').style.display = 'none';
+            document.getElementById('usageContent').style.display = 'none';
+        } else {
+            showMessage('Error al obtener el historial de uso: ' + (error.response?.data?.message || error.message), true);
+        }
+    });
+}
 
     // Registrar el uso de una ducha
     public function logUsage(Request $request)

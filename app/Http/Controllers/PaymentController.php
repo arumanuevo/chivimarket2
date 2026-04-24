@@ -560,10 +560,20 @@ public function handleSimplePaymentSuccess(Request $request)
 
     Log::info("Pago exitoso: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
 
-    // Registrar el uso del dispositivo
+    // Obtener el precio actual de la tabla shower_prices
+    try {
+        $price = ShowerPrice::latest()->first()->price;
+    } catch (\Exception $e) {
+        \Log::error("Error al obtener el precio: " . $e->getMessage());
+        $price = 2.00; // Valor por defecto si no se puede obtener el precio
+    }
+
+    // Registrar el uso de la ducha
     ShowerUsage::create([
         'device_id' => $deviceId,
-        'used_at' => now()
+        'used_at' => now(),
+        'amount' => $price,
+        'water_consumption' => 50.00 // Consumo de agua estimado en litros
     ]);
 
     return view('token-generated', [

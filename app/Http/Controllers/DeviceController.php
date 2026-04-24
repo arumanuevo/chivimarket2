@@ -129,6 +129,14 @@ public function generateToken(Request $request)
 
     \Log::info("GenerateToken: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
 
+    // Registrar el uso del dispositivo
+    ShowerUsage::create([
+        'device_id' => $deviceId,
+        'used_at' => now(),
+        'amount' => 0.00, // Valor por defecto para uso gratuito
+        'water_consumption' => 50.00 // Consumo de agua estimado en litros
+    ]);
+
     return view('token-generated', [
         'deviceId' => $deviceId,
         'token' => $token,

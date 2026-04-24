@@ -9,5 +9,10 @@ class ShowerUsage extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['device_id', 'used_at'];
+    protected $fillable = ['device_id', 'used_at', 'amount', 'water_consumption'];
+
+    protected $attributes = [
+        'amount' => 0.00,
+        'water_consumption' => 0.00,
+    ];
 }
