@@ -197,6 +197,7 @@
 
             // Función para obtener el historial de uso
            // Función para obtener el historial de uso
+// Función para obtener el historial de uso
 function getUsageHistory() {
     axios.get('/api/shower-admin/usage', {
         headers: {
@@ -209,13 +210,11 @@ function getUsageHistory() {
 
         response.data.forEach(usage => {
             const row = document.createElement('tr');
-            const amount = usage.amount ? parseFloat(usage.amount) : 0;
-            const waterConsumption = usage.water_consumption ? parseFloat(usage.water_consumption) : 0;
             row.innerHTML = `
                 <td>${usage.id}</td>
                 <td>${usage.device_id}</td>
-                <td>${amount.toFixed(2)}</td>
-                <td>${waterConsumption.toFixed(2)}</td>
+                <td>${usage.amount ? usage.amount.toFixed(2) : '0.00'}</td>
+                <td>${usage.water_consumption ? usage.water_consumption.toFixed(2) : '0.00'}</td>
                 <td>${new Date(usage.used_at).toLocaleString('es-AR')}</td>
             `;
             usageHistory.appendChild(row);
