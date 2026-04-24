@@ -572,21 +572,17 @@ public function handleSimplePaymentSuccess(Request $request)
 
     Session::put('used_temp_token_' . $tempToken, true);
 
-    if (!Session::has('generated_token_' . $tempToken)) {
-        $token = Str::random(16);
-        $accessToken = AccessToken::create([
-            'device_id' => $deviceId,
-            'token' => $token,
-            'expires_at' => now()->addMinutes(5),
-            'used' => false
-        ]);
+    $token = Str::random(16);
+    $accessToken = AccessToken::create([
+        'device_id' => $deviceId,
+        'token' => $token,
+        'expires_at' => now()->addMinutes(5),
+        'used' => false
+    ]);
 
-        \Log::info("Pago exitoso: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
+    Log::info("Pago exitoso: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
 
-        Session::put('generated_token_' . $tempToken, $token);
-    } else {
-        $token = Session::get('generated_token_' . $tempToken);
-    }
+    Session::put('generated_token_' . $tempToken, $token);
 
     // Configurar la zona horaria a Argentina
     date_default_timezone_set('America/Argentina/Buenos_Aires');
@@ -614,7 +610,6 @@ public function handleSimplePaymentSuccess(Request $request)
         'tempToken' => $tempToken
     ]);
 }
-
 public function handleSimplePaymentFailure(Request $request)
 {
     return view('simple-payment-failure');
