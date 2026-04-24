@@ -332,13 +332,7 @@ public function createSimplePreference(Request $request)
         $deviceId = $request->input('device_id');
         $tempToken = $request->input('temp_token');
 
-        // Obtener el precio actual de la tabla shower_prices
-        try {
-            $price = ShowerPrice::latest()->first()->price;
-        } catch (\Exception $e) {
-            \Log::error("Error al obtener el precio: " . $e->getMessage());
-            $price = 2.00; // Valor por defecto si no se puede obtener el precio
-        }
+        $price = 2.00; // Precio fijo temporalmente para evitar problemas
 
         $client = new PreferenceClient();
 
@@ -556,10 +550,7 @@ public function handleSimplePaymentSuccess(Request $request)
         ]);
     }
 
-    // Generar un nuevo token único para esta sesión
     $token = Str::random(16);
-
-    // Crear un nuevo token de acceso
     $accessToken = AccessToken::create([
         'device_id' => $deviceId,
         'token' => $token,
@@ -569,24 +560,10 @@ public function handleSimplePaymentSuccess(Request $request)
 
     Log::info("Pago exitoso: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
 
-    // Configurar la zona horaria a Argentina
-    date_default_timezone_set('America/Argentina/Buenos_Aires');
-
-    // Obtener el precio actual de la tabla shower_prices
-    try {
-        $price = ShowerPrice::latest()->first()->price;
-    } catch (\Exception $e) {
-        \Log::error("Error al obtener el precio: " . $e->getMessage());
-        $price = 2.00; // Valor por defecto si no se puede obtener el precio
-    }
-
-    // Registrar el uso de la ducha
+    // Registrar el uso del dispositivo
     ShowerUsage::create([
         'device_id' => $deviceId,
-        'user_id' => auth()->check() ? auth()->id() : null,
-        'used_at' => now(),
-        'amount' => $price,
-        'water_consumption' => 50.00 // Consumo de agua estimado en litros
+        'used_at' => now()
     ]);
 
     return view('token-generated', [
