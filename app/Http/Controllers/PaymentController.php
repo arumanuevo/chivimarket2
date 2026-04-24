@@ -549,11 +549,6 @@ public function handleSimplePaymentSuccess(Request $request)
     Log::info("Pago exitoso: device_id = " . $deviceId . ", temp_token = " . $tempToken);
 
     if (empty($tempToken)) {
-        $tempToken = Session::get('temp_token_' . $deviceId);
-        Log::info("handleSimplePaymentSuccess: Obteniendo temp_token de la sesión = " . $tempToken);
-    }
-
-    if (empty($tempToken)) {
         return view('token-generated', [
             'deviceId' => $deviceId,
             'error' => 'El código QR ha caducado. Escanea el QR nuevamente.',
@@ -561,18 +556,10 @@ public function handleSimplePaymentSuccess(Request $request)
         ]);
     }
 
-    if (Session::has('used_temp_token_' . $tempToken)) {
-        $token = Session::get('generated_token_' . $tempToken, Str::random(16));
-        return view('token-generated', [
-            'deviceId' => $deviceId,
-            'token' => $token,
-            'tempToken' => $tempToken
-        ]);
-    }
-
-    Session::put('used_temp_token_' . $tempToken, true);
-
+    // Generar un nuevo token único para esta sesión
     $token = Str::random(16);
+
+    // Crear un nuevo token de acceso
     $accessToken = AccessToken::create([
         'device_id' => $deviceId,
         'token' => $token,
@@ -581,8 +568,6 @@ public function handleSimplePaymentSuccess(Request $request)
     ]);
 
     Log::info("Pago exitoso: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
-
-    Session::put('generated_token_' . $tempToken, $token);
 
     // Configurar la zona horaria a Argentina
     date_default_timezone_set('America/Argentina/Buenos_Aires');

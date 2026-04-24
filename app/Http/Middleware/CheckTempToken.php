@@ -36,10 +36,10 @@ class CheckTempToken
             $accessToken->used = true;
             $accessToken->save();
             Log::info("CheckToken: Token marcado como usado");
-            return $next($request);
         } else {
             Log::info("CheckToken: No se encontró un token válido");
-            return $next($request);
         }
+
+        return $next($request);
     }
 }

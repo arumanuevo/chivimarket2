@@ -119,13 +119,10 @@ public function generateToken(Request $request)
         return back()->with('error', 'El código QR ha caducado. Escanea el QR nuevamente.');
     }
 
-    if (Session::has('used_temp_token_' . $tempToken)) {
-        return back()->with('error', 'El código QR ya ha sido usado. Escanea el QR nuevamente.');
-    }
-
-    Session::put('used_temp_token_' . $tempToken, true);
-
+    // Generar un nuevo token único para esta sesión
     $token = Str::random(16);
+
+    // Crear un nuevo token de acceso
     $accessToken = AccessToken::create([
         'device_id' => $deviceId,
         'token' => $token,
@@ -136,7 +133,12 @@ public function generateToken(Request $request)
     \Log::info("GenerateToken: Token guardado en la base de datos, ID = " . $accessToken->id . ", token = " . $accessToken->token);
 
     // Obtener el precio actual de la tabla shower_prices
-    $price = ShowerPrice::latest()->first()->price;
+    try {
+        $price = ShowerPrice::latest()->first()->price;
+    } catch (\Exception $e) {
+        \Log::error("Error al obtener el precio: " . $e->getMessage());
+        $price = 2.00; // Valor por defecto si no se puede obtener el precio
+    }
 
     // Registrar el uso del dispositivo
     ShowerUsage::create([
