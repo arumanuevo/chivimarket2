@@ -3,6 +3,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Device;
 use App\Models\AccessToken;
+use App\Models\ShowerUsage;
+use App\Models\ShowerPrice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Session;

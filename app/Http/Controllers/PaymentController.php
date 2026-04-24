@@ -327,40 +327,46 @@ public function showSimplePayment()
 }*/
 
 public function createSimplePreference(Request $request)
-    {
+{
+    try {
+        $deviceId = $request->input('device_id');
+        $tempToken = $request->input('temp_token');
+
+        // Obtener el precio actual de la tabla shower_prices
         try {
-            $deviceId = $request->input('device_id');
-            $tempToken = $request->input('temp_token');
-
-            // Obtener el precio actual de la tabla shower_prices
             $price = ShowerPrice::latest()->first()->price;
-            $client = new PreferenceClient();
-
-            $preference = $client->create([
-                "items" => [
-                    [
-                        "title" => "Sesión de Ducha",
-                        "quantity" => 1,
-                        "unit_price" => (float)$price,
-                        "currency_id" => "ARS"
-                    ]
-                ],
-                "back_urls" => [
-                    "success" => route('simple.payment.success', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
-                    "failure" => route('simple.payment.failure', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
-                    "pending" => route('simple.payment.pending', ['device_id' => $tempToken])
-                ],
-                "auto_return" => "approved",
-                "external_reference" => $deviceId . '&' . $tempToken
-            ]);
-
-            return response()->json(['preferenceId' => $preference->id]);
-
         } catch (\Exception $e) {
-            \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 500);
+            \Log::error("Error al obtener el precio: " . $e->getMessage());
+            $price = 2.00; // Valor por defecto si no se puede obtener el precio
         }
+
+        $client = new PreferenceClient();
+
+        $preference = $client->create([
+            "items" => [
+                [
+                    "title" => "Sesión de Ducha",
+                    "quantity" => 1,
+                    "unit_price" => (float)$price,
+                    "currency_id" => "ARS"
+                ]
+            ],
+            "back_urls" => [
+                "success" => route('simple.payment.success', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+                "failure" => route('simple.payment.failure', ['device_id' => $deviceId, 'temp_token' => $tempToken]),
+                "pending" => route('simple.payment.pending', ['device_id' => $deviceId, 'temp_token' => $tempToken])
+            ],
+            "auto_return" => "approved",
+            "external_reference" => $deviceId . '&' . $tempToken
+        ]);
+
+        return response()->json(['preferenceId' => $preference->id]);
+
+    } catch (\Exception $e) {
+        \Log::error("Error detallado al crear la preferencia simple: " . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
     }
+}
 
 
     /*public function createSimplePreference(Request $request)
@@ -586,14 +592,20 @@ public function handleSimplePaymentSuccess(Request $request)
     date_default_timezone_set('America/Argentina/Buenos_Aires');
 
     // Obtener el precio actual de la tabla shower_prices
-    $price = ShowerPrice::latest()->first()->price;
+    try {
+        $price = ShowerPrice::latest()->first()->price;
+    } catch (\Exception $e) {
+        \Log::error("Error al obtener el precio: " . $e->getMessage());
+        $price = 2.00; // Valor por defecto si no se puede obtener el precio
+    }
 
     // Registrar el uso de la ducha
     ShowerUsage::create([
         'device_id' => $deviceId,
         'user_id' => auth()->check() ? auth()->id() : null,
         'used_at' => now(),
-        'amount' => $price
+        'amount' => $price,
+        'water_consumption' => 50.00 // Consumo de agua estimado en litros
     ]);
 
     return view('token-generated', [
