@@ -332,7 +332,15 @@ public function createSimplePreference(Request $request)
         $deviceId = $request->input('device_id');
         $tempToken = $request->input('temp_token');
 
-        $price = 2.00; // Precio fijo temporalmente para evitar problemas
+        //$price = 2.00; // Precio fijo temporalmente para evitar problemas
+        // Obtener el precio actual de la tabla shower_prices
+        try {
+            $priceRecord = ShowerPrice::latest()->first();
+            $price = $priceRecord ? $priceRecord->price : 2.00;
+        } catch (\Exception $e) {
+            \Log::error("Error al obtener el precio: " . $e->getMessage());
+            $price = 2.00; // Valor por defecto si no se puede obtener el precio
+        }
 
         $client = new PreferenceClient();
 
