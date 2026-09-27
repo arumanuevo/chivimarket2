@@ -1,4 +1,4 @@
-<?php
+ï»¿<?php
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EspMessageController;
 use Illuminate\Support\Str;
@@ -145,7 +145,9 @@ Route::get('/shower-admin/login', function () {
 // Ruta para el panel de administraciÃ³n
 Route::get('/shower-admin', function () {
     return view('shower-admin');
-})->name('shower.admin');Route::get("/simular-pago", function () { return view("payment-simulation"); });
+})->name('shower.admin');
+Route::get("/simular-pago", function () {
+    return view("payment-simulation"); });
 
 // Ruta temporal para crear el symlink en Wiroos sin SSH
 Route::get('/crear-acceso-directo', function () {
@@ -153,8 +155,7 @@ Route::get('/crear-acceso-directo', function () {
     $linkFolder = $_SERVER['DOCUMENT_ROOT'] . '/storage';
     if (!file_exists($linkFolder)) {
         symlink($targetFolder, $linkFolder);
-        return '¡Enlace simbólico creado con éxito para Wiroos!';
+        return 'Enlace creado con exito para Wiroos!';
     }
     return 'El enlace ya existe.';
 });
-
