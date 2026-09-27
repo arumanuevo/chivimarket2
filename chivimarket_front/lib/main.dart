@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'dart:ui';
 import 'api_service.dart';
+import 'register_page.dart';
 
 void main() {
   runApp(const ChivimarketApp());
