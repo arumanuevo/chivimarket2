@@ -29,10 +29,68 @@ use App\Models\ReleActivation;
 use App\Models\ActivationLog;
 use App\Http\Controllers\DeviceController;
 
-/* Bloque comentado eliminado para limpieza de rutas */
+/*
+// =============================================
+// RUTAS PÚBLICAS (sin autenticación)
+// =============================================
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::get('/test', fn() => response()->json(['message' => '¡API funcionando!']));
 
+// Categorías (solo lectura para apps móviles)
+Route::apiResource('business-categories', CategoryController::class)->only(['index', 'show']);
+Route::apiResource('product-categories', CategoryController::class)->only(['index', 'show']);
 
+// =============================================
+// RUTAS PROTEGIDAS (requieren autenticación)
+// =============================================
+Route::middleware('auth:sanctum')->group(function () {
+    // Autenticación
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', function (Request $request) {
+        return $request->user()->load(['roles', 'permissions', 'businesses', 'subscription']);
+    });
 
+    // Usuarios (con permisos Spatie)
+    Route::middleware('permission:create-users')->post('/users', [UserController::class, 'store']);
+    Route::middleware('permission:view-users')->get('/users', [UserController::class, 'index']);
+
+    // Negocios y productos
+    //Route::apiResource('businesses', BusinessController::class);
+    Route::apiResource('businesses.products', ProductController::class)->shallow();
+
+    // Suscripciones
+    Route::get('subscription', [SubscriptionController::class, 'show']);
+    Route::post('subscription/upgrade', [SubscriptionController::class, 'upgrade']);
+
+    // Administración de categorías (requiere permiso adicional)
+    Route::middleware('permission:manage-categories')->group(function () {
+        Route::apiResource('business-categories', CategoryController::class)->only(['store']);
+        Route::apiResource('business-categories', CategoryController::class)->only(['update', 'destroy']);
+    });
+    Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessImageController::class, 'store']);
+    Route::delete('businesses/{business}/images/{image}', [\App\Http\Controllers\API\BusinessImageController::class, 'destroy']);
+    Route::delete('businesses/{business}/categories/{category}', [\App\Http\Controllers\API\BusinessController::class, 'removeCategory']);
+    Route::put('businesses/{business}/categories', [\App\Http\Controllers\API\BusinessController::class, 'updateCategories']);
+
+    Route::apiResource('product-categories', \App\Http\Controllers\API\ProductCategoryController::class)
+        ->except(['index', 'show']);
+    
+    Route::get('businesses/search', [BusinessController::class, 'search']);
+    Route::get('businesses/nearby', [BusinessController::class, 'nearby']);
+    Route::get('businesses/category/{category}', [BusinessController::class, 'byCategory']);
+
+    Route::resource('businesses', BusinessController::class)->only([
+        'index', 'store', 'update', 'destroy'  // Excluye 'show'
+    ]);
+        
+});
+
+Route::apiResource('product-categories', \App\Http\Controllers\API\ProductCategoryController::class)
+    ->only(['index', 'show']);*/
+
+    
+    
 // =============================================
 // RUTAS PÚBLICAS (sin autenticación)
 // =============================================
@@ -77,8 +135,8 @@ Route::middleware('auth:sanctum')->group(function () {
         ]);
         return new UserResource($user);
     })->middleware('auth:sanctum');
-
-
+    
+    
 
     // Usuarios (con permisos Spatie)
     Route::middleware('permission:create-users')->post('/users', [UserController::class, 'store']);
@@ -91,12 +149,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('businesses/{business}/categories/{category}', [BusinessController::class, 'removeCategory']);
     Route::post('businesses/{business}/categories/{category}', [BusinessController::class, 'addCategory']);
     Route::post('/businesses-with-images', [BusinessController::class, 'storeWithImages']);
-
+    
     Route::post('/businesses/{business}/update2', [BusinessController::class, 'update2']);
 
     Route::post('/businesses/{business}/update', [BusinessController::class, 'update']);
-
-    // Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessImageController::class, 'store']);
+   
+   // Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessImageController::class, 'store']);
 
     Route::delete('businesses/{business}/images/{image}', [\App\Http\Controllers\API\BusinessImageController::class, 'destroy']);
     // Rutas para gestión individual de imágenes de negocios (simplificadas)
@@ -132,7 +190,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Generar tokens de descuento
     Route::post('businesses/{business}/discount-tokens', [DiscountTokenController::class, 'store']);
     Route::get('users/me/discount-tokens', [DiscountTokenController::class, 'index']);
-
+ 
     // Usar y confirmar tokens
     Route::post('discount-tokens/{token}/use', [DiscountTokenController::class, 'useToken']);
     Route::post('discount-tokens/{token}/confirm', [DiscountTokenController::class, 'confirmUse']);
@@ -154,7 +212,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/shower/price', [ShowerAdminController::class, 'updatePrice']);
     Route::get('/shower/usage', [ShowerAdminController::class, 'getUsageHistory']);
     Route::post('/shower/log-usage', [ShowerAdminController::class, 'logUsage']);*/
-
+    
 });
 
 Route::get('/check-business/{business}', function (Request $request, Business $business) {
@@ -164,7 +222,7 @@ Route::get('/check-business/{business}', function (Request $request, Business $b
         'business_user_id' => $business->user_id,
         'user_id_type' => gettype($user->id),
         'business_user_id_type' => gettype($business->user_id),
-        'is_owner' => (int) $user->id === (int) $business->user_id
+        'is_owner' => (int)$user->id === (int)$business->user_id
     ]);
 })->middleware('auth:sanctum');
 
@@ -204,7 +262,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
-Route::get('/test-broadcast-config', function () {
+Route::get('/test-broadcast-config', function() {
     return [
         'default' => config('broadcasting.default'),
         'pusher_config' => config('broadcasting.connections.pusher'),
@@ -225,13 +283,13 @@ Route::post('/notifications/{notification}/read', [MessageController::class, 'ma
     ->middleware('auth:sanctum');
 
 
-Route::get('/esp32/message', function () {
-    return response()->json([
-        'message' => '¡Hola desde Laravel, Santiago!',
-        'color' => '0x07FF', // Color cyan en hexadecimal para la pantalla
-        'action' => 'show_message' // Acción que el ESP32 debe realizar
-    ]);
-});
+    Route::get('/esp32/message', function () {
+        return response()->json([
+            'message' => '¡Hola desde Laravel, Santiago!',
+            'color' => '0x07FF', // Color cyan en hexadecimal para la pantalla
+            'action' => 'show_message' // Acción que el ESP32 debe realizar
+        ]);
+    });
 
 // En routes/api.php
 Route::get('/esp32/pending-messages', function () {
@@ -262,8 +320,8 @@ Route::get('/check-token', function (Request $request) {
     \Log::info("CheckToken: Buscando token para device_id = " . $deviceId);
 
     $tokens = AccessToken::where('device_id', $deviceId)
-        ->where('expires_at', '>', now())
-        ->get();
+                        ->where('expires_at', '>', now())
+                        ->get();
 
     \Log::info("CheckToken: Tokens encontrados = " . $tokens->count());
 
@@ -272,9 +330,9 @@ Route::get('/check-token', function (Request $request) {
     }
 
     $token = AccessToken::where('device_id', $deviceId)
-        ->where('expires_at', '>', now())
-        ->where('used', false)
-        ->first();
+                        ->where('expires_at', '>', now())
+                        ->where('used', false)
+                        ->first();
 
     if ($token) {
         $token->update(['used' => true]);
@@ -306,6 +364,6 @@ Route::middleware(['auth:sanctum', 'shower.admin'])->group(function () {
 
 
 
-
+    
 
 

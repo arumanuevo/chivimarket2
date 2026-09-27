@@ -145,4 +145,4 @@ Route::get('/shower-admin/login', function () {
 // Ruta para el panel de administración
 Route::get('/shower-admin', function () {
     return view('shower-admin');
-})->name('shower.admin');
+})->name('shower.admin');Route::get("/simular-pago", function () { return view("payment-simulation"); });
