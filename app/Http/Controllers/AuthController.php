@@ -51,14 +51,14 @@ class AuthController extends Controller
         Log::info('Email recibido:', [$request->input('email')]);
         Log::info('Password recibido:', [$request->input('password') ? '*****' : 'No recibido']);
         Log::info('Contenido crudo:', [$request->getContent()]);
-    
+
         try {
             // Validar datos
             $request->validate([
                 'email' => 'required',
                 'password' => 'required',
             ]);
-    
+
             // Intentar autenticación
             if (!Auth::attempt($request->only('email', 'password'))) {
                 Log::warning('Credenciales incorrectas para email:', ['email' => $request->input('email')]);
@@ -66,19 +66,19 @@ class AuthController extends Controller
                     'message' => 'Credenciales incorrectas',
                 ], 422);
             }
-    
+
             $user = Auth::user();
             $user->load('roles', 'permissions');
-    
+
             $token = $user->createToken('auth-token')->plainTextToken;
-    
+
             Log::info('Login exitoso para usuario:', ['user_id' => $user->id, 'email' => $user->email]);
-    
+
             return response()->json([
                 'user' => $user,
                 'token' => $token,
             ])->header('Content-Type', 'application/json');
-    
+
         } catch (\Exception $e) {
             Log::error('Error en login:', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return response()->json([
@@ -86,46 +86,46 @@ class AuthController extends Controller
             ], 500);
         }
     }
-   /* public function login(Request $request)
-{
-    // Depurar: Devuelve toda la información recibida en la solicitud
-    return response()->json([
-        'message' => 'Depuración: Datos recibidos en el servidor',
-        'headers' => $request->header(), // Todos los headers de la solicitud
-        'content_type' => $request->getContentType(), // Tipo de contenido (ej.: application/json)
-        'is_json' => $request->isJson(), // ¿Es JSON?
-        'all_data' => $request->all(), // Todos los datos recibidos (parámetros, body, etc.)
-        'email' => $request->input('email'), // Email específico
-        'password' => $request->input('password') ? '*****' : 'No recibido', // Contraseña (oculta por seguridad)
-        'method' => $request->method(), // Método HTTP (GET, POST, etc.)
-    ], 200);
-}*/
+    /* public function login(Request $request)
+ {
+     // Depurar: Devuelve toda la información recibida en la solicitud
+     return response()->json([
+         'message' => 'Depuración: Datos recibidos en el servidor',
+         'headers' => $request->header(), // Todos los headers de la solicitud
+         'content_type' => $request->getContentType(), // Tipo de contenido (ej.: application/json)
+         'is_json' => $request->isJson(), // ¿Es JSON?
+         'all_data' => $request->all(), // Todos los datos recibidos (parámetros, body, etc.)
+         'email' => $request->input('email'), // Email específico
+         'password' => $request->input('password') ? '*****' : 'No recibido', // Contraseña (oculta por seguridad)
+         'method' => $request->method(), // Método HTTP (GET, POST, etc.)
+     ], 200);
+ }*/
 
 
- /*  public function login(Request $request)
-{
-    $request->validate([
-        'email' => 'required|email',
-        'password' => 'required',
-    ]);
+    /*  public function login(Request $request)
+   {
+       $request->validate([
+           'email' => 'required|email',
+           'password' => 'required',
+       ]);
 
-    if (!Auth::attempt($request->only('email', 'password'))) {
-        // Devolver un JSON con código 422 en lugar de lanzar una excepción
-        return response()->json([
-            'message' => 'Credenciales incorrectas',
-        ], 422); // Código HTTP 422 para errores de validación
-    }
+       if (!Auth::attempt($request->only('email', 'password'))) {
+           // Devolver un JSON con código 422 en lugar de lanzar una excepción
+           return response()->json([
+               'message' => 'Credenciales incorrectas',
+           ], 422); // Código HTTP 422 para errores de validación
+       }
 
-    $user = Auth::user();
-    $user->load('roles', 'permissions');
+       $user = Auth::user();
+       $user->load('roles', 'permissions');
 
-    $token = $user->createToken('auth-token')->plainTextToken;
+       $token = $user->createToken('auth-token')->plainTextToken;
 
-    return response()->json([
-        'user' => $user,
-        'token' => token,
-    ]);
-}*/
+       return response()->json([
+           'user' => $user,
+           'token' => token,
+       ]);
+   }*/
     /**
      * @OA\Post(
      *     path="/api/logout",
@@ -185,7 +185,18 @@ class AuthController extends Controller
             'name' => 'required|string',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8',
+            'recaptcha_token' => 'required|string',
         ]);
+
+        // Validación Anti-Spam de Google reCAPTCHA
+        $recaptchaResponse = \Illuminate\Support\Facades\Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+            'secret' => env('RECAPTCHA_SECRET_KEY'),
+            'response' => $request->recaptcha_token,
+        ]);
+
+        if (!$recaptchaResponse->json('success') || $recaptchaResponse->json('score') < 0.5) {
+            return response()->json(['message' => 'Detectado como bot. Validación anti-spam fallida.'], 403);
+        }
 
         $user = User::create([
             'name' => $request->name,
@@ -196,19 +207,27 @@ class AuthController extends Controller
         // Asignar rol por defecto
         $user->assignRole('user');
 
-        // 👇 Crear suscripción FREE por defecto
+        // Crear suscripción FREE por defecto
         $user->subscription()->create([
             'type' => 'free',
-            'product_limit' => 10,  // Límite para usuarios free
+            'product_limit' => 10,
             'starts_at' => now(),
-            'ends_at' => now()->addYear(),  // 1 año de validez
+            'ends_at' => now()->addYear(),
             'is_active' => true
         ]);
 
+        // Disparar evento para que Laravel mande el Email de Verificación
+        event(new \Illuminate\Auth\Events\Registered($user));
+
         // Cargar relaciones para la respuesta
         $user->load('roles', 'subscription');
+        $token = $user->createToken('auth_token')->plainTextToken;
 
-        return response()->json(['message' => 'Usuario creado', 'user' => $user], 201);
+        return response()->json([
+            'message' => 'Usuario creado. Por favor verifica tu email.',
+            'user' => $user,
+            'token' => $token
+        ], 201);
     }
 
 }

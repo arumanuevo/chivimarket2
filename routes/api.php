@@ -315,3 +315,7 @@ Route::post('/auth/google/verify', [\App\Http\Controllers\API\GoogleAuthControll
 Route::get('/auth/google', [\App\Http\Controllers\API\GoogleAuthController::class, 'handleGoogleRedirect']);
 Route::get('/auth/google/callback', [\App\Http\Controllers\API\GoogleAuthController::class, 'handleGoogleCallback']);
 
+
+// Ruta para validar email desde el link del correo (OBLIGATORIO que se llame verification.verify)
+Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\API\VerificationController::class, 'verify'])->name('verification.verify');
+

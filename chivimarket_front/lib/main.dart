@@ -36,6 +36,7 @@ class ChivimarketApp extends StatelessWidget {
         '/landing': (context) => const LandingPage(),
         '/login': (context) => const LoginPage(),
         '/dashboard': (context) => const DashboardPage(),
+        '/cuenta-verificada': (context) => const CuentaVerificadaPage(),
       },
     );
   }
