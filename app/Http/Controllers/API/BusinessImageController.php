@@ -75,13 +75,13 @@ class BusinessImageController extends Controller
                 ->update(['is_primary' => false]);
         }
 
-        // Guardar la imagen en public/business_images
+        // Guardar la imagen en el disco público de Storage
         $imageFile = $request->file('image');
         $filename = uniqid() . '.' . $imageFile->getClientOriginalExtension();
-        $imageFile->move(public_path('business_images'), $filename);
+        $path = $imageFile->storeAs('business_images', $filename, 'public');
 
         $image = $business->images()->create([
-            'url' => 'business_images/' . $filename,
+            'url' => Storage::url($path),
             'is_primary' => $request->has('is_primary') ? filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN) : false,
             'description' => $request->description
         ]);
@@ -138,10 +138,10 @@ class BusinessImageController extends Controller
             }
         }
 
-        // Eliminar la imagen del directorio public/business_images
-        $imagePath = public_path($image->url);
-        if (file_exists($imagePath)) {
-            unlink($imagePath);
+        // Eliminar la imagen del disco public/business_images
+        $relativePath = str_replace('/storage/', '', $image->url);
+        if (Storage::disk('public')->exists($relativePath)) {
+            Storage::disk('public')->delete($relativePath);
         }
 
         // Eliminar el registro de la base de datos
@@ -195,70 +195,70 @@ class BusinessImageController extends Controller
      * )
      */
     public function update(Request $request, Business $business, BusinessImage $image)
-{
-    $this->authorize('update', $business);
+    {
+        $this->authorize('update', $business);
 
-    $validator = Validator::make($request->all(), [
-        'is_primary' => 'boolean',
-        'description' => 'nullable|string'
-    ]);
+        $validator = Validator::make($request->all(), [
+            'is_primary' => 'boolean',
+            'description' => 'nullable|string'
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 422);
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        // Si se marca como principal, desmarcar la actual
+        if ($request->has('is_primary') && filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN)) {
+            BusinessImage::where('business_id', $business->id)
+                ->where('id', '!=', $image->id)
+                ->update(['is_primary' => false]);
+        }
+
+        $image->update([
+            'is_primary' => $request->has('is_primary') ? filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN) : $image->is_primary,
+            'description' => $request->description ?? $image->description
+        ]);
+
+        return response()->json($image);
     }
 
-    // Si se marca como principal, desmarcar la actual
-    if ($request->has('is_primary') && filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN)) {
-        BusinessImage::where('business_id', $business->id)
-            ->where('id', '!=', $image->id)
-            ->update(['is_primary' => false]);
+    /**
+     * @OA\Patch(
+     *     path="/api/businesses/{business}/images/reset-primary",
+     *     summary="Restablecer imágenes principales de un negocio",
+     *     description="Restablece todas las imágenes de un negocio para que ninguna sea principal. Solo el dueño del negocio puede realizar esta acción.",
+     *     tags={"Imágenes de Negocio"},
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="business",
+     *         in="path",
+     *         required=true,
+     *         description="ID del negocio",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Imágenes restablecidas correctamente",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Imágenes restablecidas")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="No autorizado para restablecer imágenes de este negocio"
+     *     )
+     * )
+     */
+    public function resetPrimary(Business $business)
+    {
+        $this->authorize('update', $business);
+        BusinessImage::where('business_id', $business->id)->update(['is_primary' => false]);
+        return response()->json(['message' => 'Imágenes restablecidas']);
     }
-
-    $image->update([
-        'is_primary' => $request->has('is_primary') ? filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN) : $image->is_primary,
-        'description' => $request->description ?? $image->description
-    ]);
-
-    return response()->json($image);
-}
-
-/**
- * @OA\Patch(
- *     path="/api/businesses/{business}/images/reset-primary",
- *     summary="Restablecer imágenes principales de un negocio",
- *     description="Restablece todas las imágenes de un negocio para que ninguna sea principal. Solo el dueño del negocio puede realizar esta acción.",
- *     tags={"Imágenes de Negocio"},
- *     security={{"bearerAuth": {}}},
- *     @OA\Parameter(
- *         name="business",
- *         in="path",
- *         required=true,
- *         description="ID del negocio",
- *         @OA\Schema(type="integer")
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Imágenes restablecidas correctamente",
- *         @OA\JsonContent(
- *             type="object",
- *             @OA\Property(property="message", type="string", example="Imágenes restablecidas")
- *         )
- *     ),
- *     @OA\Response(
- *         response=403,
- *         description="No autorizado para restablecer imágenes de este negocio"
- *     )
- * )
- */
-public function resetPrimary(Business $business)
-{
-    $this->authorize('update', $business);
-    BusinessImage::where('business_id', $business->id)->update(['is_primary' => false]);
-    return response()->json(['message' => 'Imágenes restablecidas']);
-}
 }
 
 
 
-    
+
 

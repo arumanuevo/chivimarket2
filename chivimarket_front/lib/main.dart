@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
+import 'dart:ui';
 import 'api_service.dart';
-
-
 
 void main() {
   runApp(const ChivimarketApp());
@@ -14,25 +14,21 @@ class ChivimarketApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Chivimarket',
+      title: 'ChiviMarket',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        fontFamily: 'Roboto', // Modern text format
+        fontFamily: GoogleFonts.outfit().fontFamily,
         primarySwatch: Colors.orange,
-        scaffoldBackgroundColor: const Color(0xFFF9FAFB), // Very light gray modern bg
-        colorScheme: const ColorScheme.light(
-          primary: Color(0xFFEA580C), // Naranja sobrio (Tailwind Orange 600)
-          secondary: Color(0xFFF97316),
+        scaffoldBackgroundColor: const Color(0xFF1E293B), // Dark blueish gray background
+        colorScheme: const ColorScheme.dark(
+          primary: Color(0xFFF97316),
+          secondary: Color(0xFFFB923C),
+          surface: Color(0x33FFFFFF), // Transparent surface for glassmorphism
         ),
         appBarTheme: const AppBarTheme(
-          color: Colors.white,
-          elevation: 1,
-          iconTheme: IconThemeData(color: Color(0xFF1F2937)),
-          titleTextStyle: TextStyle(
-            color: Color(0xFF1F2937),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          color: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
         ),
       ),
       initialRoute: '/landing',
@@ -45,85 +41,235 @@ class ChivimarketApp extends StatelessWidget {
   }
 }
 
+// ----------------------------------------------------
+// COMPONENTS: GLASSMORPHISM & WIDGETS
+// ----------------------------------------------------
+class GlassContainer extends StatelessWidget {
+  final Widget child;
+  final double? width;
+  final double? height;
+  final EdgeInsetsGeometry padding;
+  final double borderRadius;
+
+  const GlassContainer({
+    Key? key,
+    required this.child,
+    this.width,
+    this.height,
+    this.padding = const EdgeInsets.all(32),
+    this.borderRadius = 24.0,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          width: width,
+          height: height,
+          padding: padding,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 30,
+                offset: const Offset(0, 10),
+              )
+            ],
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
+class AnimatedGradientBackground extends StatelessWidget {
+  final Widget child;
+  const AnimatedGradientBackground({Key? key, required this.child}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF0F172A), // Slate 900
+            Color(0xFF1E1B4B), // Indigo 950
+            Color(0xFF431407), // Orange 950
+          ],
+          stops: [0.1, 0.5, 0.9],
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Decorative glowing orbs
+          Positioned(
+            top: -100,
+            left: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+              ),
+              child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80), child: Container()),
+            ),
+          ),
+          Positioned(
+            bottom: -50,
+            right: -50,
+            child: Container(
+              width: 400,
+              height: 400,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF6366F1).withOpacity(0.1), // Indigo glow
+              ),
+              child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100), child: Container()),
+            ),
+          ),
+          SafeArea(child: child),
+        ],
+      ),
+    );
+  }
+}
+
+// ----------------------------------------------------
+// VIEWS
+// ----------------------------------------------------
 class LandingPage extends StatelessWidget {
   const LandingPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
+      body: AnimatedGradientBackground(
+        child: Column(
           children: [
-            Icon(Icons.storefront, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 8),
-            const Text('ChiviMarket'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pushNamed(context, '/login'),
-            child: const Text('Acceso Comercios', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(
-                'El Escaparate de Todo Chivilcoy',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.grey[800]),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Descubrí negocios locales, servicios y más. Fomentando el consumo y visibilidad local.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-              ),
-              const SizedBox(height: 48),
-              
-              // Buscador de ejemplo (simulado)
-              Container(
-                width: 600,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
-                  ],
-                ),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: '¿Qué estás buscando? Ej: Carnicería, Reparación...',
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    suffixIcon: Container(
-                      margin: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        shape: BoxShape.circle,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 20.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.auto_awesome, color: Theme.of(context).colorScheme.primary, size: 32),
+                      const SizedBox(width: 12),
+                      Text(
+                        'ChiviMarket',
+                        style: GoogleFonts.outfit(
+                            fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
-                      child: const Icon(Icons.search, color: Colors.white),
+                    ],
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pushNamed(context, '/login'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 10,
                     ),
+                    child: const Text('Acceso Restringido', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'El Ecosistema Comercial',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 64,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          height: 1.1,
+                          letterSpacing: -1.5,
+                        ),
+                      ),
+                      Text(
+                        'Más Poderoso de Chivilcoy',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.inter(
+                          fontSize: 64,
+                          fontWeight: FontWeight.w900,
+                          color: Theme.of(context).colorScheme.primary,
+                          height: 1.1,
+                          letterSpacing: -1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Una plataforma premium reservada para conectar la ciudad.\nIngresa ahora al panel administrativo.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.outfit(
+                          fontSize: 20,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                      GlassContainer(
+                        width: 600,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        borderRadius: 40,
+                        child: Row(
+                          children: [
+                            const Expanded(
+                              child: TextField(
+                                style: TextStyle(color: Colors.white),
+                                decoration: InputDecoration(
+                                  hintText: 'Buscar directorios y locales...',
+                                  hintStyle: TextStyle(color: Colors.white54),
+                                  border: InputBorder.none,
+                                  prefixIcon: Icon(Icons.search, color: Colors.white54),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                                ),
+                              ),
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Color(0xFFF97316), Color(0xFFEA580C)],
+                                ),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: ElevatedButton(
+                                onPressed: () {},
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                                ),
+                                child: const Text('Explorar', style: TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 48),
-              OutlinedButton(
-                onPressed: () => Navigator.pushNamed(context, '/dashboard'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                child: const Text('Ir al Dashboard de Pruebas', style: TextStyle(fontSize: 16)),
-              )
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -141,10 +287,10 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   Future<void> _login() async {
     setState(() => _isLoading = true);
-
     try {
       final response = await ApiService.post('/login', {
         'email': _emailController.text,
@@ -152,90 +298,121 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       if (response.statusCode == 200) {
-        // En Laravel Sanctum normal, el token viene en JSON 
         final data = jsonDecode(response.body);
         if (data['token'] != null) {
           await ApiService.saveToken(data['token']);
         }
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Exitoso'), backgroundColor: Colors.green),
-        );
-        Navigator.pushReplacementNamed(context, '/dashboard');
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/dashboard');
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${response.statusCode} - Credenciales incorrectas'), backgroundColor: Colors.red),
-        );
+        _showError('Credenciales incorrectas');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error de red: $e'), backgroundColor: Colors.red),
-      );
+      _showError('Error de red: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _showError(String msg) {
+    if(!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.redAccent));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Ingreso al Portal'),
-        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
-      body: Center(
-        child: Container(
-          width: 400,
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey[200]!),
-            boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20)
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.store, size: 64, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(height: 16),
-              const Text('Bienvenido Comercio', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 32),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Correo Electrónico',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: 'Contraseña',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      body: AnimatedGradientBackground(
+        child: Center(
+          child: GlassContainer(
+            width: 450,
+            padding: const EdgeInsets.all(40),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.dashboard_customize, size: 64, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(height: 24),
+                Text('Acceso Central', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                const SizedBox(height: 8),
+                Text('Administra tu escaparate local', style: TextStyle(color: Colors.white60, fontSize: 16)),
+                const SizedBox(height: 40),
+                TextField(
+                  controller: _emailController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Correo Electrónico',
+                    labelStyle: const TextStyle(color: Colors.white60),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
+                    prefixIcon: const Icon(Icons.email, color: Colors.white54),
                   ),
-                  child: _isLoading 
-                      ? const CircularProgressIndicator(color: Colors.white) 
-                      : const Text('Iniciar Sesión', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
-              )
-            ],
+                const SizedBox(height: 20),
+                TextField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Contraseña',
+                    labelStyle: const TextStyle(color: Colors.white60),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
+                    prefixIcon: const Icon(Icons.lock, color: Colors.white54),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _login,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 8,
+                      shadowColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text('Comenzar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
+                    const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('O INGRESAR CON', style: TextStyle(color: Colors.white54, fontSize: 12))),
+                    Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: OutlinedButton.icon(
+                    onPressed: () {}, // Backend login url for future
+                    icon: _isGoogleLoading 
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)) 
+                      : const Icon(Icons.g_mobiledata, size: 36, color: Colors.white),
+                    label: const Text('Continuar con Google', style: TextStyle(color: Colors.white)),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      backgroundColor: Colors.white.withOpacity(0.05)
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -243,192 +420,20 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
+// ----------------------------------------------------
+// DASHBOARD STUBS
+// ----------------------------------------------------
 class DashboardPage extends StatelessWidget {
   const DashboardPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Row(
-        children: [
-          // Sidebar
-          Container(
-            width: 250,
-            color: Colors.white,
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  width: double.infinity,
-                  color: Theme.of(context).colorScheme.primary,
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.storefront, color: Colors.white, size: 32),
-                      SizedBox(height: 8),
-                      Text('Mi Negocio', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                      Text('Plan Premium', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    children: [
-                      _SidebarItem(icon: Icons.dashboard, title: 'Resumen', isActive: true, onTap: (){}),
-                      _SidebarItem(icon: Icons.store, title: 'Mi Tienda', onTap: (){}),
-                      _SidebarItem(icon: Icons.shopping_basket, title: 'Productos/Servicios', onTap: (){}),
-                      _SidebarItem(icon: Icons.monetization_on, title: 'Suscripción (Pagos)', onTap: (){}),
-                      _SidebarItem(icon: Icons.settings, title: 'Ajustes', onTap: (){}),
-                    ],
-                  ),
-                ),
-                const Divider(),
-                ListTile(
-                  leading: const Icon(Icons.exit_to_app, color: Colors.red),
-                  title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.red)),
-                  onTap: () => Navigator.pushReplacementNamed(context, '/landing'),
-                )
-              ],
-            ),
-          ),
-          // Contenido Principal
-          Expanded(
-            child: Scaffold(
-              appBar: AppBar(
-                title: const Text('Resumen del Negocio'),
-                backgroundColor: Colors.white,
-              ),
-              body: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Estadísticas', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 24),
-                    Row(
-                      children: [
-                        _StatCard(title: 'Vistas Totales', value: '1,245', icon: Icons.visibility, color: Colors.blue),
-                        const SizedBox(width: 24),
-                        _StatCard(title: 'Contactos', value: '38', icon: Icons.touch_app, color: Colors.green),
-                        const SizedBox(width: 24),
-                        _StatCard(title: 'Productos Activos', value: '12 / 50', icon: Icons.inventory_2, color: Colors.orange),
-                      ],
-                    ),
-                    const SizedBox(height: 48),
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[200]!),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Acciones Rápidas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 16),
-                          Wrap(
-                            spacing: 16,
-                            children: [
-                              ElevatedButton.icon(
-                                onPressed: (){}, 
-                                icon: const Icon(Icons.add), 
-                                label: const Text('Nuevo Producto'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Theme.of(context).colorScheme.primary,
-                                  foregroundColor: Colors.white,
-                                ),
-                              ),
-                              OutlinedButton.icon(
-                                onPressed: (){}, 
-                                icon: const Icon(Icons.photo_library), 
-                                label: const Text('Actualizar Galería')
-                              ),
-                            ],
-                          )
-                        ],
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          )
-        ],
+      appBar: AppBar(
+        title: const Text('Dashboard'),
+        leading: const Icon(Icons.store),
       ),
-    );
-  }
-}
-
-class _SidebarItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _SidebarItem({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.isActive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive ? Theme.of(context).colorScheme.primary : Colors.grey[600];
-    final bgColor = isActive ? Theme.of(context).colorScheme.primary.withOpacity(0.1) : Colors.transparent;
-
-    return ListTile(
-      leading: Icon(icon, color: color),
-      title: Text(title, style: TextStyle(color: color, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
-      tileColor: bgColor,
-      onTap: onTap,
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color color;
-
-  const _StatCard({required this.title, required this.value, required this.icon, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 28),
-            ),
-            const SizedBox(width: 16),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: TextStyle(color: Colors.grey[500], fontSize: 14)),
-                const SizedBox(height: 4),
-                Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
-              ],
-            )
-          ],
-        ),
-      ),
+      body: const Center(child: Text('Dashboard Placeholder - Under Development')),
     );
   }
 }

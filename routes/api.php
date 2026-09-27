@@ -309,3 +309,9 @@ Route::middleware(['auth:sanctum', 'shower.admin'])->group(function () {
 
 
 
+
+// Rutas de Google Socialite (Agregadas por el agente)
+Route::post('/auth/google/verify', [\App\Http\Controllers\API\GoogleAuthController::class, 'verifyGoogleToken']);
+Route::get('/auth/google', [\App\Http\Controllers\API\GoogleAuthController::class, 'handleGoogleRedirect']);
+Route::get('/auth/google/callback', [\App\Http\Controllers\API\GoogleAuthController::class, 'handleGoogleCallback']);
+
