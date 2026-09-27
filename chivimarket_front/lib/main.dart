@@ -4,8 +4,12 @@ import 'dart:convert';
 import 'dart:ui';
 import 'api_service.dart';
 import 'register_page.dart';
+import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // TODO: ¡Pega tu SITKEY pública de ReCAPTCHA aquí para el Frontend!
+  await GRecaptchaV3.ready('6LfajdItAAAAALK0AsHklkRGZz6D_kwQfNw1zNhi');
   runApp(const ChivimarketApp());
 }
 

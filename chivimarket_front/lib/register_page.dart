@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
+import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 import 'api_service.dart';
 import 'main.dart'; // Para reutilizar GlassContainer y AnimatedGradientBackground
 
@@ -20,11 +21,14 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> _register() async {
     setState(() => _isLoading = true);
     try {
+      // 1. Generamos el token de seguridad invisible para Google
+      String recaptchaToken = await GRecaptchaV3.execute('register') ?? 'token_fallido';
+
       final response = await ApiService.post('/register', {
         'name': _nameController.text,
         'email': _emailController.text,
         'password': _passwordController.text,
-        'recaptcha_token': 'dummy_token', 
+        'recaptcha_token': recaptchaToken, 
       });
 
       if (response.statusCode == 201) {
