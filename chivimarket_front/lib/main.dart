@@ -35,6 +35,7 @@ class ChivimarketApp extends StatelessWidget {
       routes: {
         '/landing': (context) => const LandingPage(),
         '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegisterPage(),
         '/dashboard': (context) => const DashboardPage(),
         '/cuenta-verificada': (context) => const CuentaVerificadaPage(),
       },
@@ -412,6 +413,11 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/register'),
+                  child: const Text('¿No tienes cuenta? Registra tu Comercio Aquí', style: TextStyle(color: Colors.white70)),
+                )
               ],
             ),
           ),
