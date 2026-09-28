@@ -67,7 +67,7 @@ class _DashboardPageState extends State<DashboardPage> {
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(Icons.edit_store, color: Colors.white70),
+              leading: const Icon(Icons.store, color: Colors.white70),
               title: const Text('Mi Negocio (Perfil)', style: TextStyle(color: Colors.white70)),
               onTap: () {},
             ),
