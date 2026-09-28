@@ -15,7 +15,8 @@ class Business extends Model
 
     protected $casts = [
         'user_id' => 'integer',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
+        'metadata' => 'array',
     ];
 
     protected $fillable = [
@@ -31,6 +32,10 @@ class Business extends Model
         'is_active',
         'logo_url',
         'cover_image_url',
+        'modality',
+        'metadata',
+        'priority_score',
+        'has_active_promotions'
     ];
 
     public function user(): BelongsTo

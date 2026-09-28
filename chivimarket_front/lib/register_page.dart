@@ -66,13 +66,13 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: [
                   Icon(Icons.person_add_alt, size: 64, color: Theme.of(context).colorScheme.primary),
                   const SizedBox(height: 24),
-                  Text('Crear Negocio', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Text('Crear Cuenta', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
                   const SizedBox(height: 40),
                   TextField(
                     controller: _nameController,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      labelText: 'Nombre del Comercio',
+                      labelText: 'Nombre del Administrador (Tu Nombre)',
                       labelStyle: const TextStyle(color: Colors.white60),
                       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),

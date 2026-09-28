@@ -118,6 +118,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     mainAxisSpacing: 16,
                     childAspectRatio: 1.5,
                     children: [
+                      _buildActionCard(context, 'Crear Nuevo Local', Icons.add_business, () {
+                        Navigator.pushNamed(context, '/create-business');
+                      }),
                       _buildActionCard(context, 'Editar Datos del Local', Icons.edit_document, () {}),
                       _buildActionCard(context, 'Gestionar Imágenes', Icons.add_photo_alternate, () {}),
                       _buildActionCard(context, 'Mejorar Plan', Icons.rocket_launch, () {}),
