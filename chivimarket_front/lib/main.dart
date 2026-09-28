@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'api_service.dart';
 import 'register_page.dart';
+import 'dashboard_page.dart';
 import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 
 void main() async {
@@ -432,23 +433,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 }
 
-// ----------------------------------------------------
-// DASHBOARD STUBS
-// ----------------------------------------------------
-class DashboardPage extends StatelessWidget {
-  const DashboardPage({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-        leading: const Icon(Icons.store),
-      ),
-      body: const Center(child: Text('Dashboard Placeholder - Under Development')),
-    );
-  }
-}
 
 class CuentaVerificadaPage extends StatelessWidget {
   const CuentaVerificadaPage({Key? key}) : super(key: key);
