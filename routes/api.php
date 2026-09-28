@@ -7,7 +7,7 @@ use App\Http\Controllers\API\BusinessController;
 use App\Http\Controllers\API\ProductController;
 use App\Http\Controllers\API\SubscriptionController;
 use App\Http\Controllers\API\CategoryController;
-use App\Http\Controllers\API\SearchController; // Nuevo controlador para búsquedas globales
+use App\Http\Controllers\API\SearchController; // Nuevo controlador para bÃºsquedas globales
 use App\Http\Controllers\Api\TestSwaggerController;
 use App\Http\Controllers\API\BusinessLogoController;
 use App\Http\Controllers\API\ProductImageController;
@@ -34,24 +34,24 @@ use App\Http\Controllers\DeviceController;
 
 
 // =============================================
-// RUTAS PÚBLICAS (sin autenticación)
+// RUTAS PÃšBLICAS (sin autenticaciÃ³n)
 // =============================================
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/acceso-usuario', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
-Route::get('/test', fn() => response()->json(['message' => '¡API funcionando!']));
-// Categorías (solo lectura para apps móviles)
+Route::get('/test', fn() => response()->json(['message' => 'Â¡API funcionando!']));
+// CategorÃ­as (solo lectura para apps mÃ³viles)
 Route::apiResource('business-categories', CategoryController::class)->only(['index', 'show']);
 Route::apiResource('product-categories', \App\Http\Controllers\API\ProductCategoryController::class)->only(['index', 'show']);
-// Búsqueda global y de productos (PÚBLICAS)
+// BÃºsqueda global y de productos (PÃšBLICAS)
 Route::get('search', [SearchController::class, 'globalSearch']);
 Route::get('products/search', [ProductController::class, 'search']);
 Route::get('products/category/{category}', [ProductController::class, 'byCategory']);
 Route::get('products/business/{business}', [ProductController::class, 'byBusiness']);
 Route::get('products/{product}', [ProductController::class, 'show']);
-// Búsqueda de negocios (PÚBLICA)
-Route::get('businesses/search', [BusinessController::class, 'search']); // <-- Mover esta línea aquí
-Route::get('businesses/category/{category}', [BusinessController::class, 'byCategory']); // <-- También mover esta línea aquí
+// BÃºsqueda de negocios (PÃšBLICA)
+Route::get('businesses/search', [BusinessController::class, 'search']); // <-- Mover esta lÃ­nea aquÃ­
+Route::get('businesses/category/{category}', [BusinessController::class, 'byCategory']); // <-- TambiÃ©n mover esta lÃ­nea aquÃ­
 Route::get('/businesses/top-rated', [BusinessController::class, 'getTopRatedBusinesses']);
 
 Route::get('/business-image/{filename}', [ImageController::class, 'showBusinessImage']);
@@ -59,10 +59,10 @@ Route::get('/image/{filename}', [ImageController::class, 'show'])->name('image.s
 
 
 // =============================================
-// RUTAS PROTEGIDAS (requieren autenticación)
+// RUTAS PROTEGIDAS (requieren autenticaciÃ³n)
 // =============================================
 Route::middleware('auth:sanctum')->group(function () {
-    // Autenticación
+    // AutenticaciÃ³n
     Route::post('/logout', [AuthController::class, 'logout']);
     /*Route::get('/user', function (Request $request) {
         return $request->user()->load(['roles', 'permissions', 'businesses', 'subscription']);
@@ -72,7 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
             'roles',
             'permissions',
             'businesses.categories',
-            'businesses.images', // Asegúrate de cargar las imágenes de los negocios
+            'businesses.images', // AsegÃºrate de cargar las imÃ¡genes de los negocios
             'subscription'
         ]);
         return new UserResource($user);
@@ -99,7 +99,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessImageController::class, 'store']);
 
     Route::delete('businesses/{business}/images/{image}', [\App\Http\Controllers\API\BusinessImageController::class, 'destroy']);
-    // Rutas para gestión individual de imágenes de negocios (simplificadas)
+    // Rutas para gestiÃ³n individual de imÃ¡genes de negocios (simplificadas)
     Route::post('/my-business/images/{position}', [BusinessController::class, 'updateMyBusinessImage']);
     Route::delete('/my-business/images/{position}', [BusinessController::class, 'deleteMyBusinessImage']);
     Route::get('/my-business/images/{position}', [BusinessController::class, 'getMyBusinessImage']);
@@ -115,7 +115,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('subscription', [SubscriptionController::class, 'show']);
     Route::post('subscription/upgrade', [SubscriptionController::class, 'upgrade']);
 
-    // Administración de categorías (requiere permiso adicional)
+    // AdministraciÃ³n de categorÃ­as (requiere permiso adicional)
     Route::middleware('permission:manage-categories')->group(function () {
         Route::apiResource('business-categories', CategoryController::class)->only(['store', 'update', 'destroy']);
         Route::apiResource('product-categories', \App\Http\Controllers\API\ProductCategoryController::class)
@@ -142,7 +142,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Enviar mensaje
     Route::post('/messages', [MessageController::class, 'sendMessage']);
 
-    // Listar mensajes de una conversación
+    // Listar mensajes de una conversaciÃ³n
     Route::get('/conversations/{conversation}/messages', [MessageController::class, 'listMessages']);
 
     // Listar conversaciones del usuario
@@ -172,7 +172,7 @@ Route::post('businesses/{business}/images', [\App\Http\Controllers\API\BusinessI
 
 Route::patch('businesses/{business}/images/{image}', [\App\Http\Controllers\API\BusinessImageController::class, 'update'])->middleware('auth:sanctum');
 
-// Búsqueda de negocios (PÚBLICA)
+// BÃºsqueda de negocios (PÃšBLICA)
 Route::get('businesses/{business}', [BusinessController::class, 'show']);
 
 Route::get('/test', [TestSwaggerController::class, 'index']);
@@ -227,9 +227,9 @@ Route::post('/notifications/{notification}/read', [MessageController::class, 'ma
 
 Route::get('/esp32/message', function () {
     return response()->json([
-        'message' => '¡Hola desde Laravel, Santiago!',
+        'message' => 'Â¡Hola desde Laravel, Santiago!',
         'color' => '0x07FF', // Color cyan en hexadecimal para la pantalla
-        'action' => 'show_message' // Acción que el ESP32 debe realizar
+        'action' => 'show_message' // AcciÃ³n que el ESP32 debe realizar
     ]);
 });
 
@@ -278,13 +278,13 @@ Route::get('/check-token', function (Request $request) {
 
     if ($token) {
         $token->update(['used' => true]);
-        \Log::info("CheckToken: Token válido encontrado y marcado como usado, ID = " . $token->id . ", token = " . $token->token);
+        \Log::info("CheckToken: Token vÃ¡lido encontrado y marcado como usado, ID = " . $token->id . ", token = " . $token->token);
         return response()->json([
             'status' => 'valid',
             'token' => $token->token
         ]);
     } else {
-        \Log::info("CheckToken: No se encontró un token válido");
+        \Log::info("CheckToken: No se encontrÃ³ un token vÃ¡lido");
         return response()->json(['status' => 'invalid']);
     }
 });
