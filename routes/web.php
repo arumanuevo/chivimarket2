@@ -151,3 +151,9 @@ Route::get("/simular-pago", function () {
 });
 
 
+<?php
+Route::get('/dev/importar-ml', function () {
+    $response = Http::get('https://api.mercadolibre.com/sites/MLA/categories');
+    if($response->successful()) { return $response->json(); }
+    return ['error' => 'No se pudo conectar a ML'];
+});

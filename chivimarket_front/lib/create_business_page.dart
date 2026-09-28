@@ -20,10 +20,17 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
   String _modality = 'fisico'; // fisico, online, domicilio, mixto
   final _addressController = TextEditingController();
   
-  // Opciones de Metadata ad-hoc basadas en el nicho (Por ahora simulan Veterinaria/Servicios)
-  bool _isOpen24h = false;
-  bool _hasDelivery = false;
+  // Categoría Principal
   String _selectedCategory = '1';
+
+  // Constructor dinámico de Metadata (Elasticidad real)
+  // Almacenaremos propiedades como {"Atención 24hs": true, "Tipo de Especialidad": "Electricista"}
+  final Map<String, dynamic> _customMetadata = {};
+  
+  // Controladores para agregar nueva propiedad a mano
+  final _customFeatureKeyController = TextEditingController();
+  final _customFeatureValueController = TextEditingController();
+  String _customFeatureType = 'Booleano (Si/No)'; // O 'Texto'
 
   Future<void> _submitBusiness() async {
     setState(() => _isLoading = true);
@@ -35,10 +42,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
         'modality': _modality,
         'address': _modality == 'online' ? null : _addressController.text,
         'categories': [int.parse(_selectedCategory)],
-        'metadata': {
-          'open_24h': _isOpen24h,
-          'has_delivery': _hasDelivery,
-        }
+        'metadata': _customMetadata // <- Magia Elástica pura
       });
 
       if (response.statusCode == 201) {
@@ -178,9 +182,11 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                             decoration: const InputDecoration(labelText: 'Categoría Principal', labelStyle: TextStyle(color: Colors.white70)),
                             items: const [
                               DropdownMenuItem(value: '1', child: Text('Gastronomía')),
-                              DropdownMenuItem(value: '4', child: Text('Tecnología')),
+                              DropdownMenuItem(value: '2', child: Text('Indumentaria y Moda')),
                               DropdownMenuItem(value: '3', child: Text('Servicios y Profesionales')),
+                              DropdownMenuItem(value: '4', child: Text('Tecnología')),
                               DropdownMenuItem(value: '5', child: Text('Salud y Cuidado')),
+                              DropdownMenuItem(value: '6', child: Text('Otro Rubro / General')),
                             ],
                             onChanged: (value) => setState(() => _selectedCategory = value!),
                           ),
@@ -188,26 +194,91 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                       ),
                     ),
 
-                    // PASO 3: ATRIBUTOS AD-HOC Y ELÁSTICOS
+                    // PASO 3: ATRIBUTOS AD-HOC Y ELÁSTICOS (CONSTRUCTOR)
                     Step(
-                      title: Text('Servicios Extra', style: GoogleFonts.outfit(color: Colors.white)),
+                      title: Text('Atributos de Valor (Elástico)', style: GoogleFonts.outfit(color: Colors.white)),
                       isActive: _currentStep >= 2,
                       content: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Estos parámetros se guardarán dinámicamente en tu perfil JSON:', style: TextStyle(color: Colors.orangeAccent)),
-                          const SizedBox(height: 8),
-                          SwitchListTile(
-                            title: const Text('¿Ofrece cobertura de 24 horas?', style: TextStyle(color: Colors.white)),
-                            value: _isOpen24h,
-                            activeColor: Theme.of(context).colorScheme.primary,
-                            onChanged: (bool value) => setState(() => _isOpen24h = value),
-                          ),
-                          SwitchListTile(
-                            title: const Text('¿Tiene equipo de Delivery/Envío?', style: TextStyle(color: Colors.white)),
-                            value: _hasDelivery,
-                            activeColor: Theme.of(context).colorScheme.primary,
-                            onChanged: (bool value) => setState(() => _hasDelivery = value),
+                          const Text('Agrega características específicas de tu rubro para que los clientes te encuentren más fácil. (Ej: "¿Tiene Corralón?", "Especialidad").', style: TextStyle(color: Colors.white70)),
+                          const SizedBox(height: 16),
+                          
+                          // LISTA DE ATRIBUTOS AGREGADOS
+                          if (_customMetadata.isNotEmpty)
+                            Container(
+                              margin: const EdgeInsets.only(bottom: 24),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                              child: Column(
+                                children: _customMetadata.entries.map((entry) {
+                                  return ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    title: Text(entry.key, style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                                    subtitle: Text(entry.value is bool ? (entry.value ? 'Sí' : 'No') : entry.value.toString(), style: const TextStyle(color: Colors.white)),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                      onPressed: () => setState(() => _customMetadata.remove(entry.key)),
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+
+                          // FORMULARIO PARA AGREGAR NUEVO ATRIBUTO
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(border: Border.all(color: Colors.white.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Añadir nueva característica', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: _customFeatureKeyController,
+                                  style: const TextStyle(color: Colors.white),
+                                  decoration: const InputDecoration(labelText: 'Nombre (Ej: Pet Friendly, Wi-Fi)', labelStyle: TextStyle(color: Colors.white70, fontSize: 12)),
+                                ),
+                                const SizedBox(height: 12),
+                                DropdownButtonFormField<String>(
+                                  value: _customFeatureType,
+                                  dropdownColor: const Color(0xFF1E293B),
+                                  style: const TextStyle(color: Colors.white),
+                                  decoration: const InputDecoration(labelText: 'Tipo de Respuesta', labelStyle: TextStyle(color: Colors.white70, fontSize: 12)),
+                                  items: const [
+                                    DropdownMenuItem(value: 'Booleano (Si/No)', child: Text('Sí / No')),
+                                    DropdownMenuItem(value: 'Texto', child: Text('Texto Libre')),
+                                  ],
+                                  onChanged: (value) => setState(() => _customFeatureType = value!),
+                                ),
+                                if (_customFeatureType == 'Texto') ...[
+                                  const SizedBox(height: 12),
+                                  TextField(
+                                    controller: _customFeatureValueController,
+                                    style: const TextStyle(color: Colors.white),
+                                    decoration: const InputDecoration(labelText: 'Valor (Ej: Fibra Óptica 100MB)', labelStyle: TextStyle(color: Colors.white70, fontSize: 12)),
+                                  ),
+                                ],
+                                const SizedBox(height: 16),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      final key = _customFeatureKeyController.text.trim();
+                                      if (key.isNotEmpty) {
+                                        setState(() {
+                                          _customMetadata[key] = _customFeatureType == 'Booleano (Si/No)' ? true : _customFeatureValueController.text.trim();
+                                          _customFeatureKeyController.clear();
+                                          _customFeatureValueController.clear();
+                                        });
+                                      }
+                                    },
+                                    icon: const Icon(Icons.add, color: Colors.orangeAccent),
+                                    label: const Text('Agregar Etiqueta', style: TextStyle(color: Colors.orangeAccent)),
+                                  ),
+                                )
+                              ],
+                            ),
                           ),
                         ],
                       ),

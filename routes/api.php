@@ -319,3 +319,6 @@ Route::get('/auth/google/callback', [\App\Http\Controllers\API\GoogleAuthControl
 // Ruta para validar email desde el link del correo (OBLIGATORIO que se llame verification.verify)
 Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\API\VerificationController::class, 'verify'])->name('verification.verify');
 
+// Ruta oculta importador de MercadoLibre
+Route::get('/admin/importar-ml', [\App\Http\Controllers\API\MLSyncController::class, 'importTopCategories']);
+
