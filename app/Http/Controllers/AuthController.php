@@ -233,7 +233,7 @@ class AuthController extends Controller
     public function me(\Illuminate\Http\Request $request)
     {
         $user = $request->user();
-        $user->load('roles', 'subscription', 'businesses.categories');
+        $user->load('roles', 'subscription', 'businesses.categories', 'businesses.images');
 
         $subscription = $user->subscription ?? \App\Services\SubscriptionService::createDefaultSubscription($user);
         $maxBusinesses = \App\Services\SubscriptionService::getMaxBusinessesForSubscription($subscription->type);

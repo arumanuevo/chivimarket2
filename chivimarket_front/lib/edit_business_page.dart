@@ -24,12 +24,28 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
   // Fotografías (Máximo 4) - Usamos XFile para compatibilidad Multiplataforma (Web/Móvil)
   final ImagePicker _picker = ImagePicker();
   List<XFile?> _selectedImages = <XFile?>[null, null, null, null];
+  List<String?> _networkImages = <String?>[null, null, null, null];
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.business['name']);
     _descController = TextEditingController(text: widget.business['description']);
+    
+    // 1. Cargar cover_image en la posición 0
+    if (widget.business['cover_image_url'] != null) {
+      _networkImages[0] = '${ApiService.baseUrl.replaceAll('/api', '/storage')}/${widget.business['cover_image_url']}';
+    }
+    
+    // 2. Cargar imágenes adicionales
+    if (widget.business['images'] != null) {
+      List<dynamic> gallery = widget.business['images'];
+      for (int i = 0; i < gallery.length; i++) {
+        if (i + 1 < 4) {
+          _networkImages[i + 1] = gallery[i]['full_url'] ?? '${ApiService.baseUrl.replaceAll('/api', '/storage')}/${gallery[i]['url']}';
+        }
+      }
+    }
   }
 
   Future<void> _pickImage(int index) async {
@@ -167,7 +183,12 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                                       ? Image.network(_selectedImages[index]!.path, fit: BoxFit.cover)
                                       : Image.file(File(_selectedImages[index]!.path), fit: BoxFit.cover),
                                 )
-                              : const Column(
+                              : _networkImages[index] != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Image.network(_networkImages[index]!, fit: BoxFit.cover),
+                                    )
+                                  : const Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(Icons.add_a_photo, color: Colors.white54, size: 36),
