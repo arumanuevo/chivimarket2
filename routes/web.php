@@ -158,3 +158,10 @@ Route::get('/dev/importar-ml', function () {
     }
     return ['error' => 'No se pudo conectar a ML'];
 });
+@
+
+Route::get('/dev/clear-spatie', function () {
+    app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    return 'Cache de Seguridad de Spatie Limpiado Exitosamente!';
+});
+
