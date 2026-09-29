@@ -34,7 +34,12 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
     
     // 1. Cargar cover_image en la posición 0
     if (widget.business['cover_image_url'] != null) {
-      _networkImages[0] = '${ApiService.baseUrl.replaceAll('/api', '/storage')}/${widget.business['cover_image_url']}';
+      String coverUrl = widget.business['cover_image_url'];
+      if (coverUrl.startsWith('http')) {
+        _networkImages[0] = coverUrl;
+      } else {
+        _networkImages[0] = '${ApiService.baseUrl.replaceAll('/api', '/storage')}/$coverUrl';
+      }
     }
     
     // 2. Cargar imágenes adicionales
@@ -42,7 +47,12 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
       List<dynamic> gallery = widget.business['images'];
       for (int i = 0; i < gallery.length; i++) {
         if (i + 1 < 4) {
-          _networkImages[i + 1] = gallery[i]['full_url'] ?? '${ApiService.baseUrl.replaceAll('/api', '/storage')}/${gallery[i]['url']}';
+          String url = gallery[i]['full_url'] ?? gallery[i]['url'];
+          if (url.startsWith('http')) {
+            _networkImages[i + 1] = url;
+          } else {
+            _networkImages[i + 1] = '${ApiService.baseUrl.replaceAll('/api', '/storage')}/$url';
+          }
         }
       }
     }
