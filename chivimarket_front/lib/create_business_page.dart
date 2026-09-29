@@ -37,11 +37,11 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
   final _customFeatureValueController = TextEditingController();
   String _customFeatureType = 'Booleano (Si/No)'; // O 'Texto'
 
-  // Fotografías (Máximo 4) - Usamos XFile para compatibilidad Multiplataforma (Web/Móvil)
+  // Fotografías en preparación para subir (Usamos XFile para compatibilidad Multiplataforma (Web/Móvil))
   final ImagePicker _picker = ImagePicker();
-  List<XFile?> _selectedImages = <XFile?>[null, null, null, null];
+  List<XFile> _pendingImages = [];
 
-  Future<void> _pickImage(int index) async {
+  Future<void> _pickImage() async {
     final XFile? image = await _picker.pickImage(
       source: ImageSource.gallery, 
       imageQuality: 50, 
@@ -49,8 +49,12 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
       maxHeight: 800,
     );
     if (image != null) {
-      setState(() => _selectedImages[index] = image);
+      setState(() => _pendingImages.add(image));
     }
+  }
+
+  void _removePendingImage(int index) {
+    setState(() => _pendingImages.removeAt(index));
   }
 
   Future<void> _submitBusiness() async {
@@ -72,28 +76,34 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
         final createdBusiness = jsonDecode(response.body);
         final businessId = createdBusiness['id'];
 
-        List<http.MultipartFile> multipartFiles = [];
-        for (int i = 0; i < _selectedImages.length; i++) {
-          if (_selectedImages[i] != null) {
-            String fieldName = (i == 0) ? 'cover_image' : 'imagen$i';
-            final bytes = await _selectedImages[i]!.readAsBytes();
-            multipartFiles.add(http.MultipartFile.fromBytes(
-              fieldName,
-              bytes,
-              filename: _selectedImages[i]!.name,
-            ));
+        bool allImagesUploaded = true;
+        
+        // Subimos las fotos en memoria una a una directo al controlador de la Galería
+        for (int i = 0; i < _pendingImages.length; i++) {
+          final bytes = await _pendingImages[i].readAsBytes();
+          List<http.MultipartFile> singleMultipart = [
+            http.MultipartFile.fromBytes('image', bytes, filename: _pendingImages[i].name)
+          ];
+          
+          var imageResponse = await ApiService.postMultipart(
+            '/businesses/$businessId/images', 
+            {}, 
+            singleMultipart
+          );
+          
+          if (imageResponse.statusCode != 200 && imageResponse.statusCode != 201) {
+             allImagesUploaded = false;
           }
         }
 
-        if (multipartFiles.isNotEmpty) {
-           var imageResponse = await ApiService.postMultipart('/businesses/$businessId/update', {}, multipartFiles);
-           if (imageResponse.statusCode != 200 && imageResponse.statusCode != 201) {
-              if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tienda creada, pero falló la carga de fotos', style: TextStyle(color: Colors.white)), backgroundColor: Colors.orange));
-           }
-        }
-
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Tienda Creada Exitosamente con sus Fotos!'), backgroundColor: Colors.green));
+          if (allImagesUploaded && _pendingImages.isNotEmpty) {
+             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Tienda Creada Exitosamente con Galería!'), backgroundColor: Colors.green));
+          } else if (_pendingImages.isNotEmpty) {
+             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tienda creada, pero fallaron algunas fotos.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.orange));
+          } else {
+             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Tienda Creada Exitosamente!'), backgroundColor: Colors.green));
+          }
           Navigator.pop(context, true); // Volver al Dashboard
         }
       } else {
@@ -338,39 +348,81 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                             ),
                           ),
 
-                          Text('Fotografías (Primera es Portada)', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 12),
-                          GridView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 4, 
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                              childAspectRatio: 1,
-                            ),
-                            itemCount: 4,
-                            itemBuilder: (context, index) {
-                              return GestureDetector(
-                                onTap: () => _pickImage(index),
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.05),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.white30),
-                                  ),
-                                  child: _selectedImages[index] != null
-                                      ? ClipRRect(
-                                          borderRadius: BorderRadius.circular(12),
-                                          child: kIsWeb 
-                                              ? Image.network(_selectedImages[index]!.path, fit: BoxFit.cover)
-                                              : Image.file(File(_selectedImages[index]!.path), fit: BoxFit.cover),
-                                        )
-                                      : const Icon(Icons.add_a_photo, color: Colors.white54, size: 24),
-                                ),
-                              );
-                            },
+                          const Divider(color: Colors.white24, height: 48),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Preparar Galería', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+                              IconButton(
+                                onPressed: _pickImage,
+                                icon: const Icon(Icons.add_a_photo, color: Colors.greenAccent),
+                                tooltip: 'Añadir nueva foto',
+                              )
+                            ],
                           ),
+                          const SizedBox(height: 8),
+                          const Text('Las fotos que agregues aquí se subirán al momento de pulsar Crear Tienda.', style: TextStyle(color: Colors.white60, fontSize: 13)),
+                          const SizedBox(height: 16),
+                          
+                          // GRID DINÁMICO
+                          _pendingImages.isEmpty 
+                            ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en preparación.', style: TextStyle(color: Colors.white54))))
+                            : GridView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 4, 
+                                  crossAxisSpacing: 8,
+                                  mainAxisSpacing: 8,
+                                  childAspectRatio: 1,
+                                ),
+                                itemCount: _pendingImages.length,
+                                itemBuilder: (context, index) {
+                                  return Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            border: Border.all(color: index == 0 ? Colors.orangeAccent : Colors.white24, width: index == 0 ? 2 : 1),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(10),
+                                            // kIsWeb previene el error usando network con la URL blob temporal
+                                            child: kIsWeb 
+                                                ? Image.network(_pendingImages[index].path, fit: BoxFit.cover)
+                                                : Image.file(File(_pendingImages[index].path), fit: BoxFit.cover),
+                                          ),
+                                        ),
+                                      ),
+                                      // Botón de eliminar superpuesto
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: GestureDetector(
+                                          onTap: () => _removePendingImage(index),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                                            child: const Icon(Icons.delete, color: Colors.redAccent, size: 16),
+                                          ),
+                                        ),
+                                      ),
+                                      if (index == 0)
+                                        Positioned(
+                                          bottom: 4, left: 4, right: 4,
+                                          child: Container(
+                                            color: Colors.black54,
+                                            child: const Text('PORTADA', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                          )
+                                        )
+                                    ],
+                                  );
+                                },
+                              ),
                         ],
                       ),
                     ),
