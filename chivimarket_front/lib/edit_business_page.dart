@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show File;
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'api_service.dart';
 import 'main.dart'; // Para GlassContainer y Fondos
 
@@ -21,10 +22,8 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
   late TextEditingController _nameController;
   late TextEditingController _descController;
   
-  // Fotografías (Máximo 4) - Usamos XFile para compatibilidad Multiplataforma (Web/Móvil)
+  List<dynamic> _galleryImages = [];
   final ImagePicker _picker = ImagePicker();
-  List<XFile?> _selectedImages = <XFile?>[null, null, null, null];
-  List<String?> _networkImages = <String?>[null, null, null, null];
 
   @override
   void initState() {
@@ -32,96 +31,120 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
     _nameController = TextEditingController(text: widget.business['name']);
     _descController = TextEditingController(text: widget.business['description']);
     
-    // 1. Cargar cover_image en la posición 0
-    if (widget.business['cover_image_url'] != null) {
-      String coverUrl = widget.business['cover_image_url'];
-      if (coverUrl.startsWith('http')) {
-        _networkImages[0] = coverUrl;
-      } else {
-        _networkImages[0] = '${ApiService.baseUrl.replaceAll('/api', '')}/$coverUrl';
-      }
-    }
-    
-    // 2. Cargar imágenes adicionales
+    // Cargar la lista unificada
     if (widget.business['images'] != null) {
-      List<dynamic> gallery = widget.business['images'];
-      for (int i = 0; i < gallery.length; i++) {
-        if (i + 1 < 4) {
-          String url = gallery[i]['full_url'] ?? gallery[i]['url'];
-          if (url.startsWith('http')) {
-            _networkImages[i + 1] = url;
-          } else {
-            _networkImages[i + 1] = '${ApiService.baseUrl.replaceAll('/api', '')}/$url';
-          }
-        }
-      }
+      _galleryImages = List.from(widget.business['images']);
     }
   }
 
-  Future<void> _pickImage(int index) async {
-    // PROTECCIÓN DE RECURSOS: Forzamos reducción masiva de calidad y tamaño (máx 800px)
+  String _buildFullUrl(String dbUrl) {
+    if (dbUrl.startsWith('http')) return dbUrl;
+    // Si viene del BusinessImageController, ya suele tener el path /storage o se lo agregamos si falta
+    // Para entornos donde sabemos que el token es público:
+    return '${ApiService.baseUrl.replaceAll('/api', '')}/$dbUrl';
+  }
+
+  Future<void> _uploadNewImage() async {
     final XFile? image = await _picker.pickImage(
       source: ImageSource.gallery, 
-      imageQuality: 50, // 50% de calidad JPEG
+      imageQuality: 50, 
       maxWidth: 800,
       maxHeight: 800,
     );
+
     if (image != null) {
-      setState(() => _selectedImages[index] = image);
+      setState(() => _isLoading = true);
+      try {
+        final bytes = await image.readAsBytes();
+        var request = http.MultipartRequest('POST', Uri.parse('${ApiService.baseUrl}/businesses/${widget.business['id']}/images'));
+        
+        final token = await ApiService.getToken();
+        request.headers.addAll({
+          'Accept': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        });
+
+        request.files.add(http.MultipartFile.fromBytes('image', bytes, filename: image.name));
+
+        final response = await request.send();
+        if (response.statusCode == 201 || response.statusCode == 200) {
+          final resData = await response.stream.bytesToString();
+          final newImage = jsonDecode(resData);
+          if (mounted) {
+            setState(() {
+               _galleryImages.add(newImage);
+            });
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto subida a la galería'), backgroundColor: Colors.green));
+          }
+        } else {
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al subir imagen al servidor.'), backgroundColor: Colors.red));
+        }
+      } catch (e) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error de red: $e'), backgroundColor: Colors.red));
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
 
-  Future<void> _saveChanges() async {
+  Future<void> _deleteImage(int index, int imageId) async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text('Borrar foto', style: TextStyle(color: Colors.white)),
+        content: const Text('¿Estás seguro de que deseas eliminar esta fotografía?', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar', style: TextStyle(color: Colors.white60))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent))),
+        ],
+      )
+    ) ?? false;
+
+    if (!confirm) return;
+
     setState(() => _isLoading = true);
-    
-    // 1. Guardar primero el texto
+    try {
+      final token = await ApiService.getToken();
+      final response = await http.delete(
+        Uri.parse('${ApiService.baseUrl}/businesses/${widget.business['id']}/images/$imageId'),
+        headers: {
+          'Accept': 'application/json',
+          if (token != null) 'Authorization': 'Bearer $token',
+        }
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        setState(() => _galleryImages.removeAt(index));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto eliminada'), backgroundColor: Colors.green));
+      } else {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo borrar: ${response.statusCode}'), backgroundColor: Colors.red));
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Excepción: $e'), backgroundColor: Colors.red));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _saveTextData() async {
+    setState(() => _isLoading = true);
     try {
       final textResponse = await ApiService.patch('/businesses/${widget.business['id']}', {
-        'name': _nameController.text,
-        'description': _descController.text,
+        'name': _nameController.text.trim(),
+        'description': _descController.text.trim(),
       });
 
       if (textResponse.statusCode == 200) {
-        
-        // 2. Subir las imágenes si hay alguna seleccionada
-        List<http.MultipartFile> multipartFiles = [];
-        
-        for (int i = 0; i < _selectedImages.length; i++) {
-          if (_selectedImages[i] != null) {
-            String fieldName = (i == 0) ? 'cover_image' : 'imagen$i';
-            // Magia Web: Leemos los bytes crudos porque en Chrome no existen las rutas absolutas de disco
-            final bytes = await _selectedImages[i]!.readAsBytes();
-            multipartFiles.add(http.MultipartFile.fromBytes(
-              fieldName,
-              bytes,
-              filename: _selectedImages[i]!.name,
-            ));
-          }
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Detalles guardados exitosamente'), backgroundColor: Colors.green));
+          Navigator.pop(context, true);
         }
-
-        if (multipartFiles.isNotEmpty) {
-           // Hacemos el poste multipar a Laravel a tu ruta POST nativa /update
-           var imageResponse = await ApiService.postMultipart(
-             '/businesses/${widget.business['id']}/update', 
-             {}, 
-             multipartFiles
-           );
-           
-           if (imageResponse.statusCode == 200 || imageResponse.statusCode == 201) {
-              if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Datos y Fotos guardados DPM!'), backgroundColor: Colors.green));
-           } else {
-              if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Textos guardados, pero fallaron las fotos.'), backgroundColor: Colors.orange));
-           }
-        } else {
-           if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Textos actualizados!'), backgroundColor: Colors.green));
-        }
-
-        if (mounted) Navigator.pop(context, true);
       } else {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al guardar: ${textResponse.statusCode}'), backgroundColor: Colors.red));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Verifique los campos: ${textResponse.statusCode}'), backgroundColor: Colors.red));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Excepción de Sistema: $e'), backgroundColor: Colors.red));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Excepción: $e'), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -132,14 +155,16 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Editar Local', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text('Editar Comercio', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context)),
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
-          child: SingleChildScrollView(
+          child: _isLoading 
+            ? const Center(child: CircularProgressIndicator(color: Colors.white))
+            : SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: GlassContainer(
               padding: const EdgeInsets.all(24),
@@ -160,69 +185,99 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(labelText: 'Descripción', labelStyle: TextStyle(color: Colors.white70)),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                   
-                  Text('Fotografías (Máx. 4)', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
-                  const SizedBox(height: 16),
-                  
-                  // GRILLA FOTOGRÁFICA MÁS PEQUEÑA (crossAxisCount: 4)
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4, // 4 columnas para que se vean como pequeñas miniaturas
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                      childAspectRatio: 1,
-                    ),
-                    itemCount: 4,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                        onTap: () => _pickImage(index),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white30, style: BorderStyle.solid),
-                          ),
-                          child: _selectedImages[index] != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(16),
-                                  // Compatible tanto con Móvil (archivo crudo) como con la Web (Url dinámica de memoria Blob)
-                                  child: kIsWeb 
-                                      ? Image.network(_selectedImages[index]!.path, fit: BoxFit.cover)
-                                      : Image.file(File(_selectedImages[index]!.path), fit: BoxFit.cover),
-                                )
-                              : _networkImages[index] != null
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(16),
-                                      child: Image.network(_networkImages[index]!, fit: BoxFit.cover),
-                                    )
-                                  : const Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.add_a_photo, color: Colors.white54, size: 36),
-                                    SizedBox(height: 8),
-                                    Text('Toca para subir', style: TextStyle(color: Colors.white54, fontSize: 12)),
-                                  ],
-                                ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                  
+                  // BOTÓN GUARDAR TEXTO
                   SizedBox(
                     width: double.infinity,
                     height: 50,
-                    child: ElevatedButton(
+                    child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, foregroundColor: Colors.black87),
-                      onPressed: _isLoading ? null : _saveChanges,
-                      child: _isLoading 
-                        ? const CircularProgressIndicator(color: Colors.black)
-                        : const Text('¡Guardar Cambios y Fotos!', style: TextStyle(fontWeight: FontWeight.bold)),
+                      onPressed: _saveTextData,
+                      icon: const Icon(Icons.save),
+                      label: const Text('Guardar Modificaciones Teóricas', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
-                  )
+                  ),
+
+                  const Divider(color: Colors.white24, height: 48),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Galería Activa', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
+                      IconButton(
+                        onPressed: _uploadNewImage,
+                        icon: const Icon(Icons.add_a_photo, color: Colors.greenAccent),
+                        tooltip: 'Añadir nueva foto',
+                      )
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text('Las fotos que agregues aquí se subirán al instante y aparecerán en tu vidriera.', style: TextStyle(color: Colors.white60, fontSize: 13)),
+                  const SizedBox(height: 16),
+                  
+                  // GRID DINÁMICO
+                  _galleryImages.isEmpty 
+                    ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en galería.', style: TextStyle(color: Colors.white54))))
+                    : GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3, // 3 por línea para visualización listado dinámica
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 1,
+                        ),
+                        itemCount: _galleryImages.length,
+                        itemBuilder: (context, index) {
+                          final imgMap = _galleryImages[index];
+                          final url = _buildFullUrl(imgMap['full_url'] ?? imgMap['url']);
+                          final isPrimary = imgMap['is_primary'] == true || imgMap['is_primary'] == 1;
+
+                          return Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: isPrimary ? Colors.orangeAccent : Colors.white24, width: isPrimary ? 2 : 1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Image.network(url, fit: BoxFit.cover,
+                                      errorBuilder: (ctx, err, stack) => const Icon(Icons.broken_image, color: Colors.white54),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // Botón de eliminar superpuesto
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: GestureDetector(
+                                  onTap: () => _deleteImage(index, imgMap['id']),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                                    child: const Icon(Icons.delete, color: Colors.redAccent, size: 16),
+                                  ),
+                                ),
+                              ),
+                              if (isPrimary)
+                                Positioned(
+                                  bottom: 4, left: 4, right: 4,
+                                  child: Container(
+                                    color: Colors.black54,
+                                    child: const Text('PORTADA', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  )
+                                )
+                            ],
+                          );
+                        },
+                      ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
