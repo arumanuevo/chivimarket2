@@ -39,9 +39,13 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
 
   String _buildFullUrl(String dbUrl) {
     if (dbUrl.startsWith('http')) return dbUrl;
-    // Si viene del BusinessImageController, ya suele tener el path /storage o se lo agregamos si falta
-    // Para entornos donde sabemos que el token es público:
-    return '${ApiService.baseUrl.replaceAll('/api', '')}/$dbUrl';
+    
+    // Limpiar para asegurar format correcto y evitar doble slash
+    String base = ApiService.baseUrl.replaceAll('/api', '');
+    if (base.endsWith('/')) base = base.substring(0, base.length - 1);
+    if (!dbUrl.startsWith('/')) dbUrl = '/$dbUrl';
+    
+    return '$base$dbUrl';
   }
 
   Future<void> _uploadNewImage() async {
@@ -223,9 +227,9 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3, // 3 por línea para visualización listado dinámica
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
+                          crossAxisCount: 4, // 4 columnas para que queden muy pequeñas y estéticas
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
                           childAspectRatio: 1,
                         ),
                         itemCount: _galleryImages.length,
