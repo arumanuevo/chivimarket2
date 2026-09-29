@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show File;
 import 'package:http/http.dart' as http;
 import 'api_service.dart';
 import 'main.dart'; // Para GlassContainer y Fondos
@@ -20,9 +21,9 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
   late TextEditingController _nameController;
   late TextEditingController _descController;
   
-  // Fotografías (Máximo 4)
+  // Fotografías (Máximo 4) - Usamos XFile para compatibilidad Multiplataforma (Web/Móvil)
   final ImagePicker _picker = ImagePicker();
-  List<File?> _selectedImages = [null, null, null, null];
+  List<XFile?> _selectedImages = [null, null, null, null];
 
   @override
   void initState() {
@@ -32,9 +33,15 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
   }
 
   Future<void> _pickImage(int index) async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    // PROTECCIÓN DE RECURSOS: Forzamos reducción masiva de calidad y tamaño (máx 800px)
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery, 
+      imageQuality: 50, // 50% de calidad JPEG
+      maxWidth: 800,
+      maxHeight: 800,
+    );
     if (image != null) {
-      setState(() => _selectedImages[index] = File(image.path));
+      setState(() => _selectedImages[index] = image);
     }
   }
 
@@ -53,14 +60,15 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
         // 2. Subir las imágenes si hay alguna seleccionada
         List<http.MultipartFile> multipartFiles = [];
         
-        // El controlador BusinessImageController espera imagen1, imagen2... (o según lo hayamos programado).
-        // Adaptamos el nombre de campo al que Laravel espera, ej. cover_image o imagen1
         for (int i = 0; i < _selectedImages.length; i++) {
           if (_selectedImages[i] != null) {
-            String fieldName = (i == 0) ? 'cover_image' : 'imagen$i'; // El 0 principal es Portada
-            multipartFiles.add(await http.MultipartFile.fromPath(
+            String fieldName = (i == 0) ? 'cover_image' : 'imagen$i';
+            // Magia Web: Leemos los bytes crudos porque en Chrome no existen las rutas absolutas de disco
+            final bytes = await _selectedImages[i]!.readAsBytes();
+            multipartFiles.add(http.MultipartFile.fromBytes(
               fieldName,
-              _selectedImages[i]!.path,
+              bytes,
+              filename: _selectedImages[i]!.name,
             ));
           }
         }
@@ -154,7 +162,10 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                           child: _selectedImages[index] != null
                               ? ClipRRect(
                                   borderRadius: BorderRadius.circular(16),
-                                  child: Image.file(_selectedImages[index]!, fit: BoxFit.cover),
+                                  // Compatible tanto con Móvil (archivo crudo) como con la Web (Url dinámica de memoria Blob)
+                                  child: kIsWeb 
+                                      ? Image.network(_selectedImages[index]!.path, fit: BoxFit.cover)
+                                      : Image.file(File(_selectedImages[index]!.path), fit: BoxFit.cover),
                                 )
                               : const Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
