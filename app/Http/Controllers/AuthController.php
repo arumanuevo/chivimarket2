@@ -233,7 +233,7 @@ class AuthController extends Controller
     public function me(\Illuminate\Http\Request $request)
     {
         $user = $request->user();
-        $user->load('roles', 'subscription');
+        $user->load('roles', 'subscription', 'businesses.categories');
 
         $subscription = $user->subscription ?? \App\Services\SubscriptionService::createDefaultSubscription($user);
         $maxBusinesses = \App\Services\SubscriptionService::getMaxBusinessesForSubscription($subscription->type);
@@ -242,6 +242,7 @@ class AuthController extends Controller
         return response()->json([
             'user' => $user,
             'is_super_admin' => $user->hasRole('super-admin'),
+            'businesses' => $user->businesses, // Agregado: Retorna sus comercios
             'subscription_stats' => [
                 'plan' => ucfirst($subscription->type),
                 'current' => $currentBusinesses,
