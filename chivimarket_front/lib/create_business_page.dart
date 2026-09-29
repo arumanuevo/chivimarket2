@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show File;
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'api_service.dart';
 import 'main.dart'; // Para reutilizar GlassContainer y AnimatedGradientBackground
 
@@ -32,6 +37,22 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
   final _customFeatureValueController = TextEditingController();
   String _customFeatureType = 'Booleano (Si/No)'; // O 'Texto'
 
+  // Fotografías (Máximo 4) - Usamos XFile para compatibilidad Multiplataforma (Web/Móvil)
+  final ImagePicker _picker = ImagePicker();
+  List<XFile?> _selectedImages = <XFile?>[null, null, null, null];
+
+  Future<void> _pickImage(int index) async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery, 
+      imageQuality: 50, 
+      maxWidth: 800,
+      maxHeight: 800,
+    );
+    if (image != null) {
+      setState(() => _selectedImages[index] = image);
+    }
+  }
+
   Future<void> _submitBusiness() async {
     setState(() => _isLoading = true);
 
@@ -46,8 +67,33 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
       });
 
       if (response.statusCode == 201) {
+        
+        // 2. Si el texto se creó y nos devuelve el ID, subimos las imágenes
+        final createdBusiness = jsonDecode(response.body);
+        final businessId = createdBusiness['id'];
+
+        List<http.MultipartFile> multipartFiles = [];
+        for (int i = 0; i < _selectedImages.length; i++) {
+          if (_selectedImages[i] != null) {
+            String fieldName = (i == 0) ? 'cover_image' : 'imagen$i';
+            final bytes = await _selectedImages[i]!.readAsBytes();
+            multipartFiles.add(http.MultipartFile.fromBytes(
+              fieldName,
+              bytes,
+              filename: _selectedImages[i]!.name,
+            ));
+          }
+        }
+
+        if (multipartFiles.isNotEmpty) {
+           var imageResponse = await ApiService.postMultipart('/businesses/$businessId/update', {}, multipartFiles);
+           if (imageResponse.statusCode != 200 && imageResponse.statusCode != 201) {
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tienda creada, pero falló la carga de fotos', style: TextStyle(color: Colors.white)), backgroundColor: Colors.orange));
+           }
+        }
+
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Tienda Creada Exitosamente!'), backgroundColor: Colors.green));
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Tienda Creada Exitosamente con sus Fotos!'), backgroundColor: Colors.green));
           Navigator.pop(context, true); // Volver al Dashboard
         }
       } else {
@@ -206,12 +252,12 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
 
                     // PASO 3: ATRIBUTOS AD-HOC Y ELÁSTICOS (CONSTRUCTOR)
                     Step(
-                      title: Text('Atributos de Valor (Elástico)', style: GoogleFonts.outfit(color: Colors.white)),
+                      title: Text('Atributos y Fotos', style: GoogleFonts.outfit(color: Colors.white)),
                       isActive: _currentStep >= 2,
                       content: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Agrega características específicas de tu rubro para que los clientes te encuentren más fácil. (Ej: "¿Tiene Corralón?", "Especialidad").', style: TextStyle(color: Colors.white70)),
+                          const Text('Agrega características específicas de tu rubro:', style: TextStyle(color: Colors.white70)),
                           const SizedBox(height: 16),
                           
                           // LISTA DE ATRIBUTOS AGREGADOS
@@ -238,6 +284,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           // FORMULARIO PARA AGREGAR NUEVO ATRIBUTO
                           Container(
                             padding: const EdgeInsets.all(16),
+                            margin: const EdgeInsets.only(bottom: 24),
                             decoration: BoxDecoration(border: Border.all(color: Colors.white.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -289,6 +336,40 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                 )
                               ],
                             ),
+                          ),
+
+                          Text('Fotografías (Primera es Portada)', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 12),
+                          GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 4, 
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                              childAspectRatio: 1,
+                            ),
+                            itemCount: 4,
+                            itemBuilder: (context, index) {
+                              return GestureDetector(
+                                onTap: () => _pickImage(index),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.05),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: Colors.white30),
+                                  ),
+                                  child: _selectedImages[index] != null
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: kIsWeb 
+                                              ? Image.network(_selectedImages[index]!.path, fit: BoxFit.cover)
+                                              : Image.file(File(_selectedImages[index]!.path), fit: BoxFit.cover),
+                                        )
+                                      : const Icon(Icons.add_a_photo, color: Colors.white54, size: 24),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),

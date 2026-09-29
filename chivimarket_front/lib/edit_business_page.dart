@@ -74,14 +74,14 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
         }
 
         if (multipartFiles.isNotEmpty) {
-           // Hacemos el parche multipar a Laravel
+           // Hacemos el poste multipar a Laravel a tu ruta POST nativa /update
            var imageResponse = await ApiService.postMultipart(
-             '/businesses/${widget.business['id']}/update', // O la ruta correcta que tengas configurada
-             {'_method': 'PATCH'}, // Truco de Laravel para enviar archivos sobre PATCH
+             '/businesses/${widget.business['id']}/update', 
+             {}, 
              multipartFiles
            );
            
-           if (imageResponse.statusCode == 200) {
+           if (imageResponse.statusCode == 200 || imageResponse.statusCode == 201) {
               if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Datos y Fotos guardados DPM!'), backgroundColor: Colors.green));
            } else {
               if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Textos guardados, pero fallaron las fotos.'), backgroundColor: Colors.orange));
