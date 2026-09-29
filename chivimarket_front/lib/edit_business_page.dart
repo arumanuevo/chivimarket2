@@ -38,7 +38,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
       if (coverUrl.startsWith('http')) {
         _networkImages[0] = coverUrl;
       } else {
-        _networkImages[0] = '${ApiService.baseUrl.replaceAll('/api', '/storage')}/$coverUrl';
+        _networkImages[0] = '${ApiService.baseUrl.replaceAll('/api', '')}/$coverUrl';
       }
     }
     
@@ -51,7 +51,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
           if (url.startsWith('http')) {
             _networkImages[i + 1] = url;
           } else {
-            _networkImages[i + 1] = '${ApiService.baseUrl.replaceAll('/api', '/storage')}/$url';
+            _networkImages[i + 1] = '${ApiService.baseUrl.replaceAll('/api', '')}/$url';
           }
         }
       }
