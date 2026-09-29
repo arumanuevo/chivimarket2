@@ -322,3 +322,8 @@ Route::get('/email/verify/{id}/{hash}', [\App\Http\Controllers\API\VerificationC
 // Ruta oculta importador de MercadoLibre
 Route::get('/admin/importar-ml', [\App\Http\Controllers\API\MLSyncController::class, 'importTopCategories']);
 
+@
+
+// Perfil din�mico desde Flutter SDK
+Route::get('/me', [\App\Http\Controllers\AuthController::class, 'me'])->middleware('auth:sanctum');
+

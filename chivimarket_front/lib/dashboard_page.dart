@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
+import 'dart:convert';
 import 'api_service.dart';
 import 'main.dart'; // Para reutilizar GlassContainer y AnimatedGradientBackground
 
@@ -13,11 +14,35 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   String _userName = "Comerciante";
+  String _plan = "Cargando...";
+  String _storesTracker = "- / -";
+  bool _isSuperAdmin = false;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    // Aquí podrías hacer fetch del perfil de usuario desde la API
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    try {
+      final response = await ApiService.get('/me');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (mounted) {
+          setState(() {
+            _userName = data['user']['name'] ?? 'Usuario';
+            _isSuperAdmin = data['is_super_admin'] ?? false;
+            _plan = data['subscription_stats']['plan'] ?? 'Free';
+            _storesTracker = "${data['subscription_stats']['current']} / ${data['subscription_stats']['limit']}";
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void _logout() async {
@@ -101,9 +126,10 @@ class _DashboardPageState extends State<DashboardPage> {
                   spacing: 16,
                   runSpacing: 16,
                   children: [
-                    _buildStatCard(context, 'Visitas del Mes', '342', Icons.visibility, Colors.blueAccent),
-                    _buildStatCard(context, 'Rango Actual', 'GRATIS', Icons.workspace_premium, Colors.grey),
-                    _buildStatCard(context, 'Fotos Subidas', '2 / 10', Icons.photo_library, Colors.greenAccent),
+                    _buildStatCard(context, 'Rango Actual', _plan, Icons.workspace_premium, Colors.grey),
+                    _buildStatCard(context, 'Locales Creados', _storesTracker, Icons.store, Colors.greenAccent),
+                    if (_isSuperAdmin)
+                      _buildStatCard(context, 'Modo de Acceso', 'Súper Admin', Icons.admin_panel_settings, Colors.redAccent),
                   ],
                 ),
 
@@ -118,12 +144,17 @@ class _DashboardPageState extends State<DashboardPage> {
                     mainAxisSpacing: 16,
                     childAspectRatio: 1.5,
                     children: [
-                      _buildActionCard(context, 'Crear Nuevo Local', Icons.add_business, () {
-                        Navigator.pushNamed(context, '/create-business');
+                      // Solo mostramos el boton de crear comercio si NO somos limitados (Opcional)
+                      _buildActionCard(context, 'Crear Nuevo Local', Icons.add_business, () async {
+                        final result = await Navigator.pushNamed(context, '/create-business');
+                        if (result == true) _fetchProfile(); // Refrescar stats si creamos
                       }),
                       _buildActionCard(context, 'Editar Datos del Local', Icons.edit_document, () {}),
-                      _buildActionCard(context, 'Gestionar Imágenes', Icons.add_photo_alternate, () {}),
                       _buildActionCard(context, 'Mejorar Plan', Icons.rocket_launch, () {}),
+                      if (_isSuperAdmin)
+                        _buildActionCard(context, 'God Mode: Gestión', Icons.people_alt, () {
+                          // TODO: Navegar a la página de lista de usuarios para asignar roles
+                        }),
                     ],
                   ),
                 ),
