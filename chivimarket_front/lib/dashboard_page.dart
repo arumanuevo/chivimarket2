@@ -149,7 +149,9 @@ class _DashboardPageState extends State<DashboardPage> {
                         final result = await Navigator.pushNamed(context, '/create-business');
                         if (result == true) _fetchProfile(); // Refrescar stats si creamos
                       }),
-                      _buildActionCard(context, 'Editar Datos del Local', Icons.edit_document, () {}),
+                      _buildActionCard(context, 'Editar Locales', Icons.edit_document, () {
+                        Navigator.pushNamed(context, '/my-businesses');
+                      }),
                       _buildActionCard(context, 'Mejorar Plan', Icons.rocket_launch, () {}),
                       if (_isSuperAdmin)
                         _buildActionCard(context, 'God Mode: Gestión', Icons.people_alt, () {
