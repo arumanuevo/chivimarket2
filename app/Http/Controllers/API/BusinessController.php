@@ -1399,7 +1399,7 @@ class BusinessController extends Controller
 
         try {
             if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0777, true);
+                mkdir($destinationPath, 0755, true);
                 Log::info('Directorio creado', ['path' => $destinationPath]);
             }
 
@@ -1428,7 +1428,7 @@ class BusinessController extends Controller
 
         try {
             if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0777, true);
+                mkdir($destinationPath, 0755, true);
                 Log::info('Directorio creado para imágenes', ['path' => $destinationPath]);
             }
 
