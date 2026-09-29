@@ -158,10 +158,23 @@ Route::get('/dev/importar-ml', function () {
     }
     return ['error' => 'No se pudo conectar a ML'];
 });
-@
 
 Route::get('/dev/clear-spatie', function () {
     app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     return 'Cache de Seguridad de Spatie Limpiado Exitosamente!';
+});
+
+
+Route::get('/dev/debug-roles', function () {
+    $user = \App\Models\User::where('email', 'admin1@gmail.com')->first();
+    if (!$user) return 'Usuario no encontrado';
+    $roles = \Illuminate\Support\Facades\DB::table('roles')->get();
+    $modelRoles = \Illuminate\Support\Facades\DB::table('model_has_roles')->where('model_id', $user->id)->get();
+    return response()->json([
+        'user_id' => $user->id,
+        'all_roles' => $roles,
+        'user_model_roles' => $modelRoles,
+        'spatie_check' => $user->hasRole('super-admin')
+    ]);
 });
 

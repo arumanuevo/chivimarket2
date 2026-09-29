@@ -6,6 +6,7 @@ import 'api_service.dart';
 import 'register_page.dart';
 import 'dashboard_page.dart';
 import 'create_business_page.dart';
+import 'superadmin_page.dart';
 import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 
 void main() async {
@@ -45,6 +46,7 @@ class ChivimarketApp extends StatelessWidget {
         '/register': (context) => const RegisterPage(),
         '/dashboard': (context) => const DashboardPage(),
         '/create-business': (context) => const CreateBusinessPage(),
+        '/super-admin': (context) => const SuperAdminPage(),
         '/cuenta-verificada': (context) => const CuentaVerificadaPage(),
       },
     );

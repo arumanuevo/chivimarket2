@@ -327,3 +327,13 @@ Route::get('/admin/importar-ml', [\App\Http\Controllers\API\MLSyncController::cl
 // Perfil din�mico desde Flutter SDK
 Route::get('/me', [\App\Http\Controllers\AuthController::class, 'me'])->middleware('auth:sanctum');
 
+@
+
+// ----------------------------------------------------
+// RUTAS S�PER ADMINISTRADOR (God Mode)
+// ----------------------------------------------------
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/admin/users', [\App\Http\Controllers\UserController::class, 'index']);
+    Route::patch('/admin/users/{id}/subscription', [\App\Http\Controllers\UserController::class, 'updateSubscription']);
+});
+

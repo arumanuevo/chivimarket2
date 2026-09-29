@@ -153,7 +153,7 @@ class _DashboardPageState extends State<DashboardPage> {
                       _buildActionCard(context, 'Mejorar Plan', Icons.rocket_launch, () {}),
                       if (_isSuperAdmin)
                         _buildActionCard(context, 'God Mode: Gestión', Icons.people_alt, () {
-                          // TODO: Navegar a la página de lista de usuarios para asignar roles
+                          Navigator.pushNamed(context, '/super-admin');
                         }),
                     ],
                   ),
