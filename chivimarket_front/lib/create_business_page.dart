@@ -91,7 +91,17 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                   type: MediaQuery.of(context).size.width > 600 ? StepperType.horizontal : StepperType.vertical,
                   currentStep: _currentStep,
                   onStepContinue: () {
-                    if (_currentStep < 2) {
+                    if (_currentStep == 0) {
+                      if (_nameController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('El nombre comercial es obligatorio', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+                        return;
+                      }
+                      setState(() => _currentStep += 1);
+                    } else if (_currentStep == 1) {
+                      if (_modality != 'online' && _addressController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('La dirección es obligatoria', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+                        return;
+                      }
                       setState(() => _currentStep += 1);
                     } else {
                       _submitBusiness();

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'api_service.dart';
 import 'main.dart'; 
+import 'edit_business_page.dart'; 
 
 class MyBusinessesPage extends StatefulWidget {
   const MyBusinessesPage({Key? key}) : super(key: key);
@@ -80,8 +81,14 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
                                 foregroundColor: Colors.white,
                                 elevation: 0
                               ),
-                              onPressed: () {
-                                // TODO: Abrir pantalla de edición y fotos
+                              onPressed: () async {
+                                final result = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => EditBusinessPage(business: business)),
+                                );
+                                if (result == true) {
+                                  _fetchMyBusinesses(); // Refrescar 
+                                }
                               },
                               icon: const Icon(Icons.edit, size: 18),
                               label: const Text('Editar / Fotos'),
