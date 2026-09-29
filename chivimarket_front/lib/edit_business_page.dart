@@ -23,7 +23,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
   
   // Fotografías (Máximo 4) - Usamos XFile para compatibilidad Multiplataforma (Web/Móvil)
   final ImagePicker _picker = ImagePicker();
-  List<XFile?> _selectedImages = [null, null, null, null];
+  List<XFile?> _selectedImages = <XFile?>[null, null, null, null];
 
   @override
   void initState() {
@@ -139,14 +139,14 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                   Text('Fotografías (Máx. 4)', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
                   const SizedBox(height: 16),
                   
-                  // GRILLA FOTOGRÁFICA
+                  // GRILLA FOTOGRÁFICA MÁS PEQUEÑA (crossAxisCount: 4)
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
+                      crossAxisCount: 4, // 4 columnas para que se vean como pequeñas miniaturas
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
                       childAspectRatio: 1,
                     ),
                     itemCount: 4,
