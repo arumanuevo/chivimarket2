@@ -63,4 +63,24 @@ class ApiService {
       body: jsonEncode(data),
     );
   }
+
+  // Método MULTIPART para Fotos
+  static Future<http.StreamedResponse> postMultipart(String endpoint, Map<String, String> fields, List<http.MultipartFile> files) async {
+    final token = await getToken();
+    var request = http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
+    
+    // Configurar Cabeceras
+    request.headers.addAll({
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    });
+
+    // Agregar variables de texto si existen
+    request.fields.addAll(fields);
+
+    // Agregar las fotos
+    request.files.addAll(files);
+
+    return await request.send();
+  }
 }

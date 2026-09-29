@@ -49,9 +49,39 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
       });
 
       if (textResponse.statusCode == 200) {
-        // En un escenario real, aquí se enviarían los archivos binarios de `_selectedImages` uno a uno
-        // usando http.MultipartRequest hacia /businesses/{id}/images
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Datos guardados con éxito! (Imágenes Listas para SDK)'), backgroundColor: Colors.green));
+        
+        // 2. Subir las imágenes si hay alguna seleccionada
+        List<http.MultipartFile> multipartFiles = [];
+        
+        // El controlador BusinessImageController espera imagen1, imagen2... (o según lo hayamos programado).
+        // Adaptamos el nombre de campo al que Laravel espera, ej. cover_image o imagen1
+        for (int i = 0; i < _selectedImages.length; i++) {
+          if (_selectedImages[i] != null) {
+            String fieldName = (i == 0) ? 'cover_image' : 'imagen$i'; // El 0 principal es Portada
+            multipartFiles.add(await http.MultipartFile.fromPath(
+              fieldName,
+              _selectedImages[i]!.path,
+            ));
+          }
+        }
+
+        if (multipartFiles.isNotEmpty) {
+           // Hacemos el parche multipar a Laravel
+           var imageResponse = await ApiService.postMultipart(
+             '/businesses/${widget.business['id']}/update', // O la ruta correcta que tengas configurada
+             {'_method': 'PATCH'}, // Truco de Laravel para enviar archivos sobre PATCH
+             multipartFiles
+           );
+           
+           if (imageResponse.statusCode == 200) {
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Datos y Fotos guardados DPM!'), backgroundColor: Colors.green));
+           } else {
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Textos guardados, pero fallaron las fotos.'), backgroundColor: Colors.orange));
+           }
+        } else {
+           if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Textos actualizados!'), backgroundColor: Colors.green));
+        }
+
         if (mounted) Navigator.pop(context, true);
       } else {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al guardar: ${textResponse.statusCode}'), backgroundColor: Colors.red));
