@@ -49,4 +49,18 @@ class ApiService {
       body: jsonEncode(data),
     );
   }
+
+  // Método Genérico PATCH
+  static Future<http.Response> patch(String endpoint, Map<String, dynamic> data) async {
+    final token = await getToken();
+    return await http.patch(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(data),
+    );
+  }
 }
