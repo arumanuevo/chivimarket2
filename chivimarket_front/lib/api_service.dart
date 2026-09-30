@@ -63,6 +63,17 @@ class ApiService {
       body: jsonEncode(data),
     );
   }
+  
+  static Future<http.Response> delete(String endpoint) async {
+    final token = await getToken();
+    return await http.delete(
+      Uri.parse('$baseUrl$endpoint'),
+      headers: {
+        'Accept': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+    );
+  }
 
   // Método MULTIPART para Fotos
   static Future<http.StreamedResponse> postMultipart(String endpoint, Map<String, String> fields, List<http.MultipartFile> files) async {
