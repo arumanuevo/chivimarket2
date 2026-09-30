@@ -72,13 +72,13 @@ class ChivimarketApp extends StatelessWidget {
           initialRoute: '/buyer-home',
           routes: {
             '/buyer-home': (context) => const BuyerHomePage(),
-            '/login': (context) => const LoginPage(),
-            '/register': (context) => const RegisterPage(),
-            '/dashboard': (context) => const DashboardPage(),
-            '/create-business': (context) => const CreateBusinessPage(),
-            '/my-businesses': (context) => const MyBusinessesPage(),
-            '/super-admin': (context) => const SuperAdminPage(),
-            '/cuenta-verificada': (context) => const CuentaVerificadaPage(),
+            '/login': (context) => LoginPage(),
+            '/register': (context) => RegisterPage(),
+            '/dashboard': (context) => DashboardPage(),
+            '/create-business': (context) => CreateBusinessPage(),
+            '/my-businesses': (context) => MyBusinessesPage(),
+            '/super-admin': (context) => SuperAdminPage(),
+            '/cuenta-verificada': (context) => CuentaVerificadaPage(),
           },
         );
       }
