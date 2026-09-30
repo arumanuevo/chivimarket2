@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'api_service.dart';
 import 'main.dart'; // Para GlassContainer y Fondos
+import 'products_page.dart';
 
 class EditBusinessPage extends StatefulWidget {
   final Map<String, dynamic> business;
@@ -200,6 +201,22 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                       onPressed: _saveTextData,
                       icon: const Icon(Icons.save),
                       label: const Text('Guardar Modificaciones Teóricas', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // BOTÓN IR AL CATÁLOGO
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, foregroundColor: Colors.black87),
+                      onPressed: () {
+                         Navigator.push(context, MaterialPageRoute(builder: (context) => ProductsPage(business: widget.business)));
+                      },
+                      icon: const Icon(Icons.inventory),
+                      label: const Text('Gestionar Productos de este Local', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
 
