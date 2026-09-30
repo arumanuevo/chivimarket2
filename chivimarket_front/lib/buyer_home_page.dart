@@ -121,9 +121,9 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 0.68, // Ajuste para que entre la foto y los textos
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.75, // Reducido para achicar la altura de la tarjeta
                         ),
                         itemCount: _products.length,
                         itemBuilder: (context, index) {
@@ -154,30 +154,30 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                                       ),
                                       // Detalles
                                       Padding(
-                                        padding: const EdgeInsets.all(12.0),
+                                        padding: const EdgeInsets.all(8.0),
                                         child: Column(
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               prod['name'] ?? '',
-                                              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                                              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 14, color: Theme.of(context).colorScheme.onSurface),
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
                                             ),
-                                            const SizedBox(height: 4),
+                                            const SizedBox(height: 2),
                                             Text(
                                               '\$${prod['price']}',
-                                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Theme.of(context).colorScheme.primary),
+                                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Theme.of(context).colorScheme.primary),
                                             ),
-                                            const SizedBox(height: 4),
+                                            const SizedBox(height: 2),
                                             Row(
                                               children: [
-                                                Icon(Icons.storefront, size: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                                                Icon(Icons.storefront, size: 12, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
                                                 const SizedBox(width: 4),
                                                 Expanded(
                                                   child: Text(
                                                     prod['business']['name'] ?? 'Local',
-                                                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                                                    style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
                                                     overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
