@@ -86,11 +86,11 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                       Icon(Icons.storefront, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+                       Icon(Icons.shopping_bag_outlined, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
                        const SizedBox(height: 16),
-                       Text('Buscador Global', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                       Text('Explora y Compra', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                        const SizedBox(height: 8),
-                       Text('Próximamente: Vitrinas, mapa y geolocalización', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
+                       Text('Próximamente: Productos, promos y mapa', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
                     ],
                   ),
                 ),
