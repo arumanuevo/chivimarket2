@@ -67,10 +67,10 @@ class _SuperAdminPageState extends State<SuperAdminPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Súper Administración', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text('Súper Administración', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_suggest, color: Colors.orangeAccent),
@@ -79,13 +79,13 @@ class _SuperAdminPageState extends State<SuperAdminPage> {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionPlansPage()));
             },
           ),
-          IconButton(icon: const Icon(Icons.refresh, color: Colors.white), onPressed: _fetchUsers)
+          IconButton(icon: const Icon(Icons.refresh, color: Theme.of(context).colorScheme.onSurface), onPressed: _fetchUsers)
         ],
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
           child: _isLoading && _users.isEmpty
-              ? const Center(child: CircularProgressIndicator(color: Colors.white))
+              ? const Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _users.length,
@@ -96,21 +96,21 @@ class _SuperAdminPageState extends State<SuperAdminPage> {
                     final isAdmin = user['id'] == 1; // Asunción básica de proteccion visual
 
                     return Card(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
                       margin: const EdgeInsets.only(bottom: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       child: ListTile(
                         contentPadding: const EdgeInsets.all(16),
                         leading: CircleAvatar(
                           backgroundColor: isAdmin ? Colors.redAccent : Theme.of(context).colorScheme.primary,
-                          child: Icon(isAdmin ? Icons.admin_panel_settings : Icons.person, color: Colors.white),
+                          child: Icon(isAdmin ? Icons.admin_panel_settings : Icons.person, color: Theme.of(context).colorScheme.onSurface),
                         ),
-                        title: Text(user['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white)),
+                        title: Text(user['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 4),
-                            Text(user['email'], style: const TextStyle(color: Colors.white70)),
+                            Text(user['email'], style: const TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             const SizedBox(height: 8),
                             Row(
                               children: [
@@ -123,8 +123,8 @@ class _SuperAdminPageState extends State<SuperAdminPage> {
                         ),
                         trailing: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white.withOpacity(0.1),
-                            foregroundColor: Colors.white,
+                            backgroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                            foregroundColor: Theme.of(context).colorScheme.onSurface,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
                           onPressed: isAdmin ? null : () => _changePlan(user['id'], user['name'], subscriptionStr),
@@ -162,13 +162,13 @@ class _ChangePlanDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: const Color(0xFF1E293B),
-      title: Text('Cambiar Plan: $userName', style: const TextStyle(color: Colors.white)),
+      title: Text('Cambiar Plan: $userName', style: const TextStyle(color: Theme.of(context).colorScheme.onSurface)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: ['free', 'basic', 'premium', 'enterprise'].map((plan) {
           final isCurrent = currentPlan.toLowerCase() == plan;
           return ListTile(
-            title: Text(plan.toUpperCase(), style: TextStyle(color: isCurrent ? Colors.orangeAccent : Colors.white)),
+            title: Text(plan.toUpperCase(), style: TextStyle(color: isCurrent ? Colors.orangeAccent : Theme.of(context).colorScheme.onSurface)),
             trailing: isCurrent ? const Icon(Icons.check, color: Colors.orangeAccent) : null,
             onTap: () => Navigator.pop(context, plan),
           );

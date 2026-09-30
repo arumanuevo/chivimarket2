@@ -96,10 +96,10 @@ class _ProductsPageState extends State<ProductsPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E293B),
-        title: const Text('Eliminar Producto', style: TextStyle(color: Colors.white)),
-        content: const Text('¿Estás seguro de que deseas eliminar permanentemente este producto del catálogo?', style: TextStyle(color: Colors.white70)),
+        title: const Text('Eliminar Producto', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+        content: const Text('¿Estás seguro de que deseas eliminar permanentemente este producto del catálogo?', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar', style: TextStyle(color: Colors.white54))),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))),
           TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent))),
         ],
       )
@@ -158,8 +158,8 @@ class _ProductsPageState extends State<ProductsPage> {
                   
                   TextField(
                     controller: _nameCtrl,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(labelText: 'Nombre del Producto', labelStyle: TextStyle(color: Colors.white70)),
+                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    decoration: const InputDecoration(labelText: 'Nombre del Producto', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                   ),
                   const SizedBox(height: 12),
                   
@@ -169,8 +169,8 @@ class _ProductsPageState extends State<ProductsPage> {
                          child: TextField(
                             controller: _priceCtrl,
                             keyboardType: TextInputType.number,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(labelText: 'Precio (\$)', labelStyle: TextStyle(color: Colors.white70)),
+                            style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                            decoration: const InputDecoration(labelText: 'Precio (\$)', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                           ),
                        ),
                        const SizedBox(width: 12),
@@ -178,8 +178,8 @@ class _ProductsPageState extends State<ProductsPage> {
                          child: TextField(
                             controller: _stockCtrl,
                             keyboardType: TextInputType.number,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(labelText: 'Stock Inicial', labelStyle: TextStyle(color: Colors.white70)),
+                            style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                            decoration: const InputDecoration(labelText: 'Stock Inicial', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                           ),
                        ),
                     ],
@@ -189,8 +189,8 @@ class _ProductsPageState extends State<ProductsPage> {
                   DropdownButtonFormField<String>(
                     value: _selectedCategory,
                     dropdownColor: const Color(0xFF1E293B),
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(labelText: 'Categoría', labelStyle: TextStyle(color: Colors.white70)),
+                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    decoration: const InputDecoration(labelText: 'Categoría', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                     items: _categories.map((c) => DropdownMenuItem(value: c['id'].toString(), child: Text(c['name']))).toList(),
                     onChanged: (v) => setState(() => _selectedCategory = v),
                   ),
@@ -199,8 +199,8 @@ class _ProductsPageState extends State<ProductsPage> {
                   TextField(
                     controller: _descCtrl,
                     maxLines: 2,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(labelText: 'Descripción corta', labelStyle: TextStyle(color: Colors.white70)),
+                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    decoration: const InputDecoration(labelText: 'Descripción corta', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                   ),
                   const SizedBox(height: 24),
                   
@@ -209,7 +209,7 @@ class _ProductsPageState extends State<ProductsPage> {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.pop(ctx),
-                        child: const Text('Cancelar', style: TextStyle(color: Colors.white60)),
+                        child: const Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60))),
                       ),
                       const SizedBox(width: 8),
                       ElevatedButton(
@@ -233,10 +233,10 @@ class _ProductsPageState extends State<ProductsPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Catálogo', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
+        title: Text('Catálogo', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, fontSize: 18)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
@@ -260,16 +260,16 @@ class _ProductsPageState extends State<ProductsPage> {
       body: AnimatedGradientBackground(
         child: SafeArea(
           child: _isLoading 
-            ? const Center(child: CircularProgressIndicator(color: Colors.white))
+            ? const Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
             : _products.isEmpty 
-               ? Center(child: Text('Aún no tienes productos.\nToca "Nuevo" arriba a la derecha.', textAlign: TextAlign.center, style: GoogleFonts.outfit(color: Colors.white70, fontSize: 16)))
+               ? Center(child: Text('Aún no tienes productos.\nToca "Nuevo" arriba a la derecha.', textAlign: TextAlign.center, style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 16)))
                : ListView.builder(
                    padding: const EdgeInsets.all(16),
                    itemCount: _products.length,
                    itemBuilder: (ctx, index) {
                      final p = _products[index];
                      return Card(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         child: InkWell( // Tap para editar
@@ -283,11 +283,11 @@ class _ProductsPageState extends State<ProductsPage> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(p['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
+                                      Text(p['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, fontSize: 18)),
                                       const SizedBox(height: 6),
                                       Text('Precio: \$${p['price']}  •  Stock: ${p['stock']}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w600)),
                                       const SizedBox(height: 4),
-                                      Text(p['description'] ?? 'Sin descripción', style: const TextStyle(color: Colors.white60)),
+                                      Text(p['description'] ?? 'Sin descripción', style: const TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60))),
                                     ],
                                   ),
                                 ),

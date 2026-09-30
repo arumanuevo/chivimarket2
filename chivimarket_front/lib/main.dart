@@ -6,9 +6,11 @@ import 'api_service.dart';
 import 'register_page.dart';
 import 'dashboard_page.dart';
 import 'create_business_page.dart';
-import 'superadmin_page.dart';
 import 'my_businesses_page.dart';
+import 'superadmin_page.dart';
 import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
+
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,25 +24,51 @@ class ChivimarketApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ChiviMarket',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        fontFamily: GoogleFonts.outfit().fontFamily,
-        primarySwatch: Colors.orange,
-        scaffoldBackgroundColor: const Color(0xFF1E293B), // Dark blueish gray background
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFF97316),
-          secondary: Color(0xFFFB923C),
-          surface: Color(0x33FFFFFF), // Transparent surface for glassmorphism
-        ),
-        appBarTheme: const AppBarTheme(
-          color: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-        ),
-      ),
-      initialRoute: '/landing',
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeNotifier,
+      builder: (_, ThemeMode currentMode, __) {
+        return MaterialApp(
+          title: 'ChiviMarket',
+          debugShowCheckedModeBanner: false,
+          themeMode: currentMode,
+          // CLARO
+          theme: ThemeData(
+            fontFamily: GoogleFonts.outfit().fontFamily,
+            scaffoldBackgroundColor: const Color(0xFFF1F5F9), // Slate 50
+            primarySwatch: Colors.orange,
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFF97316),
+              secondary: Color(0xFFFB923C),
+              surface: Color(0x99FFFFFF), // Superficie clarita
+              onSurface: Colors.black87, // Texto principal en claro
+            ),
+            appBarTheme: const AppBarTheme(
+              color: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+              iconTheme: IconThemeData(color: Colors.black87),
+              titleTextStyle: TextStyle(color: Colors.black87, fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          // OSCURO
+          darkTheme: ThemeData(
+            fontFamily: GoogleFonts.outfit().fontFamily,
+            primarySwatch: Colors.orange,
+            scaffoldBackgroundColor: const Color(0xFF1E293B), // Dark blueish gray background
+            colorScheme: const ColorScheme.dark(
+              primary: Color(0xFFF97316),
+              secondary: Color(0xFFFB923C),
+              surface: Color(0x33FFFFFF), // Transparent surface for glassmorphism
+              onSurface: Colors.white,
+            ),
+            appBarTheme: const AppBarTheme(
+              color: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+              iconTheme: IconThemeData(color: Colors.white),
+            ),
+          ),
+          initialRoute: '/landing',
       routes: {
         '/landing': (context) => const LandingPage(),
         '/login': (context) => const LoginPage(),
@@ -51,6 +79,8 @@ class ChivimarketApp extends StatelessWidget {
         '/super-admin': (context) => const SuperAdminPage(),
         '/cuenta-verificada': (context) => const CuentaVerificadaPage(),
       },
+    );
+      }
     );
   }
 }
@@ -109,17 +139,23 @@ class AnimatedGradientBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0F172A), // Slate 900
-            Color(0xFF1E1B4B), // Indigo 950
-            Color(0xFF431407), // Orange 950
+          colors: isDark ? [
+            const Color(0xFF0F172A), // Slate 900
+            const Color(0xFF1E1B4B), // Indigo 950
+            const Color(0xFF431407), // Orange 950
+          ] : [
+            const Color(0xFFFFEDD5), // Orange 50
+            const Color(0xFFE0E7FF), // Indigo 50
+            const Color(0xFFF8FAFC), // Slate 50
           ],
-          stops: [0.1, 0.5, 0.9],
+          stops: const [0.1, 0.5, 0.9],
         ),
       ),
       child: Stack(

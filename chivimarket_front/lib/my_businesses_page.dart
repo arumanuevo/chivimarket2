@@ -43,20 +43,20 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Mis Locales', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text('Mis Locales', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
           child: _isLoading && _myBusinesses.isEmpty
-              ? const Center(child: CircularProgressIndicator(color: Colors.white))
+              ? const Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
               : _myBusinesses.isEmpty
                   ? Center(
                       child: Text('Aún no tienes negocios.\n¡Crea uno desde el Dashboard!', 
                         textAlign: TextAlign.center, 
-                        style: GoogleFonts.inter(color: Colors.white70, fontSize: 18)
+                        style: GoogleFonts.inter(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 18)
                       ),
                     )
                   : ListView.builder(
@@ -65,7 +65,7 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
                       itemBuilder: (context, index) {
                         final business = _myBusinesses[index];
                         return Card(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
                           margin: const EdgeInsets.only(bottom: 16),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           child: Padding(
@@ -77,14 +77,14 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
                                   children: [
                                     CircleAvatar(
                                       backgroundColor: Theme.of(context).colorScheme.primary,
-                                      child: const Icon(Icons.storefront, color: Colors.white),
+                                      child: const Icon(Icons.storefront, color: Theme.of(context).colorScheme.onSurface),
                                     ),
                                     const SizedBox(width: 16),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(business['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
+                                          Text(business['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, fontSize: 18)),
                                           Text('Modalidad: ${business['modality'].toString().toUpperCase()}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 12)),
                                         ],
                                       ),
@@ -97,7 +97,7 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
                                   children: [
                                     OutlinedButton.icon(
                                       style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.white, side: const BorderSide(color: Colors.white24)
+                                        foregroundColor: Theme.of(context).colorScheme.onSurface, side: const BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24))
                                       ),
                                       onPressed: () async {
                                         final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => EditBusinessPage(business: business)));

@@ -100,7 +100,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
           if (allImagesUploaded && _pendingImages.isNotEmpty) {
              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Tienda Creada Exitosamente con Galería!'), backgroundColor: Colors.green));
           } else if (_pendingImages.isNotEmpty) {
-             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tienda creada, pero fallaron algunas fotos.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.orange));
+             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tienda creada, pero fallaron algunas fotos.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.orange));
           } else {
              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Tienda Creada Exitosamente!'), backgroundColor: Colors.green));
           }
@@ -123,10 +123,10 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Crear Nuevo Negocio', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text('Crear Nuevo Negocio', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
@@ -140,7 +140,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                   canvasColor: Colors.transparent,
                   colorScheme: Theme.of(context).colorScheme.copyWith(
                     primary: Theme.of(context).colorScheme.primary,
-                    onSurface: Colors.white,
+                    onSurface: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 child: Stepper(
@@ -149,13 +149,13 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                   onStepContinue: () {
                     if (_currentStep == 0) {
                       if (_nameController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('El nombre comercial es obligatorio', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('El nombre comercial es obligatorio', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.red));
                         return;
                       }
                       setState(() => _currentStep += 1);
                     } else if (_currentStep == 1) {
                       if (_modality != 'online' && _addressController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('La dirección es obligatoria', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('La dirección es obligatoria', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.red));
                         return;
                       }
                       setState(() => _currentStep += 1);
@@ -175,13 +175,13 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                         children: [
                           ElevatedButton(
                             onPressed: details.onStepContinue,
-                            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
+                            style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onSurface),
                             child: _isLoading && _currentStep == 2 
-                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface, strokeWidth: 2))
                               : Text(_currentStep == 2 ? 'Crear Negocio' : 'Continuar'),
                           ),
                           if (_currentStep > 0)
-                            TextButton(onPressed: details.onStepCancel, child: const Text('Atrás', style: TextStyle(color: Colors.white70))),
+                            TextButton(onPressed: details.onStepCancel, child: const Text('Atrás', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)))),
                         ],
                       ),
                     );
@@ -189,28 +189,28 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                   steps: [
                     // PASO 1: DATOS BÁSICOS
                     Step(
-                      title: Text('Perfil', style: GoogleFonts.outfit(color: Colors.white)),
+                      title: Text('Perfil', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
                       isActive: _currentStep >= 0,
                       content: Column(
                         children: [
                           TextField(
                             controller: _nameController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(labelText: 'Nombre Comercial', labelStyle: TextStyle(color: Colors.white70)),
+                            style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                            decoration: const InputDecoration(labelText: 'Nombre Comercial', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                           ),
                           const SizedBox(height: 16),
                           TextField(
                             controller: _descriptionController,
                             maxLines: 3,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(labelText: 'Descripción del rubro', labelStyle: TextStyle(color: Colors.white70)),
+                            style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                            decoration: const InputDecoration(labelText: 'Descripción del rubro', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                           ),
                           const SizedBox(height: 24),
                           DropdownButtonFormField<String>(
                             value: _modality,
                             dropdownColor: const Color(0xFF1E293B),
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(labelText: 'Modalidad de Servicio', labelStyle: TextStyle(color: Colors.white70)),
+                            style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                            decoration: const InputDecoration(labelText: 'Modalidad de Servicio', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             items: const [
                               DropdownMenuItem(value: 'fisico', child: Text('Local Físico (Presencial)')),
                               DropdownMenuItem(value: 'domicilio', child: Text('Servicio a Domicilio')),
@@ -225,27 +225,27 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                     
                     // PASO 2: UBICACIÓN Y CATEGORÍA
                     Step(
-                      title: Text('Datos y Ubicación', style: GoogleFonts.outfit(color: Colors.white)),
+                      title: Text('Datos y Ubicación', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
                       isActive: _currentStep >= 1,
                       content: Column(
                         children: [
                           if (_modality != 'online')
                             TextField(
                               controller: _addressController,
-                              style: const TextStyle(color: Colors.white),
-                              decoration: const InputDecoration(labelText: 'Dirección Completa', labelStyle: TextStyle(color: Colors.white70)),
+                              style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                              decoration: const InputDecoration(labelText: 'Dirección Completa', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             ),
                           if (_modality == 'online')
                             const Padding(
                               padding: EdgeInsets.all(8.0),
-                              child: Text('Como seleccionaste Online, tu negocio buscará posicionarse sin limitación geográfica.', style: TextStyle(color: Colors.white70, fontStyle: FontStyle.italic)),
+                              child: Text('Como seleccionaste Online, tu negocio buscará posicionarse sin limitación geográfica.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontStyle: FontStyle.italic)),
                             ),
                           const SizedBox(height: 24),
                           DropdownButtonFormField<String>(
                             value: _selectedCategory,
                             dropdownColor: const Color(0xFF1E293B),
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(labelText: 'Categoría Principal', labelStyle: TextStyle(color: Colors.white70)),
+                            style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                            decoration: const InputDecoration(labelText: 'Categoría Principal', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             items: const [
                               DropdownMenuItem(value: '1', child: Text('Gastronomía')),
                               DropdownMenuItem(value: '2', child: Text('Indumentaria y Moda')),
@@ -262,12 +262,12 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
 
                     // PASO 3: ATRIBUTOS AD-HOC Y ELÁSTICOS (CONSTRUCTOR)
                     Step(
-                      title: Text('Atributos y Fotos', style: GoogleFonts.outfit(color: Colors.white)),
+                      title: Text('Atributos y Fotos', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
                       isActive: _currentStep >= 2,
                       content: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Agrega características específicas de tu rubro:', style: TextStyle(color: Colors.white70)),
+                          const Text('Agrega características específicas de tu rubro:', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                           const SizedBox(height: 16),
                           
                           // LISTA DE ATRIBUTOS AGREGADOS
@@ -275,13 +275,13 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                             Container(
                               margin: const EdgeInsets.only(bottom: 24),
                               padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                              decoration: BoxDecoration(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
                               child: Column(
                                 children: _customMetadata.entries.map((entry) {
                                   return ListTile(
                                     contentPadding: EdgeInsets.zero,
                                     title: Text(entry.key, style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
-                                    subtitle: Text(entry.value is bool ? (entry.value ? 'Sí' : 'No') : entry.value.toString(), style: const TextStyle(color: Colors.white)),
+                                    subtitle: Text(entry.value is bool ? (entry.value ? 'Sí' : 'No') : entry.value.toString(), style: const TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                                     trailing: IconButton(
                                       icon: const Icon(Icons.delete, color: Colors.redAccent),
                                       onPressed: () => setState(() => _customMetadata.remove(entry.key)),
@@ -295,23 +295,23 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             margin: const EdgeInsets.only(bottom: 24),
-                            decoration: BoxDecoration(border: Border.all(color: Colors.white.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
+                            decoration: BoxDecoration(border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)), borderRadius: BorderRadius.circular(12)),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Añadir nueva característica', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+                                Text('Añadir nueva característica', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 12),
                                 TextField(
                                   controller: _customFeatureKeyController,
-                                  style: const TextStyle(color: Colors.white),
-                                  decoration: const InputDecoration(labelText: 'Nombre (Ej: Pet Friendly, Wi-Fi)', labelStyle: TextStyle(color: Colors.white70, fontSize: 12)),
+                                  style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                  decoration: const InputDecoration(labelText: 'Nombre (Ej: Pet Friendly, Wi-Fi)', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
                                 ),
                                 const SizedBox(height: 12),
                                 DropdownButtonFormField<String>(
                                   value: _customFeatureType,
                                   dropdownColor: const Color(0xFF1E293B),
-                                  style: const TextStyle(color: Colors.white),
-                                  decoration: const InputDecoration(labelText: 'Tipo de Respuesta', labelStyle: TextStyle(color: Colors.white70, fontSize: 12)),
+                                  style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                  decoration: const InputDecoration(labelText: 'Tipo de Respuesta', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
                                   items: const [
                                     DropdownMenuItem(value: 'Booleano (Si/No)', child: Text('Sí / No')),
                                     DropdownMenuItem(value: 'Texto', child: Text('Texto Libre')),
@@ -322,8 +322,8 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                   const SizedBox(height: 12),
                                   TextField(
                                     controller: _customFeatureValueController,
-                                    style: const TextStyle(color: Colors.white),
-                                    decoration: const InputDecoration(labelText: 'Valor (Ej: Fibra Óptica 100MB)', labelStyle: TextStyle(color: Colors.white70, fontSize: 12)),
+                                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                    decoration: const InputDecoration(labelText: 'Valor (Ej: Fibra Óptica 100MB)', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
                                   ),
                                 ],
                                 const SizedBox(height: 16),
@@ -348,12 +348,12 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                             ),
                           ),
 
-                          const Divider(color: Colors.white24, height: 48),
+                          const Divider(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24), height: 48),
 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Preparar Galería', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold)),
+                              Text('Preparar Galería', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                               IconButton(
                                 onPressed: _pickImage,
                                 icon: const Icon(Icons.add_a_photo, color: Colors.greenAccent),
@@ -362,12 +362,12 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          const Text('Las fotos que agregues aquí se subirán al momento de pulsar Crear Tienda.', style: TextStyle(color: Colors.white60, fontSize: 13)),
+                          const Text('Las fotos que agregues aquí se subirán al momento de pulsar Crear Tienda.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60), fontSize: 13)),
                           const SizedBox(height: 16),
                           
                           // GRID DINÁMICO
                           _pendingImages.isEmpty 
-                            ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en preparación.', style: TextStyle(color: Colors.white54))))
+                            ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en preparación.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))))
                             : GridView.builder(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
@@ -386,7 +386,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                         borderRadius: BorderRadius.circular(12),
                                         child: Container(
                                           decoration: BoxDecoration(
-                                            border: Border.all(color: index == 0 ? Colors.orangeAccent : Colors.white24, width: index == 0 ? 2 : 1),
+                                            border: Border.all(color: index == 0 ? Colors.orangeAccent : Theme.of(context).colorScheme.onSurface.withOpacity(0.24), width: index == 0 ? 2 : 1),
                                             borderRadius: BorderRadius.circular(12),
                                           ),
                                           child: ClipRRect(
@@ -416,7 +416,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                           bottom: 4, left: 4, right: 4,
                                           child: Container(
                                             color: Colors.black54,
-                                            child: const Text('PORTADA', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                            child: const Text('PORTADA', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.bold)),
                                           )
                                         )
                                     ],

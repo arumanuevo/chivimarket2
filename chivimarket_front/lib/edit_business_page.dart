@@ -97,10 +97,10 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E293B),
-        title: const Text('Borrar foto', style: TextStyle(color: Colors.white)),
-        content: const Text('¿Estás seguro de que deseas eliminar esta fotografía?', style: TextStyle(color: Colors.white70)),
+        title: const Text('Borrar foto', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+        content: const Text('¿Estás seguro de que deseas eliminar esta fotografía?', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar', style: TextStyle(color: Colors.white60))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60)))),
           TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent))),
         ],
       )
@@ -160,15 +160,15 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Editar Comercio', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text('Editar Comercio', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
           child: _isLoading 
-            ? const Center(child: CircularProgressIndicator(color: Colors.white))
+            ? const Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
             : SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: GlassContainer(
@@ -180,15 +180,15 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: _nameController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(labelText: 'Nombre Comercio', labelStyle: TextStyle(color: Colors.white70)),
+                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    decoration: const InputDecoration(labelText: 'Nombre Comercio', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _descController,
                     maxLines: 3,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(labelText: 'Descripción', labelStyle: TextStyle(color: Colors.white70)),
+                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    decoration: const InputDecoration(labelText: 'Descripción', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                   ),
                   const SizedBox(height: 24),
                   
@@ -220,7 +220,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                     ),
                   ),
 
-                  const Divider(color: Colors.white24, height: 48),
+                  const Divider(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24), height: 48),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -234,12 +234,12 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text('Las fotos que agregues aquí se subirán al instante y aparecerán en tu vidriera.', style: TextStyle(color: Colors.white60, fontSize: 13)),
+                  const Text('Las fotos que agregues aquí se subirán al instante y aparecerán en tu vidriera.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60), fontSize: 13)),
                   const SizedBox(height: 16),
                   
                   // GRID DINÁMICO
                   _galleryImages.isEmpty 
-                    ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en galería.', style: TextStyle(color: Colors.white54))))
+                    ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en galería.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))))
                     : GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -262,13 +262,13 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                                 borderRadius: BorderRadius.circular(12),
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    border: Border.all(color: isPrimary ? Colors.orangeAccent : Colors.white24, width: isPrimary ? 2 : 1),
+                                    border: Border.all(color: isPrimary ? Colors.orangeAccent : Theme.of(context).colorScheme.onSurface.withOpacity(0.24), width: isPrimary ? 2 : 1),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(10),
                                     child: Image.network(url, fit: BoxFit.cover,
-                                      errorBuilder: (ctx, err, stack) => const Icon(Icons.broken_image, color: Colors.white54),
+                                      errorBuilder: (ctx, err, stack) => const Icon(Icons.broken_image, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)),
                                     ),
                                   ),
                                 ),
@@ -291,7 +291,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                                   bottom: 4, left: 4, right: 4,
                                   child: Container(
                                     color: Colors.black54,
-                                    child: const Text('PORTADA', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    child: const Text('PORTADA', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.bold)),
                                   )
                                 )
                             ],

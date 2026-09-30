@@ -82,15 +82,15 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Modificadores de Suscripción', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: Text('Modificadores de Suscripción', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
           child: _isLoading 
-            ? const Center(child: CircularProgressIndicator(color: Colors.white))
+            ? const Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: GlassContainer(
@@ -101,7 +101,7 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
                       Text('Reglas de la Plataforma', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
                       const SizedBox(height: 8),
                       const Text('Define la cantidad máxima de sucursales y productos que puede cargar un vendedor según el anillo al que pertenece. Estos cambios aplicarán inmediatamente a toda la red.',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 13),
                       ),
                       const SizedBox(height: 24),
 
@@ -112,14 +112,14 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
-                            border: Border.all(color: Colors.white24),
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.05),
+                            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24)),
                             borderRadius: BorderRadius.circular(16)
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(name.toUpperCase(), style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                              Text(name.toUpperCase(), style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                               const SizedBox(height: 12),
                               Row(
                                 children: [
@@ -127,11 +127,11 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
                                     child: TextField(
                                       controller: _businessControllers[name],
                                       keyboardType: TextInputType.number,
-                                      style: const TextStyle(color: Colors.white),
+                                      style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
                                       decoration: const InputDecoration(
                                         labelText: 'Máx. Sucursales',
-                                        labelStyle: TextStyle(color: Colors.white54, fontSize: 12),
-                                        prefixIcon: Icon(Icons.store, color: Colors.white30, size: 18),
+                                        labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), fontSize: 12),
+                                        prefixIcon: Icon(Icons.store, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.30), size: 18),
                                       ),
                                     ),
                                   ),
@@ -140,11 +140,11 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
                                     child: TextField(
                                       controller: _productControllers[name],
                                       keyboardType: TextInputType.number,
-                                      style: const TextStyle(color: Colors.white),
+                                      style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
                                       decoration: const InputDecoration(
                                         labelText: 'Máx. Productos (Total)',
-                                        labelStyle: TextStyle(color: Colors.white54, fontSize: 12),
-                                        prefixIcon: Icon(Icons.inventory, color: Colors.white30, size: 18),
+                                        labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), fontSize: 12),
+                                        prefixIcon: Icon(Icons.inventory, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.30), size: 18),
                                       ),
                                     ),
                                   ),
