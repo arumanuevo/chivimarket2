@@ -354,7 +354,7 @@ class _LoginPageState extends State<LoginPage> {
           await ApiService.saveToken(data['token']);
         }
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/dashboard');
+          Navigator.pushReplacementNamed(context, '/buyer-home');
         }
       } else {
         _showError('Credenciales incorrectas');
