@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'api_service.dart';
 import 'main.dart'; 
 import 'edit_business_page.dart'; 
+import 'products_page.dart';
 
 class MyBusinessesPage extends StatefulWidget {
   const MyBusinessesPage({Key? key}) : super(key: key);
@@ -67,31 +68,59 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
                           color: Colors.white.withOpacity(0.1),
                           margin: const EdgeInsets.only(bottom: 16),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.all(16),
-                            leading: CircleAvatar(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
-                              child: const Icon(Icons.storefront, color: Colors.white),
-                            ),
-                            title: Text(business['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white)),
-                            subtitle: Text('Modalidad: ${business['modality'].toString().toUpperCase()}', style: const TextStyle(color: Colors.white70)),
-                            trailing: ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white.withOpacity(0.1),
-                                foregroundColor: Colors.white,
-                                elevation: 0
-                              ),
-                              onPressed: () async {
-                                final result = await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => EditBusinessPage(business: business)),
-                                );
-                                if (result == true) {
-                                  _fetchMyBusinesses(); // Refrescar 
-                                }
-                              },
-                              icon: const Icon(Icons.edit, size: 18),
-                              label: const Text('Editar / Fotos'),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundColor: Theme.of(context).colorScheme.primary,
+                                      child: const Icon(Icons.storefront, color: Colors.white),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(business['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
+                                          Text('Modalidad: ${business['modality'].toString().toUpperCase()}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 12)),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    OutlinedButton.icon(
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.white, side: const BorderSide(color: Colors.white24)
+                                      ),
+                                      onPressed: () async {
+                                        final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => EditBusinessPage(business: business)));
+                                        if (result == true) _fetchMyBusinesses();
+                                      },
+                                      icon: const Icon(Icons.edit, size: 16),
+                                      label: const Text('Editar Tienda', style: TextStyle(fontSize: 12)),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.greenAccent, foregroundColor: Colors.black87
+                                      ),
+                                      onPressed: () async {
+                                        await Navigator.push(context, MaterialPageRoute(builder: (context) => ProductsPage(business: business)));
+                                        _fetchMyBusinesses(); // Refrescar stock visual si aplica
+                                      },
+                                      icon: const Icon(Icons.inventory, size: 16),
+                                      label: const Text('Catálogo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                    ),
+                                  ],
+                                )
+                              ],
                             ),
                           ),
                         );
