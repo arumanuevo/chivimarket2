@@ -51,7 +51,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
@@ -65,46 +65,46 @@ class _RegisterPageState extends State<RegisterPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(Icons.person_add_alt, size: 64, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   Text('Crear Cuenta', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                  const SizedBox(height: 40),
+                  SizedBox(height: 40),
                   TextField(
                     controller: _nameController,
-                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                     decoration: InputDecoration(
                       labelText: 'Nombre del Administrador (Tu Nombre)',
-                      labelStyle: const TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60)),
+                      labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60)),
                       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2))),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
-                      prefixIcon: const Icon(Icons.store, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)),
+                      prefixIcon: Icon(Icons.store, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   TextField(
                     controller: _emailController,
-                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                     decoration: InputDecoration(
                       labelText: 'Correo Electrónico',
-                      labelStyle: const TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60)),
+                      labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60)),
                       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2))),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
-                      prefixIcon: const Icon(Icons.email, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)),
+                      prefixIcon: Icon(Icons.email, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
-                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                     decoration: InputDecoration(
                       labelText: 'Contraseña',
-                      labelStyle: const TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60)),
+                      labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60)),
                       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2))),
                       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
-                      prefixIcon: const Icon(Icons.lock, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)),
+                      prefixIcon: Icon(Icons.lock, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -115,7 +115,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         foregroundColor: Theme.of(context).colorScheme.onSurface,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      child: _isLoading ? const CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface) : const Text('Registrarse', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      child: _isLoading ? const CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface) : Text('Registrarse', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -127,3 +127,4 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
+

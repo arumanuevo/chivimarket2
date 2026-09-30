@@ -85,7 +85,7 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
         title: Text('Modificadores de Suscripción', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
@@ -99,11 +99,11 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Reglas de la Plataforma', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
-                      const SizedBox(height: 8),
-                      const Text('Define la cantidad máxima de sucursales y productos que puede cargar un vendedor según el anillo al que pertenece. Estos cambios aplicarán inmediatamente a toda la red.',
+                      SizedBox(height: 8),
+                      Text('Define la cantidad máxima de sucursales y productos que puede cargar un vendedor según el anillo al que pertenece. Estos cambios aplicarán inmediatamente a toda la red.',
                         style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 13),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
 
                       // Listado de Tiers (Free, Basic, Premium, Enterprise)
                       ..._plans.map((plan) {
@@ -120,28 +120,28 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(name.toUpperCase(), style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                              const SizedBox(height: 12),
+                              SizedBox(height: 12),
                               Row(
                                 children: [
                                   Expanded(
                                     child: TextField(
                                       controller: _businessControllers[name],
                                       keyboardType: TextInputType.number,
-                                      style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                                      decoration: const InputDecoration(
+                                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                      decoration: InputDecoration(
                                         labelText: 'Máx. Sucursales',
                                         labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), fontSize: 12),
                                         prefixIcon: Icon(Icons.store, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.30), size: 18),
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  SizedBox(width: 16),
                                   Expanded(
                                     child: TextField(
                                       controller: _productControllers[name],
                                       keyboardType: TextInputType.number,
-                                      style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                                      decoration: const InputDecoration(
+                                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                      decoration: InputDecoration(
                                         labelText: 'Máx. Productos (Total)',
                                         labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54), fontSize: 12),
                                         prefixIcon: Icon(Icons.inventory, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.30), size: 18),
@@ -155,7 +155,7 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
                         );
                       }).toList(),
 
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       SizedBox(
                         width: double.infinity,
                         height: 50,
@@ -166,8 +166,8 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
                           ),
                           onPressed: _saveChanges,
-                          icon: const Icon(Icons.save),
-                          label: const Text('Impactar Límites Globales', style: TextStyle(fontWeight: FontWeight.bold)),
+                          icon: Icon(Icons.save),
+                          label: Text('Impactar Límites Globales', style: TextStyle(fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
@@ -179,3 +179,4 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
     );
   }
 }
+

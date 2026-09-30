@@ -70,16 +70,16 @@ class _SuperAdminPageState extends State<SuperAdminPage> {
         title: Text('Súper Administración', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_suggest, color: Colors.orangeAccent),
+            icon: Icon(Icons.settings_suggest, color: Colors.orangeAccent),
             tooltip: 'Configurar Alcances',
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionPlansPage()));
             },
           ),
-          IconButton(icon: const Icon(Icons.refresh, color: Theme.of(context).colorScheme.onSurface), onPressed: _fetchUsers)
+          IconButton(icon: Icon(Icons.refresh, color: Theme.of(context).colorScheme.onSurface), onPressed: _fetchUsers)
         ],
       ),
       body: AnimatedGradientBackground(
@@ -109,13 +109,13 @@ class _SuperAdminPageState extends State<SuperAdminPage> {
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const SizedBox(height: 4),
-                            Text(user['email'], style: const TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 4),
+                            Text(user['email'], style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                            SizedBox(height: 8),
                             Row(
                               children: [
                                 _buildBadge(subscriptionStr, subscriptionStr == 'FREE' ? Colors.grey : Colors.amber),
-                                const SizedBox(width: 8),
+                                SizedBox(width: 8),
                                 _buildBadge('$businessesCount Locales', Colors.blueAccent),
                               ],
                             ),
@@ -128,7 +128,7 @@ class _SuperAdminPageState extends State<SuperAdminPage> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),
                           onPressed: isAdmin ? null : () => _changePlan(user['id'], user['name'], subscriptionStr),
-                          child: const Text('Cambiar Plan'),
+                          child: Text('Cambiar Plan'),
                         ),
                       ),
                     );
@@ -162,14 +162,14 @@ class _ChangePlanDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: const Color(0xFF1E293B),
-      title: Text('Cambiar Plan: $userName', style: const TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+      title: Text('Cambiar Plan: $userName', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: ['free', 'basic', 'premium', 'enterprise'].map((plan) {
           final isCurrent = currentPlan.toLowerCase() == plan;
           return ListTile(
             title: Text(plan.toUpperCase(), style: TextStyle(color: isCurrent ? Colors.orangeAccent : Theme.of(context).colorScheme.onSurface)),
-            trailing: isCurrent ? const Icon(Icons.check, color: Colors.orangeAccent) : null,
+            trailing: isCurrent ? Icon(Icons.check, color: Colors.orangeAccent) : null,
             onTap: () => Navigator.pop(context, plan),
           );
         }).toList(),
@@ -177,3 +177,4 @@ class _ChangePlanDialog extends StatelessWidget {
     );
   }
 }
+

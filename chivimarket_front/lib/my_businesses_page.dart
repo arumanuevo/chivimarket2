@@ -46,7 +46,7 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
         title: Text('Mis Locales', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
@@ -77,36 +77,36 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
                                   children: [
                                     CircleAvatar(
                                       backgroundColor: Theme.of(context).colorScheme.primary,
-                                      child: const Icon(Icons.storefront, color: Theme.of(context).colorScheme.onSurface),
+                                      child: Icon(Icons.storefront, color: Theme.of(context).colorScheme.onSurface),
                                     ),
-                                    const SizedBox(width: 16),
+                                    SizedBox(width: 16),
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(business['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface, fontSize: 18)),
-                                          Text('Modalidad: ${business['modality'].toString().toUpperCase()}', style: const TextStyle(color: Colors.orangeAccent, fontSize: 12)),
+                                          Text('Modalidad: ${business['modality'].toString().toUpperCase()}', style: TextStyle(color: Colors.orangeAccent, fontSize: 12)),
                                         ],
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 16),
+                                SizedBox(height: 16),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
                                     OutlinedButton.icon(
                                       style: OutlinedButton.styleFrom(
-                                        foregroundColor: Theme.of(context).colorScheme.onSurface, side: const BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24))
+                                        foregroundColor: Theme.of(context).colorScheme.onSurface, side: BorderSide(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24))
                                       ),
                                       onPressed: () async {
                                         final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => EditBusinessPage(business: business)));
                                         if (result == true) _fetchMyBusinesses();
                                       },
-                                      icon: const Icon(Icons.edit, size: 16),
-                                      label: const Text('Editar Tienda', style: TextStyle(fontSize: 12)),
+                                      icon: Icon(Icons.edit, size: 16),
+                                      label: Text('Editar Tienda', style: TextStyle(fontSize: 12)),
                                     ),
-                                    const SizedBox(width: 8),
+                                    SizedBox(width: 8),
                                     ElevatedButton.icon(
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.greenAccent, foregroundColor: Colors.black87
@@ -115,8 +115,8 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
                                         await Navigator.push(context, MaterialPageRoute(builder: (context) => ProductsPage(business: business)));
                                         _fetchMyBusinesses(); // Refrescar stock visual si aplica
                                       },
-                                      icon: const Icon(Icons.inventory, size: 16),
-                                      label: const Text('Catálogo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                      icon: Icon(Icons.inventory, size: 16),
+                                      label: Text('Catálogo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                                     ),
                                   ],
                                 )
@@ -131,3 +131,4 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
     );
   }
 }
+

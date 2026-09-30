@@ -79,36 +79,36 @@ class _DashboardPageState extends State<DashboardPage> {
           padding: EdgeInsets.zero,
           children: [
             DrawerHeader(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(colors: [Color(0xFFF97316), Color(0xFFEA580C)]),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Icon(Icons.storefront, size: 48, color: Theme.of(context).colorScheme.onSurface),
-                  const SizedBox(height: 12),
+                  Icon(Icons.storefront, size: 48, color: Theme.of(context).colorScheme.onSurface),
+                  SizedBox(height: 12),
                   Text('ChiviMarket', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                   Text('Panel Comercios', style: GoogleFonts.inter(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                 ],
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.dashboard, color: Colors.orangeAccent),
-              title: const Text('Inicio', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+              leading: Icon(Icons.dashboard, color: Colors.orangeAccent),
+              title: Text('Inicio', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
-              leading: const Icon(Icons.store, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)),
-              title: const Text('Mis Tiendas y Catálogos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+              leading: Icon(Icons.store, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)),
+              title: Text('Mis Tiendas y Catálogos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/my-businesses');
               },
             ),
             ListTile(
-              leading: const Icon(Icons.add_business, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)),
-              title: const Text('Crear Nuevo Negocio', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+              leading: Icon(Icons.add_business, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)),
+              title: Text('Crear Nuevo Negocio', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
               onTap: () async {
                 Navigator.pop(context);
                 final result = await Navigator.pushNamed(context, '/create-business');
@@ -117,16 +117,16 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             if (_isSuperAdmin)
               ListTile(
-                leading: const Icon(Icons.admin_panel_settings, color: Colors.redAccent),
-                title: const Text('Súper Administración', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                leading: Icon(Icons.admin_panel_settings, color: Colors.redAccent),
+                title: Text('Súper Administración', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.pushNamed(context, '/super-admin');
                 },
               ),
             ListTile(
-              leading: const Icon(Icons.star, color: Colors.amber),
-              title: const Text('Suscripción Pro', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+              leading: Icon(Icons.star, color: Colors.amber),
+              title: Text('Suscripción Pro', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
               onTap: () {}, // Aquí irá la ruta de simular pago
             ),
           ],
@@ -140,9 +140,9 @@ class _DashboardPageState extends State<DashboardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Bienvenido, $_userName', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                const SizedBox(height: 8),
-                const Text('Estadísticas y estado general de tu local.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 16)),
-                const SizedBox(height: 32),
+                SizedBox(height: 8),
+                Text('Estadísticas y estado general de tu local.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 16)),
+                SizedBox(height: 32),
                 
                 // Stat Cards Row (Responsivo)
                 Wrap(
@@ -156,9 +156,9 @@ class _DashboardPageState extends State<DashboardPage> {
                   ],
                 ),
 
-                const SizedBox(height: 40),
+                SizedBox(height: 40),
                 Text('Acciones Rápidas', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 
                 Expanded(
                   child: GridView.count(
@@ -203,13 +203,13 @@ class _DashboardPageState extends State<DashboardPage> {
             decoration: BoxDecoration(color: iconColor.withOpacity(0.2), shape: BoxShape.circle),
             child: Icon(icon, color: iconColor, size: 28),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 14)),
-                const SizedBox(height: 4),
+                Text(title, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 14)),
+                SizedBox(height: 4),
                 Text(value, style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
               ],
             ),
@@ -230,7 +230,7 @@ class _DashboardPageState extends State<DashboardPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 40, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(title, textAlign: TextAlign.center, style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface)),
           ],
         ),
@@ -238,3 +238,4 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 }
+

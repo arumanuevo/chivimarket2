@@ -97,11 +97,11 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E293B),
-        title: const Text('Borrar foto', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-        content: const Text('¿Estás seguro de que deseas eliminar esta fotografía?', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+        title: Text('Borrar foto', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+        content: Text('¿Estás seguro de que deseas eliminar esta fotografía?', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60)))),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60)))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Eliminar', style: TextStyle(color: Colors.redAccent))),
         ],
       )
     ) ?? false;
@@ -163,7 +163,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
         title: Text('Editar Comercio', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
@@ -177,20 +177,20 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Datos Generales', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   TextField(
                     controller: _nameController,
-                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                    decoration: const InputDecoration(labelText: 'Nombre Comercio', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    decoration: InputDecoration(labelText: 'Nombre Comercio', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   TextField(
                     controller: _descController,
                     maxLines: 3,
-                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                    decoration: const InputDecoration(labelText: 'Descripción', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    decoration: InputDecoration(labelText: 'Descripción', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   
                   // BOTÓN GUARDAR TEXTO
                   SizedBox(
@@ -199,12 +199,12 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, foregroundColor: Colors.black87),
                       onPressed: _saveTextData,
-                      icon: const Icon(Icons.save),
-                      label: const Text('Guardar Modificaciones Teóricas', style: TextStyle(fontWeight: FontWeight.bold)),
+                      icon: Icon(Icons.save),
+                      label: Text('Guardar Modificaciones Teóricas', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
                   
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   
                   // BOTÓN IR AL CATÁLOGO
                   SizedBox(
@@ -215,8 +215,8 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                       onPressed: () {
                          Navigator.push(context, MaterialPageRoute(builder: (context) => ProductsPage(business: widget.business)));
                       },
-                      icon: const Icon(Icons.inventory),
-                      label: const Text('Gestionar Productos de este Local', style: TextStyle(fontWeight: FontWeight.bold)),
+                      icon: Icon(Icons.inventory),
+                      label: Text('Gestionar Productos de este Local', style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
 
@@ -228,14 +228,14 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                       Text('Galería Activa', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
                       IconButton(
                         onPressed: _uploadNewImage,
-                        icon: const Icon(Icons.add_a_photo, color: Colors.greenAccent),
+                        icon: Icon(Icons.add_a_photo, color: Colors.greenAccent),
                         tooltip: 'Añadir nueva foto',
                       )
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  const Text('Las fotos que agregues aquí se subirán al instante y aparecerán en tu vidriera.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60), fontSize: 13)),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 8),
+                  Text('Las fotos que agregues aquí se subirán al instante y aparecerán en tu vidriera.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60), fontSize: 13)),
+                  SizedBox(height: 16),
                   
                   // GRID DINÁMICO
                   _galleryImages.isEmpty 
@@ -268,7 +268,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(10),
                                     child: Image.network(url, fit: BoxFit.cover,
-                                      errorBuilder: (ctx, err, stack) => const Icon(Icons.broken_image, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)),
+                                      errorBuilder: (ctx, err, stack) => Icon(Icons.broken_image, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)),
                                     ),
                                   ),
                                 ),
@@ -281,8 +281,8 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                                   onTap: () => _deleteImage(index, imgMap['id']),
                                   child: Container(
                                     padding: const EdgeInsets.all(4),
-                                    decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                                    child: const Icon(Icons.delete, color: Colors.redAccent, size: 16),
+                                    decoration: BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                                    child: Icon(Icons.delete, color: Colors.redAccent, size: 16),
                                   ),
                                 ),
                               ),
@@ -291,14 +291,14 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                                   bottom: 4, left: 4, right: 4,
                                   child: Container(
                                     color: Colors.black54,
-                                    child: const Text('PORTADA', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.bold)),
+                                    child: Text('PORTADA', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.bold)),
                                   )
                                 )
                             ],
                           );
                         },
                       ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                 ],
               ),
             ),
@@ -308,3 +308,4 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
     );
   }
 }
+

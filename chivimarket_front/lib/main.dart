@@ -214,7 +214,7 @@ class LandingPage extends StatelessWidget {
                   Row(
                     children: [
                       Icon(Icons.auto_awesome, color: Theme.of(context).colorScheme.primary, size: 32),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Text(
                         'ChiviMarket',
                         style: GoogleFonts.outfit(
@@ -231,7 +231,7 @@ class LandingPage extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 10,
                     ),
-                    child: const Text('Acceso Restringido', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text('Acceso Restringido', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -265,7 +265,7 @@ class LandingPage extends StatelessWidget {
                           letterSpacing: -1.5,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      SizedBox(height: 24),
                       Text(
                         'Una plataforma premium reservada para conectar la ciudad.\nIngresa ahora al panel administrativo.',
                         textAlign: TextAlign.center,
@@ -274,7 +274,7 @@ class LandingPage extends StatelessWidget {
                           color: Colors.white70,
                         ),
                       ),
-                      const SizedBox(height: 48),
+                      SizedBox(height: 48),
                       GlassContainer(
                         width: 600,
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -308,7 +308,7 @@ class LandingPage extends StatelessWidget {
                                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                                 ),
-                                child: const Text('Explorar', style: TextStyle(fontWeight: FontWeight.bold)),
+                                child: Text('Explorar', style: TextStyle(fontWeight: FontWeight.bold)),
                               ),
                             ),
                           ],
@@ -376,7 +376,7 @@ class _LoginPageState extends State<LoginPage> {
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -389,36 +389,36 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(Icons.dashboard_customize, size: 64, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Text('Acceso Central', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text('Administra tu escaparate local', style: TextStyle(color: Colors.white60, fontSize: 16)),
-                const SizedBox(height: 40),
+                SizedBox(height: 40),
                 TextField(
                   controller: _emailController,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: 'Correo Electrónico',
-                    labelStyle: const TextStyle(color: Colors.white60),
+                    labelStyle: TextStyle(color: Colors.white60),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
-                    prefixIcon: const Icon(Icons.email, color: Colors.white54),
+                    prefixIcon: Icon(Icons.email, color: Colors.white54),
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20),
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: 'Contraseña',
-                    labelStyle: const TextStyle(color: Colors.white60),
+                    labelStyle: TextStyle(color: Colors.white60),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
-                    prefixIcon: const Icon(Icons.lock, color: Colors.white54),
+                    prefixIcon: Icon(Icons.lock, color: Colors.white54),
                   ),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -433,10 +433,10 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Comenzar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        : Text('Comenzar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
@@ -444,16 +444,16 @@ class _LoginPageState extends State<LoginPage> {
                     Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
                   ],
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: OutlinedButton.icon(
                     onPressed: () {}, // Backend login url for future
                     icon: _isGoogleLoading 
-                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)) 
-                      : const Icon(Icons.g_mobiledata, size: 36, color: Colors.white),
-                    label: const Text('Continuar con Google', style: TextStyle(color: Colors.white)),
+                      ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)) 
+                      : Icon(Icons.g_mobiledata, size: 36, color: Colors.white),
+                    label: Text('Continuar con Google', style: TextStyle(color: Colors.white)),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Colors.white.withOpacity(0.2)),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -461,10 +461,10 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 TextButton(
                   onPressed: () => Navigator.pushNamed(context, '/register'),
-                  child: const Text('¿No tienes cuenta? Registra tu Comercio Aquí', style: TextStyle(color: Colors.white70)),
+                  child: Text('¿No tienes cuenta? Registra tu Comercio Aquí', style: TextStyle(color: Colors.white70)),
                 )
               ],
             ),
@@ -496,20 +496,20 @@ class CuentaVerificadaPage extends StatelessWidget {
                     color: Colors.greenAccent.withOpacity(0.2),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.check_circle, size: 80, color: Colors.greenAccent),
+                  child: Icon(Icons.check_circle, size: 80, color: Colors.greenAccent),
                 ),
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 Text(
                   'Cuenta Verificada!',
                   style: GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
-                const SizedBox(height: 16),
-                const Text(
+                SizedBox(height: 16),
+                Text(
                   'Tu email ha sido validado correctamente. Tu negocio ya cuenta con la insignia de confianza en ChiviMarket.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white70, fontSize: 16, height: 1.5),
                 ),
-                const SizedBox(height: 48),
+                SizedBox(height: 48),
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -520,7 +520,7 @@ class CuentaVerificadaPage extends StatelessWidget {
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
-                    child: const Text('Ir al Login', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: Text('Ir al Login', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -531,3 +531,4 @@ class CuentaVerificadaPage extends StatelessWidget {
     );
   }
 }
+

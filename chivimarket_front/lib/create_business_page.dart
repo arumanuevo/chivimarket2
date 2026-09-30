@@ -126,7 +126,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
         title: Text('Crear Nuevo Negocio', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onSurface), onPressed: () => Navigator.pop(context)),
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
@@ -177,11 +177,11 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                             onPressed: details.onStepContinue,
                             style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onSurface),
                             child: _isLoading && _currentStep == 2 
-                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface, strokeWidth: 2))
+                              ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface, strokeWidth: 2))
                               : Text(_currentStep == 2 ? 'Crear Negocio' : 'Continuar'),
                           ),
                           if (_currentStep > 0)
-                            TextButton(onPressed: details.onStepCancel, child: const Text('Atrás', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)))),
+                            TextButton(onPressed: details.onStepCancel, child: Text('Atrás', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)))),
                         ],
                       ),
                     );
@@ -195,22 +195,22 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                         children: [
                           TextField(
                             controller: _nameController,
-                            style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            decoration: const InputDecoration(labelText: 'Nombre Comercial', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                            decoration: InputDecoration(labelText: 'Nombre Comercial', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           TextField(
                             controller: _descriptionController,
                             maxLines: 3,
-                            style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            decoration: const InputDecoration(labelText: 'Descripción del rubro', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                            decoration: InputDecoration(labelText: 'Descripción del rubro', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24),
                           DropdownButtonFormField<String>(
                             value: _modality,
                             dropdownColor: const Color(0xFF1E293B),
-                            style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            decoration: const InputDecoration(labelText: 'Modalidad de Servicio', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                            decoration: InputDecoration(labelText: 'Modalidad de Servicio', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             items: const [
                               DropdownMenuItem(value: 'fisico', child: Text('Local Físico (Presencial)')),
                               DropdownMenuItem(value: 'domicilio', child: Text('Servicio a Domicilio')),
@@ -232,20 +232,20 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           if (_modality != 'online')
                             TextField(
                               controller: _addressController,
-                              style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                              decoration: const InputDecoration(labelText: 'Dirección Completa', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                              style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                              decoration: InputDecoration(labelText: 'Dirección Completa', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             ),
                           if (_modality == 'online')
                             const Padding(
                               padding: EdgeInsets.all(8.0),
                               child: Text('Como seleccionaste Online, tu negocio buscará posicionarse sin limitación geográfica.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontStyle: FontStyle.italic)),
                             ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24),
                           DropdownButtonFormField<String>(
                             value: _selectedCategory,
                             dropdownColor: const Color(0xFF1E293B),
-                            style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            decoration: const InputDecoration(labelText: 'Categoría Principal', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                            decoration: InputDecoration(labelText: 'Categoría Principal', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             items: const [
                               DropdownMenuItem(value: '1', child: Text('Gastronomía')),
                               DropdownMenuItem(value: '2', child: Text('Indumentaria y Moda')),
@@ -267,8 +267,8 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                       content: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Agrega características específicas de tu rubro:', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
-                          const SizedBox(height: 16),
+                          Text('Agrega características específicas de tu rubro:', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                          SizedBox(height: 16),
                           
                           // LISTA DE ATRIBUTOS AGREGADOS
                           if (_customMetadata.isNotEmpty)
@@ -280,10 +280,10 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                 children: _customMetadata.entries.map((entry) {
                                   return ListTile(
                                     contentPadding: EdgeInsets.zero,
-                                    title: Text(entry.key, style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
-                                    subtitle: Text(entry.value is bool ? (entry.value ? 'Sí' : 'No') : entry.value.toString(), style: const TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                                    title: Text(entry.key, style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                                    subtitle: Text(entry.value is bool ? (entry.value ? 'Sí' : 'No') : entry.value.toString(), style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                                     trailing: IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                      icon: Icon(Icons.delete, color: Colors.redAccent),
                                       onPressed: () => setState(() => _customMetadata.remove(entry.key)),
                                     ),
                                   );
@@ -300,18 +300,18 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('Añadir nueva característica', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 12),
+                                SizedBox(height: 12),
                                 TextField(
                                   controller: _customFeatureKeyController,
-                                  style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                                  decoration: const InputDecoration(labelText: 'Nombre (Ej: Pet Friendly, Wi-Fi)', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
+                                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                  decoration: InputDecoration(labelText: 'Nombre (Ej: Pet Friendly, Wi-Fi)', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
                                 ),
-                                const SizedBox(height: 12),
+                                SizedBox(height: 12),
                                 DropdownButtonFormField<String>(
                                   value: _customFeatureType,
                                   dropdownColor: const Color(0xFF1E293B),
-                                  style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                                  decoration: const InputDecoration(labelText: 'Tipo de Respuesta', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
+                                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                  decoration: InputDecoration(labelText: 'Tipo de Respuesta', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
                                   items: const [
                                     DropdownMenuItem(value: 'Booleano (Si/No)', child: Text('Sí / No')),
                                     DropdownMenuItem(value: 'Texto', child: Text('Texto Libre')),
@@ -319,14 +319,14 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                   onChanged: (value) => setState(() => _customFeatureType = value!),
                                 ),
                                 if (_customFeatureType == 'Texto') ...[
-                                  const SizedBox(height: 12),
+                                  SizedBox(height: 12),
                                   TextField(
                                     controller: _customFeatureValueController,
-                                    style: const TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                                    decoration: const InputDecoration(labelText: 'Valor (Ej: Fibra Óptica 100MB)', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
+                                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                                    decoration: InputDecoration(labelText: 'Valor (Ej: Fibra Óptica 100MB)', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
                                   ),
                                 ],
-                                const SizedBox(height: 16),
+                                SizedBox(height: 16),
                                 Align(
                                   alignment: Alignment.centerRight,
                                   child: OutlinedButton.icon(
@@ -340,8 +340,8 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                         });
                                       }
                                     },
-                                    icon: const Icon(Icons.add, color: Colors.orangeAccent),
-                                    label: const Text('Agregar Etiqueta', style: TextStyle(color: Colors.orangeAccent)),
+                                    icon: Icon(Icons.add, color: Colors.orangeAccent),
+                                    label: Text('Agregar Etiqueta', style: TextStyle(color: Colors.orangeAccent)),
                                   ),
                                 )
                               ],
@@ -356,14 +356,14 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                               Text('Preparar Galería', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                               IconButton(
                                 onPressed: _pickImage,
-                                icon: const Icon(Icons.add_a_photo, color: Colors.greenAccent),
+                                icon: Icon(Icons.add_a_photo, color: Colors.greenAccent),
                                 tooltip: 'Añadir nueva foto',
                               )
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          const Text('Las fotos que agregues aquí se subirán al momento de pulsar Crear Tienda.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60), fontSize: 13)),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 8),
+                          Text('Las fotos que agregues aquí se subirán al momento de pulsar Crear Tienda.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60), fontSize: 13)),
+                          SizedBox(height: 16),
                           
                           // GRID DINÁMICO
                           _pendingImages.isEmpty 
@@ -406,8 +406,8 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                           onTap: () => _removePendingImage(index),
                                           child: Container(
                                             padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                                            child: const Icon(Icons.delete, color: Colors.redAccent, size: 16),
+                                            decoration: BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                                            child: Icon(Icons.delete, color: Colors.redAccent, size: 16),
                                           ),
                                         ),
                                       ),
@@ -416,7 +416,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                           bottom: 4, left: 4, right: 4,
                                           child: Container(
                                             color: Colors.black54,
-                                            child: const Text('PORTADA', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.bold)),
+                                            child: Text('PORTADA', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.bold)),
                                           )
                                         )
                                     ],
@@ -436,3 +436,4 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
     );
   }
 }
+
