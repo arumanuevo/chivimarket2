@@ -119,8 +119,8 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                       onRefresh: _fetchExploreProducts,
                       child: GridView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
+                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                          maxCrossAxisExtent: 160,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
                           childAspectRatio: 0.75, // Reducido para achicar la altura de la tarjeta
