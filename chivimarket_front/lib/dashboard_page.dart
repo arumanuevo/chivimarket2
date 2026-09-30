@@ -93,14 +93,30 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             ListTile(
               leading: const Icon(Icons.store, color: Colors.white70),
-              title: const Text('Mi Negocio (Perfil)', style: TextStyle(color: Colors.white70)),
-              onTap: () {},
+              title: const Text('Mis Negocios', style: TextStyle(color: Colors.white70)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/my-businesses');
+              },
             ),
             ListTile(
-              leading: const Icon(Icons.image, color: Colors.white70),
-              title: const Text('Imágenes y Escaparate', style: TextStyle(color: Colors.white70)),
-              onTap: () {},
+              leading: const Icon(Icons.add_business, color: Colors.white70),
+              title: const Text('Crear Nuevo Negocio', style: TextStyle(color: Colors.white70)),
+              onTap: () async {
+                Navigator.pop(context);
+                final result = await Navigator.pushNamed(context, '/create-business');
+                if (result == true) _fetchProfile();
+              },
             ),
+            if (_isSuperAdmin)
+              ListTile(
+                leading: const Icon(Icons.admin_panel_settings, color: Colors.redAccent),
+                title: const Text('Súper Administración', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/super-admin');
+                },
+              ),
             ListTile(
               leading: const Icon(Icons.star, color: Colors.amber),
               title: const Text('Suscripción Pro', style: TextStyle(color: Colors.white70)),
