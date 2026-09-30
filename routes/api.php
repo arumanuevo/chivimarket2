@@ -39,6 +39,7 @@ use App\Http\Controllers\DeviceController;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/acceso-usuario', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::get('/explore/products', [\App\Http\Controllers\API\ProductController::class, 'explore']);
 Route::get('/test', fn() => response()->json(['message' => 'Â¡API funcionando!']));
 // CategorÃ­as (solo lectura para apps mÃ³viles)
 Route::apiResource('business-categories', CategoryController::class)->only(['index', 'show']);

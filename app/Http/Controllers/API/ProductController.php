@@ -14,6 +14,29 @@ class ProductController extends Controller
 {
     use AuthorizesRequests;
 
+    public function explore()
+    {
+        $products = \App\Models\Product::with([
+            'business' => function ($q) {
+                $q->select('id', 'name', 'logo_url');
+            }
+        ])
+            ->where('is_active', true)
+            ->inRandomOrder()
+            ->take(50)
+            ->get()
+            ->map(function ($product) {
+                // Random mock sponsor flag for UI testing
+                $product->is_sponsored = (rand(1, 100) <= 20);
+                return $product;
+            });
+
+        // Order the collection so sponsored products appear first, then randomly
+        $products = $products->sortByDesc('is_sponsored')->values();
+
+        return response()->json($products);
+    }
+
     /**
      * @OA\Get(
      *     path="/api/businesses/{business}/products",

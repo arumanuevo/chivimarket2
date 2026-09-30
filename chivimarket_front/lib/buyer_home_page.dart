@@ -12,11 +12,28 @@ class BuyerHomePage extends StatefulWidget {
 
 class _BuyerHomePageState extends State<BuyerHomePage> {
   bool _isLoggedIn = false;
+  bool _isLoading = true;
+  List<dynamic> _products = [];
 
   @override
   void initState() {
     super.initState();
     _checkLogin();
+    _fetchExploreProducts();
+  }
+
+  Future<void> _fetchExploreProducts() async {
+    try {
+      final res = await ApiService.get('/explore/products');
+      if (res.statusCode == 200) {
+        if (mounted) setState(() {
+          _products = jsonDecode(res.body);
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _checkLogin() async {
@@ -80,20 +97,118 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                 ),
               ),
               
-              // Contenido exploratorio
+              // Contenido exploratorio / Vitrina
               Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                       Icon(Icons.shopping_bag_outlined, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
-                       const SizedBox(height: 16),
-                       Text('Explora y Compra', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                       const SizedBox(height: 8),
-                       Text('Próximamente: Productos, promos y mapa', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
-                    ],
-                  ),
-                ),
+                child: _isLoading 
+                ? const Center(child: CircularProgressIndicator())
+                : _products.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                           Icon(Icons.shopping_bag_outlined, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+                           const SizedBox(height: 16),
+                           Text('Explora y Compra', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                           const SizedBox(height: 8),
+                           Text('Aún no hay productos públicos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _fetchExploreProducts,
+                      child: GridView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.68, // Ajuste para que entre la foto y los textos
+                        ),
+                        itemCount: _products.length,
+                        itemBuilder: (context, index) {
+                          final prod = _products[index];
+                          final isSponsored = prod['is_sponsored'] == true;
+                          
+                          return GestureDetector(
+                            onTap: () {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Viendo producto: ${prod['name']}')));
+                            },
+                            child: GlassContainer(
+                              padding: EdgeInsets.zero,
+                              borderRadius: 16,
+                              child: Stack(
+                                children: [
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      // Imagen Placeholder
+                                      Expanded(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.surface,
+                                            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                          ),
+                                          child: Icon(Icons.image, size: 48, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
+                                        ),
+                                      ),
+                                      // Detalles
+                                      Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              prod['name'] ?? '',
+                                              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              '\$${prod['price']}',
+                                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Theme.of(context).colorScheme.primary),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.storefront, size: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                                                const SizedBox(width: 4),
+                                                Expanded(
+                                                  child: Text(
+                                                    prod['business']['name'] ?? 'Local',
+                                                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                                  // Etiqueta de Promocionado
+                                  if (isSponsored)
+                                    Positioned(
+                                      top: 8,
+                                      left: 8,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.amberAccent,
+                                          borderRadius: BorderRadius.circular(12),
+                                          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)]
+                                        ),
+                                        child: const Text('Promocionado', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
               )
             ],
           ),

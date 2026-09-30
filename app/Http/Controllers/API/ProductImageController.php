@@ -60,76 +60,87 @@ class ProductImageController extends Controller
      *     )
      * )
      */
-  // En ProductImageController.php
-public function store(Request $request, Product $product)
-{
-    \Log::info('Solicitud para subir imagen de producto', [
-        'product_id' => $product->id,
-        'has_file' => $request->hasFile('image'),
-        'is_primary' => $request->is_primary,
-        'description' => $request->description,
-    ]);
+    // En ProductImageController.php
+    public function store(Request $request, Product $product)
+    {
+        \Log::info('Solicitud para subir imagen de producto', [
+            'product_id' => $product->id,
+            'has_file' => $request->hasFile('image'),
+            'is_primary' => $request->is_primary,
+            'description' => $request->description,
+        ]);
 
-    $this->authorize('update', $product->business);
+        $this->authorize('update', $product->business);
 
-    // Convertir is_primary a booleano
-    $isPrimary = filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN);
+        // LIMITACIÓN POR PLAN DE SUSCRIPCIÓN
+        $user = $request->user();
+        $plan = $user->subscription->type ?? 'free';
+        $maxImages = (strtolower($plan) === 'premium' || strtolower($plan) === 'pro') ? 4 : 1;
 
-    $validator = Validator::make($request->all(), [
-        'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-        'is_primary' => 'boolean',
-        'description' => 'nullable|string|max:255'
-    ]);
+        if ($product->images()->count() >= $maxImages) {
+            return response()->json([
+                'message' => "Límite alcanzado: Tu plan $plan solo permite $maxImages foto(s) por producto."
+            ], 403);
+        }
 
-    if ($validator->fails()) {
-        \Log::error('Errores de validación:', $validator->errors()->toArray());
-        return response()->json([
-            'message' => 'Error de validación',
-            'errors' => $validator->errors()
-        ], 422);
+        // Convertir is_primary a booleano
+        $isPrimary = filter_var($request->is_primary, FILTER_VALIDATE_BOOLEAN);
+
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_primary' => 'boolean',
+            'description' => 'nullable|string|max:255'
+        ]);
+
+        if ($validator->fails()) {
+            \Log::error('Errores de validación:', $validator->errors()->toArray());
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            // Guardar directamente en public/product_images
+            $path = $request->file('image')->move(public_path('product_images'), time() . '.' . $request->file('image')->getClientOriginalExtension());
+
+            // Obtener solo el nombre del archivo (sin la ruta completa)
+            $relativePath = 'product_images/' . basename($path);
+
+            $image = $product->images()->create([
+                'url' => $relativePath,  // Guardar solo la ruta relativa
+                'is_primary' => $isPrimary,
+                'description' => $request->description
+            ]);
+
+            return response()->json([
+                'message' => 'Imagen subida correctamente',
+                'image' => $image
+            ], 201);
+
+        } catch (\Exception $e) {
+            \Log::error('Error de base de datos al subir imagen:', [
+                'error' => $e->getMessage(),
+                'sql' => $e->getSql(),
+                'bindings' => $e->getBindings()
+            ]);
+            return response()->json([
+                'message' => 'Error de base de datos: columna no encontrada',
+                'error' => $e->getMessage(),
+                'hint' => 'Asegúrate de que la columna "description" exista en la tabla product_images'
+            ], 500);
+
+        } catch (\Exception $e) {
+            \Log::error('Error al subir imagen:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'message' => 'Error al procesar la imagen',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
-
-    try {
-        // Guardar directamente en public/product_images
-        $path = $request->file('image')->move(public_path('product_images'), time() . '.' . $request->file('image')->getClientOriginalExtension());
-
-        // Obtener solo el nombre del archivo (sin la ruta completa)
-        $relativePath = 'product_images/' . basename($path);
-
-        $image = $product->images()->create([
-            'url' => $relativePath,  // Guardar solo la ruta relativa
-            'is_primary' => $isPrimary,
-            'description' => $request->description
-        ]);
-
-        return response()->json([
-            'message' => 'Imagen subida correctamente',
-            'image' => $image
-        ], 201);
-
-    } catch (\Exception $e) {
-        \Log::error('Error de base de datos al subir imagen:', [
-            'error' => $e->getMessage(),
-            'sql' => $e->getSql(),
-            'bindings' => $e->getBindings()
-        ]);
-        return response()->json([
-            'message' => 'Error de base de datos: columna no encontrada',
-            'error' => $e->getMessage(),
-            'hint' => 'Asegúrate de que la columna "description" exista en la tabla product_images'
-        ], 500);
-
-    } catch (\Exception $e) {
-        \Log::error('Error al subir imagen:', [
-            'error' => $e->getMessage(),
-            'trace' => $e->getTraceAsString()
-        ]);
-        return response()->json([
-            'message' => 'Error al procesar la imagen',
-            'error' => $e->getMessage()
-        ], 500);
-    }
-}
 
     /**
      * @OA\Get(
