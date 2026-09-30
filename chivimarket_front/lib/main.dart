@@ -8,6 +8,7 @@ import 'dashboard_page.dart';
 import 'create_business_page.dart';
 import 'my_businesses_page.dart';
 import 'superadmin_page.dart';
+import 'buyer_home_page.dart';
 import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
@@ -68,18 +69,18 @@ class ChivimarketApp extends StatelessWidget {
               iconTheme: IconThemeData(color: Colors.white),
             ),
           ),
-          initialRoute: '/landing',
-      routes: {
-        '/landing': (context) => LandingPage(),
-        '/login': (context) => LoginPage(),
-        '/register': (context) => RegisterPage(),
-        '/dashboard': (context) => DashboardPage(),
-        '/create-business': (context) => CreateBusinessPage(),
-        '/my-businesses': (context) => MyBusinessesPage(),
-        '/super-admin': (context) => SuperAdminPage(),
-        '/cuenta-verificada': (context) => CuentaVerificadaPage(),
-      },
-    );
+          initialRoute: '/buyer-home',
+          routes: {
+            '/buyer-home': (context) => const BuyerHomePage(),
+            '/login': (context) => const LoginPage(),
+            '/register': (context) => const RegisterPage(),
+            '/dashboard': (context) => const DashboardPage(),
+            '/create-business': (context) => const CreateBusinessPage(),
+            '/my-businesses': (context) => const MyBusinessesPage(),
+            '/super-admin': (context) => const SuperAdminPage(),
+            '/cuenta-verificada': (context) => const CuentaVerificadaPage(),
+          },
+        );
       }
     );
   }

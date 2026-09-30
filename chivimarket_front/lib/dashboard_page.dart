@@ -94,8 +94,8 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.dashboard, color: Colors.orangeAccent),
-              title: Text('Inicio', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+              leading: const Icon(Icons.dashboard, color: Colors.orangeAccent),
+              title: Text('Inicio (Panel)', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
               onTap: () => Navigator.pop(context),
             ),
             ListTile(
@@ -128,6 +128,15 @@ class _DashboardPageState extends State<DashboardPage> {
               leading: Icon(Icons.star, color: Colors.amber),
               title: Text('Suscripción Pro', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
               onTap: () {}, // Aquí irá la ruta de simular pago
+            ),
+            const Divider(color: Colors.white24),
+            ListTile(
+              leading: Icon(Icons.exit_to_app, color: Colors.greenAccent),
+              title: const Text('Volver a Compras', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+              onTap: () {
+                Navigator.pop(context); // Cierra drawer
+                Navigator.pushReplacementNamed(context, '/buyer-home');
+              },
             ),
           ],
         ),
