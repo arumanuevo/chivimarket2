@@ -74,7 +74,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
       drawer: Drawer(
-        backgroundColor: Color(0xFF1E293B), // Dark slate
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
