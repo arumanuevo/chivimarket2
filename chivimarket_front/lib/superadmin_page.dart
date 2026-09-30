@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'api_service.dart';
 import 'main.dart'; // Para AnimatedGradientBackground y GlassContainer
+import 'subscription_plans_page.dart';
 
 class SuperAdminPage extends StatefulWidget {
   const SuperAdminPage({Key? key}) : super(key: key);
@@ -71,6 +72,13 @@ class _SuperAdminPageState extends State<SuperAdminPage> {
         elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context)),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_suggest, color: Colors.orangeAccent),
+            tooltip: 'Configurar Alcances',
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionPlansPage()));
+            },
+          ),
           IconButton(icon: const Icon(Icons.refresh, color: Colors.white), onPressed: _fetchUsers)
         ],
       ),

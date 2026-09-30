@@ -324,16 +324,20 @@ Route::get('/admin/importar-ml', [\App\Http\Controllers\API\MLSyncController::cl
 
 @
 
-// Perfil din�mico desde Flutter SDK
-Route::get('/me', [\App\Http\Controllers\AuthController::class, 'me'])->middleware('auth:sanctum');
+    // Perfil din�mico desde Flutter SDK
+    Route::get('/me', [\App\Http\Controllers\AuthController::class, 'me'])->middleware('auth:sanctum');
 
 @
 
-// ----------------------------------------------------
+    // ----------------------------------------------------
 // RUTAS S�PER ADMINISTRADOR (God Mode)
 // ----------------------------------------------------
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/admin/users', [\App\Http\Controllers\UserController::class, 'index']);
-    Route::patch('/admin/users/{id}/subscription', [\App\Http\Controllers\UserController::class, 'updateSubscription']);
-});
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/admin/users', [\App\Http\Controllers\UserController::class, 'index']);
+        Route::patch('/admin/users/{id}/subscription', [\App\Http\Controllers\UserController::class, 'updateSubscription']);
+
+        // Gestión dinámica de alcances
+        Route::get('/admin/subscription-plans', [\App\Http\Controllers\API\SubscriptionPlanController::class, 'index']);
+        Route::patch('/admin/subscription-plans', [\App\Http\Controllers\API\SubscriptionPlanController::class, 'updateMassive']);
+    });
 

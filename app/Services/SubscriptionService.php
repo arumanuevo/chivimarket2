@@ -4,50 +4,53 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Business;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class SubscriptionService
 {
     /**
-     * Obtener los límites de negocios según el tipo de suscripción.
+     * Obtener los límites de productos según el tipo de suscripción.
      */
     public static function getMaxProductsForSubscription(string $plan): int
     {
-        $limits = [
-            'free' => 10,
-            'basic' => 100,
-            'premium' => 500,
-            'enterprise' => 1000
-        ];
-
-        return $limits[strtolower($plan)] ?? 0;
+        $planData = self::getPlanData(strtolower($plan));
+        return $planData['max_products'] ?? 0;
     }
-
-    /**
-     * Obtener los límites de productos según el tipo de suscripción.
-     */
-   /* public static function getMaxProductsForSubscription($subscriptionType)
-    {
-        $limits = [
-            'free' => 10,
-            'basic' => 50,
-            'premium' => 1000,
-            'enterprise' => 5000
-        ];
-        return $limits[$subscriptionType] ?? 10;
-    }*/
 
     public static function getMaxBusinessesForSubscription(string $plan): int
     {
-        $limits = [
-            'free' => 1,
-            'basic' => 5,
-            'premium' => 10,
-            'enterprise' => 20
-        ];
+        $planData = self::getPlanData(strtolower($plan));
+        return $planData['max_businesses'] ?? 0;
+    }
 
-        return $limits[strtolower($plan)] ?? 0;
+    /**
+     * Obtiene los datos del plan desde caché (o DB) 
+     */
+    private static function getPlanData(string $planName): array
+    {
+        $plans = Cache::rememberForever('subscription_plans_cache', function () {
+            try {
+                return SubscriptionPlan::all()->keyBy('plan_name')->toArray();
+            } catch (\Exception $e) {
+                return []; // Si la tabla no existe aún, devuelve array vacío para hacer fallback
+            }
+        });
+
+        // Hacemos Fallback a los quemados en código por si la DB falla temporalmente
+        if (empty($plans) || !isset($plans[$planName])) {
+            $defaultLimits = [
+                'free' => ['max_businesses' => 1, 'max_products' => 10],
+                'basic' => ['max_businesses' => 5, 'max_products' => 100],
+                'premium' => ['max_businesses' => 10, 'max_products' => 500],
+                'enterprise' => ['max_businesses' => 20, 'max_products' => 1000]
+            ];
+            return $defaultLimits[$planName] ?? ['max_businesses' => 0, 'max_products' => 0];
+        }
+
+        return $plans[$planName];
     }
 
     /**
@@ -112,25 +115,25 @@ class SubscriptionService
     public static function changePlan(User $user, $newPlan)
     {
         $subscription = $user->subscription ?? self::createDefaultSubscription($user);
-    
+
         $maxBusinesses = self::getMaxBusinessesForSubscription($newPlan);
         $maxProducts = self::getMaxProductsForSubscription($newPlan);
-    
+
         $businesses = $user->businesses()->withCount('products')->get();
         $currentBusinesses = $businesses->count();
-    
+
         // Si el usuario tiene más negocios que el límite del nuevo plan, desactivar los excedentes
         if ($currentBusinesses > $maxBusinesses) {
             $businessesToDeactivate = $businesses->sortBy('created_at')->take($currentBusinesses - $maxBusinesses);
-    
+
             foreach ($businessesToDeactivate as $business) {
                 $business->update(['is_active' => false]);
-    
+
                 // Si el negocio tiene más productos que el límite del nuevo plan, desactivar los productos excedentes
                 if ($business->products_count > $maxProducts) {
                     $products = $business->products()->orderBy('created_at')->get();
                     $productsToDeactivate = $products->take($business->products_count - $maxProducts);
-    
+
                     foreach ($productsToDeactivate as $product) {
                         $product->update(['is_active' => false]);
                     }
@@ -142,14 +145,14 @@ class SubscriptionService
                 if ($business->products_count > $maxProducts) {
                     $products = $business->products()->orderBy('created_at')->get();
                     $productsToDeactivate = $products->take($business->products_count - $maxProducts);
-    
+
                     foreach ($productsToDeactivate as $product) {
                         $product->update(['is_active' => false]);
                     }
                 }
             }
         }
-    
+
         // Actualizar la suscripción al nuevo plan
         $subscription->update([
             'type' => $newPlan,
@@ -157,11 +160,11 @@ class SubscriptionService
             'is_active' => true,
             'ends_at' => $newPlan === 'free' ? null : now()->addYear()
         ]);
-    
+
         return true;
     }
 
-    
-    
+
+
 }
 
