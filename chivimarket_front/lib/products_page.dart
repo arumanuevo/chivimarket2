@@ -89,80 +89,88 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   void _showAddProductModal() {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF0F172A),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (ctx) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom, left: 24, right: 24, top: 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Nuevo Producto', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
-              const SizedBox(height: 16),
-              
-              TextField(
-                controller: _nameCtrl,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(labelText: 'Nombre del Producto', labelStyle: TextStyle(color: Colors.white70)),
-              ),
-              const SizedBox(height: 12),
-              
-              Row(
+        return Dialog(
+          backgroundColor: const Color(0xFF0F172A),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Expanded(
-                     child: TextField(
-                        controller: _priceCtrl,
-                        keyboardType: TextInputType.number,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(labelText: 'Precio (\$)', labelStyle: TextStyle(color: Colors.white70)),
+                  Text('Nuevo Producto', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.amberAccent)),
+                  const SizedBox(height: 16),
+                  
+                  TextField(
+                    controller: _nameCtrl,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(labelText: 'Nombre del Producto', labelStyle: TextStyle(color: Colors.white70)),
+                  ),
+                  const SizedBox(height: 12),
+                  
+                  Row(
+                    children: [
+                       Expanded(
+                         child: TextField(
+                            controller: _priceCtrl,
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(labelText: 'Precio (\$)', labelStyle: TextStyle(color: Colors.white70)),
+                          ),
+                       ),
+                       const SizedBox(width: 12),
+                       Expanded(
+                         child: TextField(
+                            controller: _stockCtrl,
+                            keyboardType: TextInputType.number,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(labelText: 'Stock', labelStyle: TextStyle(color: Colors.white70)),
+                          ),
+                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  DropdownButtonFormField<String>(
+                    value: _selectedCategory,
+                    dropdownColor: const Color(0xFF1E293B),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(labelText: 'Categoría', labelStyle: TextStyle(color: Colors.white70)),
+                    items: _categories.map((c) => DropdownMenuItem(value: c['id'].toString(), child: Text(c['name']))).toList(),
+                    onChanged: (v) => setState(() => _selectedCategory = v),
+                  ),
+                  const SizedBox(height: 12),
+
+                  TextField(
+                    controller: _descCtrl,
+                    maxLines: 2,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: const InputDecoration(labelText: 'Descripción corta', labelStyle: TextStyle(color: Colors.white70)),
+                  ),
+                  const SizedBox(height: 24),
+                  
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancelar', style: TextStyle(color: Colors.white60)),
                       ),
-                   ),
-                   const SizedBox(width: 12),
-                   Expanded(
-                     child: TextField(
-                        controller: _stockCtrl,
-                        keyboardType: TextInputType.number,
-                        style: const TextStyle(color: Colors.white),
-                        decoration: const InputDecoration(labelText: 'Stock Inicial', labelStyle: TextStyle(color: Colors.white70)),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, foregroundColor: Colors.black87),
+                        onPressed: _createProduct,
+                        child: const Text('Guardar', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
-                   ),
+                    ],
+                  )
                 ],
               ),
-              const SizedBox(height: 12),
-
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                dropdownColor: const Color(0xFF1E293B),
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(labelText: 'Categoría', labelStyle: TextStyle(color: Colors.white70)),
-                items: _categories.map((c) => DropdownMenuItem(value: c['id'].toString(), child: Text(c['name']))).toList(),
-                onChanged: (v) => setState(() => _selectedCategory = v),
-              ),
-              const SizedBox(height: 12),
-
-              TextField(
-                controller: _descCtrl,
-                maxLines: 2,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(labelText: 'Descripción corta', labelStyle: TextStyle(color: Colors.white70)),
-              ),
-              const SizedBox(height: 24),
-              
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, foregroundColor: Colors.black87),
-                  onPressed: _createProduct,
-                  child: const Text('Guardar Producto en Catálogo', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
+            ),
           ),
         );
       }
@@ -174,16 +182,29 @@ class _ProductsPageState extends State<ProductsPage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Catálogo: ${widget.business['name']}', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
+        title: Text('Catálogo', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context)),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddProductModal,
-        backgroundColor: Colors.orangeAccent,
-        icon: const Icon(Icons.add, color: Colors.black87),
-        label: const Text('Nuevo', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Center(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.amberAccent,
+                  foregroundColor: Colors.black87,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  minimumSize: Size.zero
+                ),
+                onPressed: _showAddProductModal,
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('Nuevo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              ),
+            ),
+          )
+        ],
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
