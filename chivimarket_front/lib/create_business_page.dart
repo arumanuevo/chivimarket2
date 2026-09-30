@@ -9,7 +9,7 @@ import 'api_service.dart';
 import 'main.dart'; // Para reutilizar GlassContainer y AnimatedGradientBackground
 
 class CreateBusinessPage extends StatefulWidget {
-  const CreateBusinessPage({Key? key}) : super(key: key);
+  CreateBusinessPage({Key? key}) : super(key: key);
 
   @override
   State<CreateBusinessPage> createState() => _CreateBusinessPageState();
@@ -98,11 +98,11 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
 
         if (mounted) {
           if (allImagesUploaded && _pendingImages.isNotEmpty) {
-             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Tienda Creada Exitosamente con Galería!'), backgroundColor: Colors.green));
+             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('¡Tienda Creada Exitosamente con Galería!'), backgroundColor: Colors.green));
           } else if (_pendingImages.isNotEmpty) {
-             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tienda creada, pero fallaron algunas fotos.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.orange));
+             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Tienda creada, pero fallaron algunas fotos.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.orange));
           } else {
-             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Tienda Creada Exitosamente!'), backgroundColor: Colors.green));
+             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('¡Tienda Creada Exitosamente!'), backgroundColor: Colors.green));
           }
           Navigator.pop(context, true); // Volver al Dashboard
         }
@@ -149,13 +149,13 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                   onStepContinue: () {
                     if (_currentStep == 0) {
                       if (_nameController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('El nombre comercial es obligatorio', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.red));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('El nombre comercial es obligatorio', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.red));
                         return;
                       }
                       setState(() => _currentStep += 1);
                     } else if (_currentStep == 1) {
                       if (_modality != 'online' && _addressController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('La dirección es obligatoria', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.red));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('La dirección es obligatoria', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.red));
                         return;
                       }
                       setState(() => _currentStep += 1);
@@ -208,7 +208,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           SizedBox(height: 24),
                           DropdownButtonFormField<String>(
                             value: _modality,
-                            dropdownColor: const Color(0xFF1E293B),
+                            dropdownColor: Color(0xFF1E293B),
                             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                             decoration: InputDecoration(labelText: 'Modalidad de Servicio', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             items: const [
@@ -236,14 +236,14 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                               decoration: InputDecoration(labelText: 'Dirección Completa', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             ),
                           if (_modality == 'online')
-                            const Padding(
+                            Padding(
                               padding: EdgeInsets.all(8.0),
                               child: Text('Como seleccionaste Online, tu negocio buscará posicionarse sin limitación geográfica.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontStyle: FontStyle.italic)),
                             ),
                           SizedBox(height: 24),
                           DropdownButtonFormField<String>(
                             value: _selectedCategory,
-                            dropdownColor: const Color(0xFF1E293B),
+                            dropdownColor: Color(0xFF1E293B),
                             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                             decoration: InputDecoration(labelText: 'Categoría Principal', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             items: const [
@@ -309,7 +309,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                 SizedBox(height: 12),
                                 DropdownButtonFormField<String>(
                                   value: _customFeatureType,
-                                  dropdownColor: const Color(0xFF1E293B),
+                                  dropdownColor: Color(0xFF1E293B),
                                   style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                                   decoration: InputDecoration(labelText: 'Tipo de Respuesta', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
                                   items: const [
@@ -348,7 +348,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                             ),
                           ),
 
-                          const Divider(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24), height: 48),
+                          Divider(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24), height: 48),
 
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -367,11 +367,11 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           
                           // GRID DINÁMICO
                           _pendingImages.isEmpty 
-                            ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en preparación.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))))
+                            ? Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en preparación.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))))
                             : GridView.builder(
                                 shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                physics: NeverScrollableScrollPhysics(),
+                                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 4, 
                                   crossAxisSpacing: 8,
                                   mainAxisSpacing: 8,

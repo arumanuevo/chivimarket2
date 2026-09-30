@@ -5,7 +5,7 @@ import 'api_service.dart';
 import 'main.dart'; // Reutilizar layouts
 
 class SubscriptionPlansPage extends StatefulWidget {
-  const SubscriptionPlansPage({Key? key}) : super(key: key);
+  SubscriptionPlansPage({Key? key}) : super(key: key);
 
   @override
   State<SubscriptionPlansPage> createState() => _SubscriptionPlansPageState();
@@ -66,7 +66,7 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
       final res = await ApiService.patch('/admin/subscription-plans', {'plans': updatedPlans});
       
       if (res.statusCode == 200) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Límites actualizados masivamente en el Servidor'), backgroundColor: Colors.green));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Límites actualizados masivamente en el Servidor'), backgroundColor: Colors.green));
       } else {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al guardar: ${res.statusCode}'), backgroundColor: Colors.red));
       }
@@ -90,7 +90,7 @@ class _SubscriptionPlansPageState extends State<SubscriptionPlansPage> {
       body: AnimatedGradientBackground(
         child: SafeArea(
           child: _isLoading 
-            ? const Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
+            ? Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
             : SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: GlassContainer(

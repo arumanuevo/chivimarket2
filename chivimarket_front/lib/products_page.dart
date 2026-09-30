@@ -8,7 +8,7 @@ import 'main.dart';
 class ProductsPage extends StatefulWidget {
   final Map<String, dynamic> business;
 
-  const ProductsPage({Key? key, required this.business}) : super(key: key);
+  ProductsPage({Key? key, required this.business}) : super(key: key);
 
   @override
   State<ProductsPage> createState() => _ProductsPageState();
@@ -52,7 +52,7 @@ class _ProductsPageState extends State<ProductsPage> {
 
   Future<void> _saveProduct(Map<String, dynamic>? existingProduct) async {
     if (_nameCtrl.text.isEmpty || _priceCtrl.text.isEmpty || _stockCtrl.text.isEmpty || _selectedCategory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Complete todos los campos obligatorios'), backgroundColor: Colors.orange));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Complete todos los campos obligatorios'), backgroundColor: Colors.orange));
       return;
     }
 
@@ -95,7 +95,7 @@ class _ProductsPageState extends State<ProductsPage> {
     bool confirm = await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: Color(0xFF1E293B),
         title: Text('Eliminar Producto', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         content: Text('¿Estás seguro de que deseas eliminar permanentemente este producto del catálogo?', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
         actions: [
@@ -112,7 +112,7 @@ class _ProductsPageState extends State<ProductsPage> {
        // Shallow route DELETE /products/{id} (Dado de baja temporal o físico según tu lógica backend)
        final res = await ApiService.delete('/products/$productId');
        if (res.statusCode == 200 || res.statusCode == 204) {
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Producto eliminado'), backgroundColor: Colors.redAccent));
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Producto eliminado'), backgroundColor: Colors.redAccent));
           _fetchData();
        } else {
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo borrar: ${res.statusCode}'), backgroundColor: Colors.orange));
@@ -144,7 +144,7 @@ class _ProductsPageState extends State<ProductsPage> {
       context: context,
       builder: (ctx) {
         return Dialog(
-          backgroundColor: const Color(0xFF0F172A),
+          backgroundColor: Color(0xFF0F172A),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -188,7 +188,7 @@ class _ProductsPageState extends State<ProductsPage> {
 
                   DropdownButtonFormField<String>(
                     value: _selectedCategory,
-                    dropdownColor: const Color(0xFF1E293B),
+                    dropdownColor: Color(0xFF1E293B),
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                     decoration: InputDecoration(labelText: 'Categoría', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                     items: _categories.map((c) => DropdownMenuItem(value: c['id'].toString(), child: Text(c['name']))).toList(),
@@ -260,7 +260,7 @@ class _ProductsPageState extends State<ProductsPage> {
       body: AnimatedGradientBackground(
         child: SafeArea(
           child: _isLoading 
-            ? const Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
+            ? Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
             : _products.isEmpty 
                ? Center(child: Text('Aún no tienes productos.\nToca "Nuevo" arriba a la derecha.', textAlign: TextAlign.center, style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 16)))
                : ListView.builder(

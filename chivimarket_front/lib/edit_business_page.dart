@@ -12,7 +12,7 @@ import 'products_page.dart';
 class EditBusinessPage extends StatefulWidget {
   final Map<String, dynamic> business;
 
-  const EditBusinessPage({Key? key, required this.business}) : super(key: key);
+  EditBusinessPage({Key? key, required this.business}) : super(key: key);
 
   @override
   State<EditBusinessPage> createState() => _EditBusinessPageState();
@@ -79,10 +79,10 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
             setState(() {
                _galleryImages.add(newImage);
             });
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto subida a la galería'), backgroundColor: Colors.green));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Foto subida a la galería'), backgroundColor: Colors.green));
           }
         } else {
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al subir imagen al servidor.'), backgroundColor: Colors.red));
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al subir imagen al servidor.'), backgroundColor: Colors.red));
         }
       } catch (e) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error de red: $e'), backgroundColor: Colors.red));
@@ -96,7 +96,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
     bool confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: Color(0xFF1E293B),
         title: Text('Borrar foto', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         content: Text('¿Estás seguro de que deseas eliminar esta fotografía?', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
         actions: [
@@ -121,7 +121,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         setState(() => _galleryImages.removeAt(index));
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto eliminada'), backgroundColor: Colors.green));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Foto eliminada'), backgroundColor: Colors.green));
       } else {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo borrar: ${response.statusCode}'), backgroundColor: Colors.red));
       }
@@ -142,7 +142,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
 
       if (textResponse.statusCode == 200) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Detalles guardados exitosamente'), backgroundColor: Colors.green));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Detalles guardados exitosamente'), backgroundColor: Colors.green));
           Navigator.pop(context, true);
         }
       } else {
@@ -168,7 +168,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
       body: AnimatedGradientBackground(
         child: SafeArea(
           child: _isLoading 
-            ? const Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
+            ? Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
             : SingleChildScrollView(
             padding: const EdgeInsets.all(16.0),
             child: GlassContainer(
@@ -220,7 +220,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                     ),
                   ),
 
-                  const Divider(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24), height: 48),
+                  Divider(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24), height: 48),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -239,11 +239,11 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                   
                   // GRID DINÁMICO
                   _galleryImages.isEmpty 
-                    ? const Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en galería.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))))
+                    ? Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en galería.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))))
                     : GridView.builder(
                         shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        physics: NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 4, // 4 columnas para que queden muy pequeñas y estéticas
                           crossAxisSpacing: 8,
                           mainAxisSpacing: 8,

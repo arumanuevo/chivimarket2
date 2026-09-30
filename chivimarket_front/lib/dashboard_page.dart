@@ -6,7 +6,7 @@ import 'api_service.dart';
 import 'main.dart'; // Para reutilizar GlassContainer y AnimatedGradientBackground
 
 class DashboardPage extends StatefulWidget {
-  const DashboardPage({Key? key}) : super(key: key);
+  DashboardPage({Key? key}) : super(key: key);
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
@@ -74,7 +74,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ],
       ),
       drawer: Drawer(
-        backgroundColor: const Color(0xFF1E293B), // Dark slate
+        backgroundColor: Color(0xFF1E293B), // Dark slate
         child: ListView(
           padding: EdgeInsets.zero,
           children: [

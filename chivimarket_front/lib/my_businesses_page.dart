@@ -7,7 +7,7 @@ import 'edit_business_page.dart';
 import 'products_page.dart';
 
 class MyBusinessesPage extends StatefulWidget {
-  const MyBusinessesPage({Key? key}) : super(key: key);
+  MyBusinessesPage({Key? key}) : super(key: key);
 
   @override
   State<MyBusinessesPage> createState() => _MyBusinessesPageState();
@@ -51,7 +51,7 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
       body: AnimatedGradientBackground(
         child: SafeArea(
           child: _isLoading && _myBusinesses.isEmpty
-              ? const Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
+              ? Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
               : _myBusinesses.isEmpty
                   ? Center(
                       child: Text('Aún no tienes negocios.\n¡Crea uno desde el Dashboard!', 

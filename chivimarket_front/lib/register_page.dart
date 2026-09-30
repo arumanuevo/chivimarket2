@@ -6,7 +6,7 @@ import 'api_service.dart';
 import 'main.dart'; // Para reutilizar GlassContainer y AnimatedGradientBackground
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({Key? key}) : super(key: key);
+  RegisterPage({Key? key}) : super(key: key);
 
   @override
   State<RegisterPage> createState() => _RegisterPageState();
@@ -33,7 +33,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       if (response.statusCode == 201) {
         if (mounted) {
-           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cuenta registrada con éxito. ¡Verifica tu correo!'), backgroundColor: Colors.green));
+           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Cuenta registrada con éxito. ¡Verifica tu correo!'), backgroundColor: Colors.green));
            Navigator.pushReplacementNamed(context, '/login');
         }
       } else {
@@ -115,7 +115,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         foregroundColor: Theme.of(context).colorScheme.onSurface,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      child: _isLoading ? const CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface) : Text('Registrarse', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      child: _isLoading ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface) : Text('Registrarse', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],

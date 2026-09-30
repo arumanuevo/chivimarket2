@@ -6,7 +6,7 @@ import 'main.dart'; // Para AnimatedGradientBackground y GlassContainer
 import 'subscription_plans_page.dart';
 
 class SuperAdminPage extends StatefulWidget {
-  const SuperAdminPage({Key? key}) : super(key: key);
+  SuperAdminPage({Key? key}) : super(key: key);
 
   @override
   State<SuperAdminPage> createState() => _SuperAdminPageState();
@@ -52,7 +52,7 @@ class _SuperAdminPageState extends State<SuperAdminPage> {
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Plan de $userName actualizado a ${newPlan.toUpperCase()}'), backgroundColor: Colors.green));
           _fetchUsers();
         } else {
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al actualizar plan'), backgroundColor: Colors.red));
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al actualizar plan'), backgroundColor: Colors.red));
           setState(() => _isLoading = false);
         }
       } catch (e) {
@@ -76,7 +76,7 @@ class _SuperAdminPageState extends State<SuperAdminPage> {
             icon: Icon(Icons.settings_suggest, color: Colors.orangeAccent),
             tooltip: 'Configurar Alcances',
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionPlansPage()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => SubscriptionPlansPage()));
             },
           ),
           IconButton(icon: Icon(Icons.refresh, color: Theme.of(context).colorScheme.onSurface), onPressed: _fetchUsers)
@@ -85,7 +85,7 @@ class _SuperAdminPageState extends State<SuperAdminPage> {
       body: AnimatedGradientBackground(
         child: SafeArea(
           child: _isLoading && _users.isEmpty
-              ? const Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
+              ? Center(child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _users.length,
@@ -161,7 +161,7 @@ class _ChangePlanDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: Color(0xFF1E293B),
       title: Text('Cambiar Plan: $userName', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
       content: Column(
         mainAxisSize: MainAxisSize.min,

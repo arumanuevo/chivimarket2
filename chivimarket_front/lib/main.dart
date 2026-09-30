@@ -16,11 +16,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // TODO: ¡Pega tu SITKEY pública de ReCAPTCHA aquí para el Frontend!
   await GRecaptchaV3.ready('6LfajdItAAAAALK0AsHklkRGZz6D_kwQfNw1zNhi');
-  runApp(const ChivimarketApp());
+  runApp(ChivimarketApp());
 }
 
 class ChivimarketApp extends StatelessWidget {
-  const ChivimarketApp({Key? key}) : super(key: key);
+  ChivimarketApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class ChivimarketApp extends StatelessWidget {
           // CLARO
           theme: ThemeData(
             fontFamily: GoogleFonts.outfit().fontFamily,
-            scaffoldBackgroundColor: const Color(0xFFF1F5F9), // Slate 50
+            scaffoldBackgroundColor: Color(0xFFF1F5F9), // Slate 50
             primarySwatch: Colors.orange,
             colorScheme: const ColorScheme.light(
               primary: Color(0xFFF97316),
@@ -42,7 +42,7 @@ class ChivimarketApp extends StatelessWidget {
               surface: Color(0x99FFFFFF), // Superficie clarita
               onSurface: Colors.black87, // Texto principal en claro
             ),
-            appBarTheme: const AppBarTheme(
+            appBarTheme: AppBarTheme(
               color: Colors.transparent,
               elevation: 0,
               centerTitle: true,
@@ -54,14 +54,14 @@ class ChivimarketApp extends StatelessWidget {
           darkTheme: ThemeData(
             fontFamily: GoogleFonts.outfit().fontFamily,
             primarySwatch: Colors.orange,
-            scaffoldBackgroundColor: const Color(0xFF1E293B), // Dark blueish gray background
+            scaffoldBackgroundColor: Color(0xFF1E293B), // Dark blueish gray background
             colorScheme: const ColorScheme.dark(
               primary: Color(0xFFF97316),
               secondary: Color(0xFFFB923C),
               surface: Color(0x33FFFFFF), // Transparent surface for glassmorphism
               onSurface: Colors.white,
             ),
-            appBarTheme: const AppBarTheme(
+            appBarTheme: AppBarTheme(
               color: Colors.transparent,
               elevation: 0,
               centerTitle: true,
@@ -70,14 +70,14 @@ class ChivimarketApp extends StatelessWidget {
           ),
           initialRoute: '/landing',
       routes: {
-        '/landing': (context) => const LandingPage(),
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
-        '/dashboard': (context) => const DashboardPage(),
-        '/create-business': (context) => const CreateBusinessPage(),
-        '/my-businesses': (context) => const MyBusinessesPage(),
-        '/super-admin': (context) => const SuperAdminPage(),
-        '/cuenta-verificada': (context) => const CuentaVerificadaPage(),
+        '/landing': (context) => LandingPage(),
+        '/login': (context) => LoginPage(),
+        '/register': (context) => RegisterPage(),
+        '/dashboard': (context) => DashboardPage(),
+        '/create-business': (context) => CreateBusinessPage(),
+        '/my-businesses': (context) => MyBusinessesPage(),
+        '/super-admin': (context) => SuperAdminPage(),
+        '/cuenta-verificada': (context) => CuentaVerificadaPage(),
       },
     );
       }
@@ -95,7 +95,7 @@ class GlassContainer extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final double borderRadius;
 
-  const GlassContainer({
+  GlassContainer({
     Key? key,
     required this.child,
     this.width,
@@ -122,7 +122,7 @@ class GlassContainer extends StatelessWidget {
               BoxShadow(
                 color: Colors.black.withOpacity(0.2),
                 blurRadius: 30,
-                offset: const Offset(0, 10),
+                offset: Offset(0, 10),
               )
             ],
           ),
@@ -135,7 +135,7 @@ class GlassContainer extends StatelessWidget {
 
 class AnimatedGradientBackground extends StatelessWidget {
   final Widget child;
-  const AnimatedGradientBackground({Key? key, required this.child}) : super(key: key);
+  AnimatedGradientBackground({Key? key, required this.child}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -147,13 +147,13 @@ class AnimatedGradientBackground extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark ? [
-            const Color(0xFF0F172A), // Slate 900
-            const Color(0xFF1E1B4B), // Indigo 950
-            const Color(0xFF431407), // Orange 950
+            Color(0xFF0F172A), // Slate 900
+            Color(0xFF1E1B4B), // Indigo 950
+            Color(0xFF431407), // Orange 950
           ] : [
-            const Color(0xFFFFEDD5), // Orange 50
-            const Color(0xFFE0E7FF), // Indigo 50
-            const Color(0xFFF8FAFC), // Slate 50
+            Color(0xFFFFEDD5), // Orange 50
+            Color(0xFFE0E7FF), // Indigo 50
+            Color(0xFFF8FAFC), // Slate 50
           ],
           stops: const [0.1, 0.5, 0.9],
         ),
@@ -182,7 +182,7 @@ class AnimatedGradientBackground extends StatelessWidget {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF6366F1).withOpacity(0.1), // Indigo glow
+                color: Color(0xFF6366F1).withOpacity(0.1), // Indigo glow
               ),
               child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100), child: Container()),
             ),
@@ -198,7 +198,7 @@ class AnimatedGradientBackground extends StatelessWidget {
 // VIEWS
 // ----------------------------------------------------
 class LandingPage extends StatelessWidget {
-  const LandingPage({Key? key}) : super(key: key);
+  LandingPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -281,7 +281,7 @@ class LandingPage extends StatelessWidget {
                         borderRadius: 40,
                         child: Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               child: TextField(
                                 style: TextStyle(color: Colors.white),
                                 decoration: InputDecoration(
@@ -295,7 +295,7 @@ class LandingPage extends StatelessWidget {
                             ),
                             Container(
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
+                                gradient: LinearGradient(
                                   colors: [Color(0xFFF97316), Color(0xFFEA580C)],
                                 ),
                                 borderRadius: BorderRadius.circular(30),
@@ -327,7 +327,7 @@ class LandingPage extends StatelessWidget {
 }
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  LoginPage({Key? key}) : super(key: key);
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -432,7 +432,7 @@ class _LoginPageState extends State<LoginPage> {
                       shadowColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? CircularProgressIndicator(color: Colors.white)
                         : Text('Comenzar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
@@ -440,7 +440,7 @@ class _LoginPageState extends State<LoginPage> {
                 Row(
                   children: [
                     Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
-                    const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('O INGRESAR CON', style: TextStyle(color: Colors.white54, fontSize: 12))),
+                    Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('O INGRESAR CON', style: TextStyle(color: Colors.white54, fontSize: 12))),
                     Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
                   ],
                 ),
@@ -477,7 +477,7 @@ class _LoginPageState extends State<LoginPage> {
 
 
 class CuentaVerificadaPage extends StatelessWidget {
-  const CuentaVerificadaPage({Key? key}) : super(key: key);
+  CuentaVerificadaPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
