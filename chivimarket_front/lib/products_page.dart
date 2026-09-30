@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'api_service.dart';
-import 'main.dart'; // AnimatedGradientBackground y GlassContainer
+import 'main.dart'; 
 
 class ProductsPage extends StatefulWidget {
   final Map<String, dynamic> business;
@@ -33,13 +33,11 @@ class _ProductsPageState extends State<ProductsPage> {
   Future<void> _fetchData() async {
     setState(() => _isLoading = true);
     try {
-      // 1. Obtener categorias para combobox 
       final catRes = await ApiService.get('/product-categories');
       if (catRes.statusCode == 200) {
         _categories = jsonDecode(catRes.body);
       }
       
-      // 2. Obtener productos de ESTE negocio
       final prodRes = await ApiService.get('/businesses/${widget.business['id']}/products');
       if (prodRes.statusCode == 200) {
         _products = jsonDecode(prodRes.body);
@@ -51,7 +49,7 @@ class _ProductsPageState extends State<ProductsPage> {
     }
   }
 
-  Future<void> _createProduct() async {
+  Future<void> _saveProduct(Map<String, dynamic>? existingProduct) async {
     if (_nameCtrl.text.isEmpty || _priceCtrl.text.isEmpty || _stockCtrl.text.isEmpty || _selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Complete todos los campos obligatorios'), backgroundColor: Colors.orange));
       return;
@@ -59,27 +57,31 @@ class _ProductsPageState extends State<ProductsPage> {
 
     setState(() => _isLoading = true);
     try {
-      final res = await ApiService.post('/businesses/${widget.business['id']}/products', {
+      final payload = {
         'name': _nameCtrl.text,
         'description': _descCtrl.text,
         'price': double.tryParse(_priceCtrl.text) ?? 0.0,
         'stock': int.tryParse(_stockCtrl.text) ?? 0,
         'category_id': int.parse(_selectedCategory!),
         'is_active': true
-      });
+      };
 
-      if (res.statusCode == 201) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Producto creado'), backgroundColor: Colors.green));
-        _nameCtrl.clear();
-        _descCtrl.clear();
-        _priceCtrl.clear();
-        _stockCtrl.clear();
-        _selectedCategory = null;
+      http.Response res;
+      if (existingProduct == null) {
+         // Crear NUEVO producto
+         res = await ApiService.post('/businesses/${widget.business['id']}/products', payload);
+      } else {
+         // EDITAR producto (Ruta Shallow)
+         res = await ApiService.patch('/products/${existingProduct['id']}', payload);
+      }
+
+      if (res.statusCode == 201 || res.statusCode == 200) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(existingProduct == null ? 'Producto creado' : 'Producto actualizado'), backgroundColor: Colors.green));
         Navigator.pop(context); // Cierra el modal
         _fetchData();
       } else {
          final error = jsonDecode(res.body);
-         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error['message'] ?? 'Falló validación'), backgroundColor: Colors.red));
+         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error['message'] ?? 'Falló guardado'), backgroundColor: Colors.red));
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
@@ -88,7 +90,55 @@ class _ProductsPageState extends State<ProductsPage> {
     }
   }
 
-  void _showAddProductModal() {
+  Future<void> _deleteProduct(int productId) async {
+    bool confirm = await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text('Eliminar Producto', style: TextStyle(color: Colors.white)),
+        content: const Text('¿Estás seguro de que deseas eliminar permanentemente este producto del catálogo?', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar', style: TextStyle(color: Colors.white54))),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent))),
+        ],
+      )
+    ) ?? false;
+
+    if (!confirm) return;
+
+    setState(() => _isLoading = true);
+    try {
+       // Shallow route DELETE /products/{id} (Dado de baja temporal o físico según tu lógica backend)
+       final res = await ApiService.delete('/products/$productId');
+       if (res.statusCode == 200 || res.statusCode == 204) {
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Producto eliminado'), backgroundColor: Colors.redAccent));
+          _fetchData();
+       } else {
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo borrar: ${res.statusCode}'), backgroundColor: Colors.orange));
+       }
+    } catch (e) {
+       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showProductModal({Map<String, dynamic>? product}) {
+    // Si viene producto, es Edición. Precargar.
+    if (product != null) {
+      _nameCtrl.text = product['name'] ?? '';
+      _descCtrl.text = product['description'] ?? '';
+      _priceCtrl.text = product['price'].toString();
+      _stockCtrl.text = product['stock'].toString();
+      _selectedCategory = product['category_id']?.toString();
+    } else {
+      _nameCtrl.clear();
+      _descCtrl.clear();
+      _priceCtrl.clear();
+      _stockCtrl.clear();
+      _selectedCategory = null;
+    }
+
     showDialog(
       context: context,
       builder: (ctx) {
@@ -102,7 +152,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Nuevo Producto', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.amberAccent)),
+                  Text(product == null ? 'Nuevo Producto' : 'Editar Producto', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.amberAccent)),
                   const SizedBox(height: 16),
                   
                   TextField(
@@ -128,7 +178,7 @@ class _ProductsPageState extends State<ProductsPage> {
                             controller: _stockCtrl,
                             keyboardType: TextInputType.number,
                             style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(labelText: 'Stock', labelStyle: TextStyle(color: Colors.white70)),
+                            decoration: const InputDecoration(labelText: 'Stock Inicial', labelStyle: TextStyle(color: Colors.white70)),
                           ),
                        ),
                     ],
@@ -163,8 +213,8 @@ class _ProductsPageState extends State<ProductsPage> {
                       const SizedBox(width: 8),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, foregroundColor: Colors.black87),
-                        onPressed: _createProduct,
-                        child: const Text('Guardar', style: TextStyle(fontWeight: FontWeight.bold)),
+                        onPressed: () => _saveProduct(product),
+                        child: Text(product == null ? 'Guardar' : 'Actualizar', style: const TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   )
@@ -198,7 +248,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   minimumSize: Size.zero
                 ),
-                onPressed: _showAddProductModal,
+                onPressed: () => _showProductModal(product: null), // NUEVO PRODUCTO
                 icon: const Icon(Icons.add, size: 16),
                 label: const Text('Nuevo', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
               ),
@@ -211,7 +261,7 @@ class _ProductsPageState extends State<ProductsPage> {
           child: _isLoading 
             ? const Center(child: CircularProgressIndicator(color: Colors.white))
             : _products.isEmpty 
-               ? Center(child: Text('Aún no tienes productos.\nToca "Nuevo" para empezar.', textAlign: TextAlign.center, style: GoogleFonts.outfit(color: Colors.white70, fontSize: 16)))
+               ? Center(child: Text('Aún no tienes productos.\nToca "Nuevo" arriba a la derecha.', textAlign: TextAlign.center, style: GoogleFonts.outfit(color: Colors.white70, fontSize: 16)))
                : ListView.builder(
                    padding: const EdgeInsets.all(16),
                    itemCount: _products.length,
@@ -221,21 +271,33 @@ class _ProductsPageState extends State<ProductsPage> {
                         color: Colors.white.withOpacity(0.1),
                         margin: const EdgeInsets.only(bottom: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
-                          title: Text(p['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                        child: InkWell( // Tap para editar
+                          onTap: () => _showProductModal(product: p),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
                               children: [
-                                Text('Precio: \$${p['price']}  •  Stock: ${p['stock']}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w600)),
-                                const SizedBox(height: 4),
-                                Text(p['description'] ?? 'Sin descripción', style: const TextStyle(color: Colors.white60)),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(p['name'], style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 18)),
+                                      const SizedBox(height: 6),
+                                      Text('Precio: \$${p['price']}  •  Stock: ${p['stock']}', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w600)),
+                                      const SizedBox(height: 4),
+                                      Text(p['description'] ?? 'Sin descripción', style: const TextStyle(color: Colors.white60)),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () => _deleteProduct(p['id']),
+                                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                                  tooltip: 'Eliminar Producto',
+                                ),
                               ],
                             ),
                           ),
-                          trailing: const Icon(Icons.inventory_2, color: Colors.white30),
                         ),
                      );
                    }

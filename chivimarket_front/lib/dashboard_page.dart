@@ -93,7 +93,7 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             ListTile(
               leading: const Icon(Icons.store, color: Colors.white70),
-              title: const Text('Mis Negocios', style: TextStyle(color: Colors.white70)),
+              title: const Text('Mis Tiendas y Catálogos', style: TextStyle(color: Colors.white70)),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/my-businesses');
