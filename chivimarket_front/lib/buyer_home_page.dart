@@ -14,7 +14,9 @@ class BuyerHomePage extends StatefulWidget {
 class _BuyerHomePageState extends State<BuyerHomePage> {
   bool _isLoggedIn = false;
   bool _isLoading = true;
-  List<dynamic> _products = [];
+  List<dynamic> _items = []; // Can be products or businesses
+  String _searchMode = 'products'; // 'products' or 'businesses'
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -23,12 +25,64 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     _fetchExploreProducts();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchExploreProducts() async {
+    setState(() => _isLoading = true);
     try {
       final res = await ApiService.get('/explore/products');
       if (res.statusCode == 200) {
         if (mounted) setState(() {
-          _products = jsonDecode(res.body);
+          _items = jsonDecode(res.body);
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _fetchTopBusinesses() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await ApiService.get('/businesses/top-rated');
+      if (res.statusCode == 200) {
+        if (mounted) setState(() {
+          // Backend returns paginated data for businesses/top-rated
+          final data = jsonDecode(res.body);
+          _items = data['data'] ?? [];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _performSearch(String query) async {
+    if (query.isEmpty) {
+      if (_searchMode == 'products') {
+        _fetchExploreProducts();
+      } else {
+        _fetchTopBusinesses();
+      }
+      return;
+    }
+    
+    setState(() => _isLoading = true);
+    try {
+      String endpoint = _searchMode == 'products' 
+          ? '/products/search?query=$query' 
+          : '/businesses/search?name=$query';
+          
+      final res = await ApiService.get(endpoint);
+      if (res.statusCode == 200) {
+        if (mounted) setState(() {
+          _items = jsonDecode(res.body);
           _isLoading = false;
         });
       }
@@ -80,21 +134,55 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Buscador
+              // Buscador y Filtro
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: GlassContainer(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  borderRadius: 30,
-                  child: TextField(
-                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                    decoration: InputDecoration(
-                      hintText: 'Buscar locales, productos o servicios...',
-                      hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
-                      border: InputBorder.none,
-                      icon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GlassContainer(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        borderRadius: 30,
+                        child: TextField(
+                          controller: _searchController,
+                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                          decoration: InputDecoration(
+                            hintText: _searchMode == 'products' ? 'Buscar productos...' : 'Buscar tiendas...',
+                            hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                            border: InputBorder.none,
+                            icon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
+                          ),
+                          onSubmitted: (val) => _performSearch(val),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    // Dropdown para cambiar modo de búsqueda
+                    GlassContainer(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      borderRadius: 30,
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _searchMode,
+                          dropdownColor: Theme.of(context).colorScheme.surface,
+                          icon: Icon(Icons.filter_list, color: Theme.of(context).colorScheme.primary),
+                          items: [
+                            DropdownMenuItem(value: 'products', child: Text('Productos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
+                            DropdownMenuItem(value: 'businesses', child: Text('Tiendas', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                _searchMode = val;
+                                _searchController.clear();
+                              });
+                              _performSearch('');
+                            }
+                          },
+                        ),
+                      ),
+                    )
+                  ],
                 ),
               ),
               
@@ -102,21 +190,21 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
               Expanded(
                 child: _isLoading 
                 ? const Center(child: CircularProgressIndicator())
-                : _products.isEmpty
+                : _items.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                           Icon(Icons.shopping_bag_outlined, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+                           Icon(Icons.search_off, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
                            const SizedBox(height: 16),
-                           Text('Explora y Compra', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+                           Text('Sin resultados', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                            const SizedBox(height: 8),
-                           Text('Aún no hay productos públicos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
+                           Text('Intenta con otra búsqueda', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
                         ],
                       ),
                     )
                   : RefreshIndicator(
-                      onRefresh: _fetchExploreProducts,
+                      onRefresh: () => _performSearch(_searchController.text),
                       child: GridView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
@@ -125,14 +213,22 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                           mainAxisSpacing: 16,
                           childAspectRatio: 0.70, // Espacio suficiente para foto cuadrada y texto
                         ),
-                        itemCount: _products.length,
+                        itemCount: _items.length,
                         itemBuilder: (context, index) {
-                          final prod = _products[index];
-                          final isSponsored = prod['is_sponsored'] == true;
+                          final item = _items[index];
+                          final isBusiness = _searchMode == 'businesses';
+                          final isSponsored = !isBusiness && (item['is_sponsored'] == true);
+                          final title = item['name'] ?? '';
+                          final subtitle = isBusiness 
+                              ? (item['address'] ?? 'Tienda') 
+                              : (item['business'] != null ? (item['business']['name'] ?? 'Local') : 'Local');
+                          final priceOrRating = isBusiness 
+                              ? '⭐ ${item['avg_rating'] ?? 'Nuevo'}' 
+                              : '\$${item['price']}';
                           
                           return GestureDetector(
                             onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Viendo producto: ${prod['name']}')));
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Viendo: $title')));
                             },
                             child: GlassContainer(
                               padding: EdgeInsets.zero,
@@ -149,7 +245,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                                             color: Theme.of(context).colorScheme.surface,
                                             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                                           ),
-                                          child: Icon(Icons.image, size: 48, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
+                                          child: Icon(isBusiness ? Icons.store : Icons.image, size: 48, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
                                         ),
                                       ),
                                       // Detalles
@@ -159,24 +255,24 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                                           crossAxisAlignment: CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              prod['name'] ?? '',
+                                              title,
                                               style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              '\$${prod['price']}',
+                                              priceOrRating,
                                               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Theme.of(context).colorScheme.primary),
                                             ),
                                             const SizedBox(height: 4),
                                             Row(
                                               children: [
-                                                Icon(Icons.storefront, size: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                                                Icon(isBusiness ? Icons.location_on : Icons.storefront, size: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
                                                 const SizedBox(width: 4),
                                                 Expanded(
                                                   child: Text(
-                                                    prod['business']['name'] ?? 'Local',
+                                                    subtitle,
                                                     style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
                                                     overflow: TextOverflow.ellipsis,
                                                   ),
