@@ -110,7 +110,7 @@ class GlassContainer extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8), // Optimizado (20 era muy costoso para Web)
         child: Container(
           width: width,
           height: height,
@@ -161,7 +161,7 @@ class AnimatedGradientBackground extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Decorative glowing orbs
+          // Decorative glowing orbs optimized for Web (No BackdropFilter)
           Positioned(
             top: -100,
             left: -100,
@@ -170,9 +170,13 @@ class AnimatedGradientBackground extends StatelessWidget {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                gradient: RadialGradient(
+                  colors: [
+                    Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    Theme.of(context).colorScheme.primary.withOpacity(0.0),
+                  ],
+                ),
               ),
-              child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80), child: Container()),
             ),
           ),
           Positioned(
@@ -183,9 +187,13 @@ class AnimatedGradientBackground extends StatelessWidget {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFF6366F1).withOpacity(0.1), // Indigo glow
+                gradient: RadialGradient(
+                  colors: [
+                    Color(0xFF6366F1).withOpacity(0.15),
+                    Color(0xFF6366F1).withOpacity(0.0),
+                  ],
+                ),
               ),
-              child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100), child: Container()),
             ),
           ),
           SafeArea(child: child),
