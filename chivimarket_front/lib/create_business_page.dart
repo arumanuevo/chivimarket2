@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show File;
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'api_service.dart';
@@ -25,6 +26,14 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
   String _modality = 'fisico'; // fisico, online, domicilio, mixto
   final _addressController = TextEditingController();
   
+  // Geolocation parameters Mapbox
+  Timer? _debounce;
+  final String _mapboxToken = 'pk.eyJ1Ijoic2Nhc3RlbGxhbm8xMCIsImEiOiJjbGd6MzA4cGwwY21lM21ubWF1YXk3dmJjIn0.dSVxEPqf8Lo1HvR6Ur_JsA';
+  List<Map<String, dynamic>> _addressSuggestions = [];
+  bool _isSearchingAddress = false;
+  double? _latitude;
+  double? _longitude;
+
   // Categoría Principal
   String _selectedCategory = '1';
 
@@ -57,6 +66,58 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
     setState(() => _pendingImages.removeAt(index));
   }
 
+  Future<void> _searchMapboxAddress(String query) async {
+    if (query.trim().isEmpty) {
+      setState(() => _addressSuggestions = []);
+      return;
+    }
+    
+    setState(() => _isSearchingAddress = true);
+    
+    final String queryConChivilcoy = "$query, Chivilcoy";
+    final String bbox = "-60.1544,-34.9961,-59.8234,-34.8063"; // Chivilcoy limit
+    
+    final String url =
+        'https://api.mapbox.com/geocoding/v5/mapbox.places/${Uri.encodeComponent(queryConChivilcoy)}.json'
+        '?bbox=$bbox'
+        '&proximity=-60.0167,-34.8997'
+        '&country=AR'
+        '&fuzzyMatch=true'
+        '&autocomplete=true'
+        '&access_token=$_mapboxToken'
+        '&language=es';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['features'] != null) {
+          final List<dynamic> features = data['features'];
+          setState(() {
+            _addressSuggestions = features.map((feature) {
+              return {
+                'place_name': feature['place_name'] as String,
+                'lat': (feature['geometry']['coordinates'][1] as num).toDouble(),
+                'lng': (feature['geometry']['coordinates'][0] as num).toDouble(),
+              };
+            }).toList();
+          });
+        }
+      }
+    } catch (e) {
+      print("Mapbox error: $e");
+    } finally {
+      if (mounted) setState(() => _isSearchingAddress = false);
+    }
+  }
+
+  void _onAddressChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _searchMapboxAddress(value);
+    });
+  }
+
   Future<void> _submitBusiness() async {
     setState(() => _isLoading = true);
 
@@ -66,6 +127,8 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
         'description': _descriptionController.text,
         'modality': _modality,
         'address': _modality == 'online' ? null : _addressController.text,
+        'latitude': _modality == 'online' ? null : _latitude,
+        'longitude': _modality == 'online' ? null : _longitude,
         'categories': [int.parse(_selectedCategory)],
         'metadata': _customMetadata // <- Magia Elástica pura
       });
@@ -229,12 +292,63 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                       isActive: _currentStep >= 1,
                       content: Column(
                         children: [
-                          if (_modality != 'online')
+                          if (_modality != 'online') ...[
+                            Text('Busca tu dirección para geolocalizarte en Chivilcoy', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                            SizedBox(height: 8),
                             TextField(
                               controller: _addressController,
                               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                              decoration: InputDecoration(labelText: 'Dirección Completa', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                              decoration: InputDecoration(
+                                labelText: 'Dirección (Ej: Lavalle 194)', 
+                                labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)),
+                                suffixIcon: _isSearchingAddress 
+                                    ? Padding(padding: const EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2)) 
+                                    : Icon(Icons.location_search, color: Theme.of(context).colorScheme.primary),
+                              ),
+                              onChanged: _onAddressChanged,
                             ),
+                            if (_addressSuggestions.isNotEmpty)
+                              Container(
+                                margin: const EdgeInsets.only(top: 8),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+                                ),
+                                constraints: BoxConstraints(maxHeight: 200),
+                                child: ListView.builder(
+                                  shrinkWrap: true,
+                                  itemCount: _addressSuggestions.length,
+                                  itemBuilder: (context, index) {
+                                    final suggestion = _addressSuggestions[index];
+                                    return ListTile(
+                                      leading: Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary),
+                                      title: Text(suggestion['place_name'], style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                                      onTap: () {
+                                        setState(() {
+                                          _addressController.text = suggestion['place_name'];
+                                          _latitude = suggestion['lat'];
+                                          _longitude = suggestion['lng'];
+                                          _addressSuggestions.clear();
+                                          FocusScope.of(context).unfocus(); // Cierra teclado
+                                        });
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            if (_latitude != null && _longitude != null)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.check_circle, color: Colors.green, size: 16),
+                                    SizedBox(width: 4),
+                                    Text('Dirección geolocalizada (\u00B0 $_latitude, $_longitude)', style: TextStyle(color: Colors.green, fontSize: 12)),
+                                  ],
+                                ),
+                              ),
+                          ],
                           if (_modality == 'online')
                             Padding(
                               padding: EdgeInsets.all(8.0),
