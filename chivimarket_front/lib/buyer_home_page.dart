@@ -6,6 +6,8 @@ import 'package:latlong2/latlong.dart' as ltlng;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'api_service.dart';
 import 'main.dart'; // Animations and global things
+import 'product_detail_page.dart';
+import 'public_business_page.dart';
 
 class BuyerHomePage extends StatefulWidget {
   const BuyerHomePage({Key? key}) : super(key: key);
@@ -242,7 +244,11 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                           
                           return GestureDetector(
                             onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Viendo: $title')));
+                              if (isBusiness) {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: item)));
+                              } else {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailPage(product: item)));
+                              }
                             },
                             child: GlassContainer(
                               padding: EdgeInsets.zero,
@@ -427,7 +433,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
               alignment: Alignment.topCenter,
               child: GestureDetector(
                 onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Viendo tienda: ${b['name']}')));
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: b)));
                 },
                 child: Column(
                   children: [
