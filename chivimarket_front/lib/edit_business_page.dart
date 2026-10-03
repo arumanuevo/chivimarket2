@@ -258,21 +258,18 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                   SizedBox(height: 16),
                   
                   // MODALIDAD
-                  Text('Tipo de Servicio', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.bold)),
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      ChoiceChip(
-                        label: Text('Local Físico'),
-                        selected: _modality == 'fisico',
-                        onSelected: (val) => setState(() => _modality = 'fisico'),
-                      ),
-                      ChoiceChip(
-                        label: Text('Online / Digital'),
-                        selected: _modality == 'online',
-                        onSelected: (val) => setState(() => _modality = 'online'),
-                      ),
+                  DropdownButtonFormField<String>(
+                    value: _modality,
+                    dropdownColor: Color(0xFF1E293B),
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    decoration: InputDecoration(labelText: 'Modalidad de Servicio', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                    items: const [
+                      DropdownMenuItem(value: 'fisico', child: Text('Local Físico (Presencial)')),
+                      DropdownMenuItem(value: 'domicilio', child: Text('Servicio a Domicilio')),
+                      DropdownMenuItem(value: 'online', child: Text('Puramente Online / Digital')),
+                      DropdownMenuItem(value: 'mixto', child: Text('Mixto (Físico y Online)')),
                     ],
+                    onChanged: (value) => setState(() => _modality = value!),
                   ),
                   SizedBox(height: 16),
                   
