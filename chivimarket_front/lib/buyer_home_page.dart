@@ -422,8 +422,8 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
             final lng = double.tryParse(b['longitude'].toString()) ?? -60.0172;
             return Marker(
               point: ltlng.LatLng(lat, lng),
-              width: 140,
-              height: 60,
+              width: 140, // Espacio ancho para el nombre
+              height: 80, // Aumentado ligeramente para dar aire al badge
               alignment: Alignment.topCenter,
               child: GestureDetector(
                 onTap: () {
