@@ -7,6 +7,8 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as ltlng;
 import 'api_service.dart';
 import 'main.dart'; // Para reutilizar GlassContainer y AnimatedGradientBackground
 
@@ -313,43 +315,81 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                               Container(
                                 margin: const EdgeInsets.only(top: 8),
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.surface,
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
                                 ),
                                 constraints: BoxConstraints(maxHeight: 200),
-                                child: ListView.builder(
-                                  shrinkWrap: true,
-                                  itemCount: _addressSuggestions.length,
-                                  itemBuilder: (context, index) {
-                                    final suggestion = _addressSuggestions[index];
-                                    return ListTile(
-                                      leading: Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary),
-                                      title: Text(suggestion['place_name'], style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-                                      onTap: () {
-                                        setState(() {
-                                          _addressController.text = suggestion['place_name'];
-                                          _latitude = suggestion['lat'];
-                                          _longitude = suggestion['lng'];
-                                          _addressSuggestions.clear();
-                                          FocusScope.of(context).unfocus(); // Cierra teclado
-                                        });
-                                      },
-                                    );
-                                  },
+                                child: Material(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: _addressSuggestions.length,
+                                    itemBuilder: (context, index) {
+                                      final suggestion = _addressSuggestions[index];
+                                      return ListTile(
+                                        leading: Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary),
+                                        title: Text(suggestion['place_name'], style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                                        onTap: () {
+                                          setState(() {
+                                            _addressController.text = suggestion['place_name'];
+                                            _latitude = suggestion['lat'];
+                                            _longitude = suggestion['lng'];
+                                            _addressSuggestions.clear();
+                                            FocusScope.of(context).unfocus(); // Cierra teclado
+                                          });
+                                        },
+                                      );
+                                    },
+                                  ),
                                 ),
                               ),
-                            if (_latitude != null && _longitude != null)
+                            if (_latitude != null && _longitude != null) ...[
                               Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
+                                padding: const EdgeInsets.symmetric(vertical: 12.0),
                                 child: Row(
                                   children: [
                                     Icon(Icons.check_circle, color: Colors.green, size: 16),
                                     SizedBox(width: 4),
-                                    Text('Dirección geolocalizada (\u00B0 $_latitude, $_longitude)', style: TextStyle(color: Colors.green, fontSize: 12)),
+                                    Text('Dirección verificada (\u00B0 $_latitude, $_longitude)', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                                   ],
                                 ),
                               ),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Container(
+                                  height: 200,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.5), width: 2),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  // IgnorePointer previene que el scroll del mapa interrumpa el scroll principal de la página
+                                  child: IgnorePointer(
+                                    child: FlutterMap(
+                                      key: ValueKey('$_latitude-$_longitude'),
+                                      options: MapOptions(
+                                        initialCenter: ltlng.LatLng(_latitude!, _longitude!),
+                                        initialZoom: 15.0,
+                                      ),
+                                      children: [
+                                        TileLayer(
+                                          urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=$_mapboxToken',
+                                        ),
+                                        MarkerLayer(
+                                          markers: [
+                                            Marker(
+                                              point: ltlng.LatLng(_latitude!, _longitude!),
+                                              child: Icon(Icons.location_on, color: Colors.redAccent, size: 40),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                           if (_modality == 'online')
                             Padding(
