@@ -155,7 +155,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
           
           var imageResponse = await ApiService.postMultipart(
             '/businesses/$businessId/images', 
-            {}, 
+            <String, String>{}, 
             singleMultipart
           );
           
@@ -242,14 +242,17 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                       child: Row(
                         children: [
                           ElevatedButton(
-                            onPressed: details.onStepContinue,
+                            onPressed: _isLoading ? null : details.onStepContinue,
                             style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onSurface),
                             child: _isLoading && _currentStep == 2 
                               ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface, strokeWidth: 2))
                               : Text(_currentStep == 2 ? 'Crear Negocio' : 'Continuar'),
                           ),
                           if (_currentStep > 0)
-                            TextButton(onPressed: details.onStepCancel, child: Text('Atrás', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)))),
+                            TextButton(
+                              onPressed: _isLoading ? null : details.onStepCancel, 
+                              child: Text('Atrás', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)))
+                            ),
                         ],
                       ),
                     );
