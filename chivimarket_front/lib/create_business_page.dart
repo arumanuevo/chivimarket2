@@ -6,6 +6,7 @@ import 'dart:io' show File;
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'api_service.dart';
 import 'main.dart'; // Para reutilizar GlassContainer y AnimatedGradientBackground
 
@@ -28,7 +29,8 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
   
   // Geolocation parameters Mapbox
   Timer? _debounce;
-  final String _mapboxToken = 'pk.eyJ1Ijoic2Nhc3RlbGxhbm8xMCIsImEiOiJjbGd6MzA4cGwwY21lM21ubWF1YXk3dmJjIn0.dSVxEPqf8Lo1HvR6Ur_JsA';
+  // Carga desde el archivo .env creado localmente!
+  final String _mapboxToken = dotenv.env['MAPBOX_TOKEN'] ?? 'FALTA_TOKEN';
   List<Map<String, dynamic>> _addressSuggestions = [];
   bool _isSearchingAddress = false;
   double? _latitude;

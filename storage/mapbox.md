@@ -36,8 +36,7 @@ class _MapaDireccionesWidgetState extends State<MapaDireccionesWidget> {
       TextEditingController();
   final TextEditingController _latitudController = TextEditingController();
   final TextEditingController _longitudController = TextEditingController();
-  String _tokenMapbox =
-      'pk.eyJ1Ijoic2Nhc3RlbGxhbm8xMCIsImEiOiJjbGd6MzA4cGwwY21lM21ubWF1YXk3dmJjIn0.dSVxEPqf8Lo1HvR6Ur_JsA';
+  String _tokenMapbox = 'TU_TOKEN_MAPBOX_ELIMINADO_POR_SEGURIDAD';
   String _resultadoBusqueda = 'Ingresá una dirección para buscar en Chivilcoy.';
   ltlng.LatLng? _ubicacionEncontrada;
   List<Map<String, dynamic>> _resultadosBusqueda = [];

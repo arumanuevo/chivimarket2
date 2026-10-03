@@ -11,10 +11,13 @@ import 'superadmin_page.dart';
 import 'buyer_home_page.dart';
 import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env"); // Carga el archivo .env
   // TODO: ¡Pega tu SITKEY pública de ReCAPTCHA aquí para el Frontend!
   await GRecaptchaV3.ready('6LfajdItAAAAALK0AsHklkRGZz6D_kwQfNw1zNhi');
   runApp(ChivimarketApp());
