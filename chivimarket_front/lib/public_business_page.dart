@@ -31,10 +31,13 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
     try {
       final res = await ApiService.get('/products/business/${widget.business['id']}');
       if (res.statusCode == 200) {
-        if (mounted) setState(() {
-          _products = jsonDecode(res.body)['data'] ?? [];
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            final decoded = jsonDecode(res.body);
+            _products = decoded is List ? decoded : (decoded['data'] ?? []);
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
@@ -161,8 +164,16 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       final p = _products[index];
-                      // Aseguramos que el producto lleva la info completa de la tienda en el mapa
                       p['business'] = widget.business; 
+                      
+                      String? imageUrl;
+                      if (p['images'] != null && p['images'].isNotEmpty) {
+                        imageUrl = p['images'][0]['full_url'] ?? p['images'][0]['url'];
+                        if (imageUrl != null && !imageUrl.startsWith('http')) {
+                          imageUrl = 'https://chivimarket.arumasoft.com/$imageUrl';
+                        }
+                      }
+
                       return GestureDetector(
                         onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailPage(product: p))),
                         child: GlassContainer(
@@ -173,8 +184,14 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                             children: [
                               Expanded(
                                 child: Container(
+                                  width: double.infinity,
                                   decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
-                                  child: const Center(child: Icon(Icons.image, color: Colors.white30, size: 48)),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: imageUrl != null 
+                                      ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Center(child: Icon(Icons.broken_image, color: Colors.white30, size: 32)))
+                                      : const Center(child: Icon(Icons.image, color: Colors.white30, size: 48)),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 8),
