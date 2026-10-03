@@ -37,7 +37,8 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
   bool _isSearchingAddress = false;
   double? _latitude;
   double? _longitude;
-
+  final MapController _mapPreviewController = MapController();
+  
   // Categoría Principal
   String _selectedCategory = '1';
 
@@ -364,28 +365,62 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                     border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.5), width: 2),
                                     borderRadius: BorderRadius.circular(16),
                                   ),
-                                  // IgnorePointer previene que el scroll del mapa interrumpa el scroll principal de la página
-                                  child: IgnorePointer(
-                                    child: FlutterMap(
-                                      key: ValueKey('$_latitude-$_longitude'),
-                                      options: MapOptions(
-                                        initialCenter: ltlng.LatLng(_latitude!, _longitude!),
-                                        initialZoom: 15.0,
-                                      ),
-                                      children: [
-                                        TileLayer(
-                                          urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=$_mapboxToken',
+                                  child: Stack(
+                                    children: [
+                                      FlutterMap(
+                                        key: ValueKey('$_latitude-$_longitude'),
+                                        mapController: _mapPreviewController,
+                                        options: MapOptions(
+                                          initialCenter: ltlng.LatLng(_latitude!, _longitude!),
+                                          initialZoom: 15.0,
+                                          interactionOptions: const InteractionOptions(
+                                            flags: InteractiveFlag.drag | InteractiveFlag.pinchZoom, // Permite mover y hacer pinch, limitando otras rotaciones
+                                          ),
                                         ),
-                                        MarkerLayer(
-                                          markers: [
-                                            Marker(
-                                              point: ltlng.LatLng(_latitude!, _longitude!),
-                                              child: Icon(Icons.location_on, color: Colors.redAccent, size: 40),
+                                        children: [
+                                          TileLayer(
+                                            urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=$_mapboxToken',
+                                          ),
+                                          MarkerLayer(
+                                            markers: [
+                                              Marker(
+                                                point: ltlng.LatLng(_latitude!, _longitude!),
+                                                child: Icon(Icons.location_on, color: Colors.redAccent, size: 40),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      // Controles de Acercamiento (+) y (-)
+                                      Positioned(
+                                        right: 8,
+                                        bottom: 8,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            FloatingActionButton.small(
+                                              heroTag: 'mapZoomIn',
+                                              backgroundColor: Theme.of(context).colorScheme.surface,
+                                              onPressed: () {
+                                                final currentZoom = _mapPreviewController.camera.zoom;
+                                                _mapPreviewController.move(_mapPreviewController.camera.center, currentZoom + 1);
+                                              },
+                                              child: Icon(Icons.add, color: Theme.of(context).colorScheme.primary),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            FloatingActionButton.small(
+                                              heroTag: 'mapZoomOut',
+                                              backgroundColor: Theme.of(context).colorScheme.surface,
+                                              onPressed: () {
+                                                final currentZoom = _mapPreviewController.camera.zoom;
+                                                _mapPreviewController.move(_mapPreviewController.camera.center, currentZoom - 1);
+                                              },
+                                              child: Icon(Icons.remove, color: Theme.of(context).colorScheme.primary),
                                             ),
                                           ],
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
