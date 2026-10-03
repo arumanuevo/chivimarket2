@@ -385,6 +385,9 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                             markers: [
                                               Marker(
                                                 point: ltlng.LatLng(_latitude!, _longitude!),
+                                                width: 40,
+                                                height: 40,
+                                                alignment: Alignment.topCenter, // Ajusta para que la punta del pin apunte a la coordenada
                                                 child: Icon(Icons.location_on, color: Colors.redAccent, size: 40),
                                               ),
                                             ],
