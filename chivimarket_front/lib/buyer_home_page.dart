@@ -114,6 +114,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat, // Desplazado a la izquierda para evitar el ReCAPTCHA
       floatingActionButton: _searchMode == 'businesses' ? FloatingActionButton.extended(
         backgroundColor: Theme.of(context).colorScheme.primary,
         icon: Icon(_showMap ? Icons.grid_view : Icons.map),
@@ -431,16 +432,20 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                 child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      constraints: BoxConstraints(maxWidth: 130), // Límite estricto de largo
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surface.withOpacity(0.9), 
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Theme.of(context).colorScheme.primary, width: 1)
+                        color: Colors.black87, // Fondo oscuro permanente alto contraste
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: Colors.orangeAccent, width: 1.5),
+                        boxShadow: [BoxShadow(color: Colors.black54, blurRadius: 4, offset: Offset(0, 2))],
                       ),
                       child: Text(
                         b['name'] ?? 'Local', 
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.bold), 
-                        overflow: TextOverflow.ellipsis
+                        maxLines: 1, // Obliga a una sola línea
+                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold), 
+                        overflow: TextOverflow.ellipsis, // Corta con (...) si es muy largo
+                        textAlign: TextAlign.center,
                       ),
                     ),
                     const Icon(Icons.location_on, color: Colors.orangeAccent, size: 34),
