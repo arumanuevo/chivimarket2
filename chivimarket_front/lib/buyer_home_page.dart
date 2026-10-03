@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as ltlng;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'api_service.dart';
 import 'main.dart'; // Animations and global things
 
@@ -16,6 +19,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
   bool _isLoading = true;
   List<dynamic> _items = []; // Can be products or businesses
   String _searchMode = 'products'; // 'products' or 'businesses'
+  bool _showMap = false;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -110,6 +114,12 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
+      floatingActionButton: _searchMode == 'businesses' ? FloatingActionButton.extended(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        icon: Icon(_showMap ? Icons.grid_view : Icons.map),
+        label: Text(_showMap ? 'Ver Cuadrícula' : 'Ver Mapa', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        onPressed: () => setState(() => _showMap = !_showMap),
+      ) : null,
       appBar: AppBar(
         title: Text('ChiviMarket', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 24, color: Theme.of(context).colorScheme.onSurface)),
         actions: [
@@ -175,6 +185,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                               setState(() {
                                 _searchMode = val;
                                 _searchController.clear();
+                                if (val != 'businesses') _showMap = false;
                               });
                               _performSearch('');
                             }
@@ -202,10 +213,12 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                            Text('Intenta con otra búsqueda', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
                         ],
                       ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () => _performSearch(_searchController.text),
-                      child: GridView.builder(
+                     )
+                   : _showMap && _searchMode == 'businesses'
+                       ? _buildMapView()
+                       : RefreshIndicator(
+                           onRefresh: () => _performSearch(_searchController.text),
+                           child: GridView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                           maxCrossAxisExtent: 240, // Más grandes, estilo MercadoLibre
@@ -386,6 +399,58 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _buildMapView() {
+    final String mapboxToken = dotenv.env['MAPBOX_TOKEN'] ?? '';
+    final mapItems = _items.where((b) => b['latitude'] != null && b['longitude'] != null).toList();
+
+    return FlutterMap(
+      options: MapOptions(
+        initialCenter: const ltlng.LatLng(-34.8953, -60.0172),
+        initialZoom: 13.5,
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=$mapboxToken',
+        ),
+        MarkerLayer(
+          markers: mapItems.map((b) {
+            final lat = double.tryParse(b['latitude'].toString()) ?? -34.8953;
+            final lng = double.tryParse(b['longitude'].toString()) ?? -60.0172;
+            return Marker(
+              point: ltlng.LatLng(lat, lng),
+              width: 140,
+              height: 60,
+              alignment: Alignment.topCenter,
+              child: GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Viendo tienda: ${b['name']}')));
+                },
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface.withOpacity(0.9), 
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Theme.of(context).colorScheme.primary, width: 1)
+                      ),
+                      child: Text(
+                        b['name'] ?? 'Local', 
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 10, fontWeight: FontWeight.bold), 
+                        overflow: TextOverflow.ellipsis
+                      ),
+                    ),
+                    const Icon(Icons.location_on, color: Colors.orangeAccent, size: 34),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }
