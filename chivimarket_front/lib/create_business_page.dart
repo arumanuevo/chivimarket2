@@ -305,7 +305,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                 labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)),
                                 suffixIcon: _isSearchingAddress 
                                     ? Padding(padding: const EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2)) 
-                                    : Icon(Icons.location_search, color: Theme.of(context).colorScheme.primary),
+                                    : Icon(Icons.location_searching, color: Theme.of(context).colorScheme.primary),
                               ),
                               onChanged: _onAddressChanged,
                             ),
