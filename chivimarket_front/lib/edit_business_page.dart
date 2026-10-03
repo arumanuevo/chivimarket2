@@ -5,6 +5,10 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show File;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart' as ltlng;
 import 'api_service.dart';
 import 'main.dart'; // Para GlassContainer y Fondos
 import 'products_page.dart';
@@ -22,6 +26,16 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
   bool _isLoading = false;
   late TextEditingController _nameController;
   late TextEditingController _descController;
+  late TextEditingController _addressController;
+  
+  String _modality = 'fisico';
+  Timer? _debounce;
+  final String _mapboxToken = dotenv.env['MAPBOX_TOKEN'] ?? 'FALTA_TOKEN';
+  List<Map<String, dynamic>> _addressSuggestions = [];
+  bool _isSearchingAddress = false;
+  double? _latitude;
+  double? _longitude;
+  final MapController _mapPreviewController = MapController();
   
   List<dynamic> _galleryImages = [];
   final ImagePicker _picker = ImagePicker();
@@ -30,7 +44,16 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.business['name']);
-    _descController = TextEditingController(text: widget.business['description']);
+    _descController = TextEditingController(text: widget.business['description'] ?? '');
+    _modality = widget.business['modality'] ?? 'fisico';
+    _addressController = TextEditingController(text: widget.business['address'] ?? '');
+    
+    if (widget.business['latitude'] != null) {
+      _latitude = double.tryParse(widget.business['latitude'].toString());
+    }
+    if (widget.business['longitude'] != null) {
+      _longitude = double.tryParse(widget.business['longitude'].toString());
+    }
     
     // Cargar la lista unificada
     if (widget.business['images'] != null) {
@@ -47,6 +70,44 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
     if (!dbUrl.startsWith('/')) dbUrl = '/$dbUrl';
     
     return '$base$dbUrl';
+  }
+
+  Future<void> _searchMapboxAddress(String query) async {
+    if (query.length < 3) {
+      setState(() => _addressSuggestions = []);
+      return;
+    }
+    setState(() => _isSearchingAddress = true);
+    try {
+      final String url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/${Uri.encodeComponent(query)}.json?access_token=$_mapboxToken&bbox=-60.0768,-34.9392,-59.9576,-34.8471&proximity=-60.0172,-34.8953';
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List features = data['features'] ?? [];
+        if (mounted) {
+          setState(() {
+            _addressSuggestions = features.map((feature) {
+              return {
+                'place_name': feature['place_name'] as String,
+                'lat': (feature['geometry']['coordinates'][1] as num).toDouble(),
+                'lng': (feature['geometry']['coordinates'][0] as num).toDouble(),
+              };
+            }).toList();
+          });
+        }
+      }
+    } catch (e) {
+      print("Mapbox error: $e");
+    } finally {
+      if (mounted) setState(() => _isSearchingAddress = false);
+    }
+  }
+
+  void _onAddressChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _searchMapboxAddress(value);
+    });
   }
 
   Future<void> _uploadNewImage() async {
@@ -138,6 +199,10 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
       final textResponse = await ApiService.patch('/businesses/${widget.business['id']}', {
         'name': _nameController.text.trim(),
         'description': _descController.text.trim(),
+        'modality': _modality,
+        'address': _modality == 'online' ? null : _addressController.text,
+        'latitude': _modality == 'online' ? null : _latitude,
+        'longitude': _modality == 'online' ? null : _longitude,
       });
 
       if (textResponse.statusCode == 200) {
@@ -190,6 +255,156 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                     decoration: InputDecoration(labelText: 'Descripción', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                   ),
+                  SizedBox(height: 16),
+                  
+                  // MODALIDAD
+                  Text('Tipo de Servicio', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.bold)),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      ChoiceChip(
+                        label: Text('Local Físico'),
+                        selected: _modality == 'fisico',
+                        onSelected: (val) => setState(() => _modality = 'fisico'),
+                      ),
+                      ChoiceChip(
+                        label: Text('Online / Digital'),
+                        selected: _modality == 'online',
+                        onSelected: (val) => setState(() => _modality = 'online'),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  
+                  if (_modality != 'online') ...[
+                    TextField(
+                      controller: _addressController,
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                      decoration: InputDecoration(
+                        labelText: 'Dirección (Ej: Lavalle 194)', 
+                        labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)),
+                        suffixIcon: _isSearchingAddress 
+                            ? Padding(padding: const EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2)) 
+                            : Icon(Icons.location_searching, color: Theme.of(context).colorScheme.primary),
+                      ),
+                      onChanged: _onAddressChanged,
+                    ),
+                    if (_addressSuggestions.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+                        ),
+                        constraints: BoxConstraints(maxHeight: 200),
+                        child: Material(
+                          color: Theme.of(context).colorScheme.surface,
+                          borderRadius: BorderRadius.circular(8),
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: _addressSuggestions.length,
+                            itemBuilder: (context, index) {
+                              final suggestion = _addressSuggestions[index];
+                              return ListTile(
+                                leading: Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary),
+                                title: Text(suggestion['place_name'], style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                                onTap: () {
+                                  setState(() {
+                                    _addressController.text = suggestion['place_name'];
+                                    _latitude = suggestion['lat'];
+                                    _longitude = suggestion['lng'];
+                                    _addressSuggestions.clear();
+                                    FocusScope.of(context).unfocus(); // Cierra teclado
+                                  });
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    if (_latitude != null && _longitude != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green, size: 16),
+                            SizedBox(width: 4),
+                            Text('Dirección verificada (\u00B0 $_latitude, $_longitude)', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          height: 200,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.5), width: 2),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Stack(
+                            children: [
+                              FlutterMap(
+                                key: ValueKey('$_latitude-$_longitude'),
+                                mapController: _mapPreviewController,
+                                options: MapOptions(
+                                  initialCenter: ltlng.LatLng(_latitude!, _longitude!),
+                                  initialZoom: 15.0,
+                                  interactionOptions: const InteractionOptions(
+                                    flags: InteractiveFlag.drag | InteractiveFlag.pinchZoom, // Evita scroll vertical sin querer
+                                  ),
+                                ),
+                                children: [
+                                  TileLayer(
+                                    urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/{z}/{x}/{y}?access_token=$_mapboxToken',
+                                  ),
+                                  MarkerLayer(
+                                    markers: [
+                                      Marker(
+                                        point: ltlng.LatLng(_latitude!, _longitude!),
+                                        width: 40,
+                                        height: 40,
+                                        alignment: Alignment.topCenter,
+                                        child: Icon(Icons.location_on, color: Colors.redAccent, size: 40),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              Positioned(
+                                right: 8,
+                                bottom: 8,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    FloatingActionButton.small(
+                                      heroTag: 'mapZoomInEdit',
+                                      backgroundColor: Theme.of(context).colorScheme.surface,
+                                      onPressed: () {
+                                        final currentZoom = _mapPreviewController.camera.zoom;
+                                        _mapPreviewController.move(_mapPreviewController.camera.center, currentZoom + 1);
+                                      },
+                                      child: Icon(Icons.add, color: Theme.of(context).colorScheme.primary),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    FloatingActionButton.small(
+                                      heroTag: 'mapZoomOutEdit',
+                                      backgroundColor: Theme.of(context).colorScheme.surface,
+                                      onPressed: () {
+                                        final currentZoom = _mapPreviewController.camera.zoom;
+                                        _mapPreviewController.move(_mapPreviewController.camera.center, currentZoom - 1);
+                                      },
+                                      child: Icon(Icons.remove, color: Theme.of(context).colorScheme.primary),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                   SizedBox(height: 24),
                   
                   // BOTÓN GUARDAR TEXTO
