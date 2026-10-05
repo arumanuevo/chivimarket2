@@ -18,6 +18,8 @@ use App\Http\Controllers\API\MessageController;
 use App\Http\Controllers\API\ImageController;
 use App\Http\Controllers\API\ActivationController;
 use App\Http\Controllers\API\FavoriteController;
+use App\Http\Controllers\API\BusinessRatingController;
+use App\Http\Controllers\API\ProductRatingController;
 use App\Http\Controllers\ShowerAdminController;
 use App\Http\Resources\SubscriptionResource;
 use App\Http\Resources\UserResource;
@@ -198,16 +200,14 @@ Route::get('products/{product}/images', [ProductImageController::class, 'index']
 Route::delete('products/{product}/images/{image}', [ProductImageController::class, 'destroy'])->middleware('auth:sanctum');
 Route::patch('products/{product}/images/{image}/set-primary', [ProductImageController::class, 'setPrimary'])->middleware('auth:sanctum');
 
-// Rutas para calificaciones de negocios
+// Rutas PUBLICAS para leer calificaciones
+Route::get('businesses/{business}/ratings', [BusinessRatingController::class, 'index']);
+Route::get('products/{product}/ratings', [ProductRatingController::class, 'index']);
+
+// Rutas PROTEGIDAS para publicar calificaciones
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('businesses/{business}/ratings', [BusinessRatingController::class, 'store']);
-    Route::get('businesses/{business}/ratings', [BusinessRatingController::class, 'index']);
-});
-
-// Rutas para calificaciones de productos
-Route::middleware('auth:sanctum')->group(function () {
     Route::post('products/{product}/ratings', [ProductRatingController::class, 'store']);
-    Route::get('products/{product}/ratings', [ProductRatingController::class, 'index']);
 });
 
 

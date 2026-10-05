@@ -328,7 +328,8 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        //$this->authorize('view', $product->business); // Verificar que el usuario pueda ver el negocio asociado
+        // Auto-increment the view counter
+        $product->increment('views_count');
 
         return response()->json($product->load(['business', 'category', 'images']));
     }

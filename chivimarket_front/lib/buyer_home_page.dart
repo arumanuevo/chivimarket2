@@ -290,8 +290,8 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                               ? (item['address'] ?? 'Tienda') 
                               : (item['business'] != null ? (item['business']['name'] ?? 'Local') : 'Local');
                           final priceOrRating = isBusiness 
-                              ? '⭐ ${item['avg_rating'] ?? 'Nuevo'}' 
-                              : '\$${item['price']}';
+                              ? '⭐ ${item['avg_rating'] ?? 'Nuevo'}   🔥 ${item['views_count'] ?? 0} vistas' 
+                              : '\$${item['price']}   🔥 ${item['views_count'] ?? 0} vistas';
                           
                           return GestureDetector(
                             onTap: () {

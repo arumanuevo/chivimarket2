@@ -68,7 +68,7 @@ class ProductRatingController extends Controller
         $user = Auth::user();
 
         $validator = Validator::make($request->all(), [
-            'quality' => 'required|integer|between:1,5',
+            'rating' => 'required|integer|between:1,5',
             'comment' => 'nullable|string|max:500'
         ]);
 
@@ -90,7 +90,7 @@ class ProductRatingController extends Controller
         $rating = ProductRating::create([
             'product_id' => $product->id,
             'user_id' => $user->id,
-            'quality' => $request->quality,
+            'rating' => $request->rating,
             'comment' => $request->comment
         ]);
 
@@ -124,7 +124,7 @@ class ProductRatingController extends Controller
      *     )
      * )
      */
-    
+
     public function index(Product $product)
     {
         $ratings = ProductRating::where('product_id', $product->id)
@@ -132,7 +132,7 @@ class ProductRatingController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $averageRating = $ratings->avg('quality');
+        $averageRating = $ratings->avg('rating');
 
         return response()->json([
             'ratings' => $ratings,

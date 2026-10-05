@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BusinessRating extends Model
 {
+    protected $table = 'business_reviews';
+
     protected $fillable = [
         'business_id',
         'user_id',

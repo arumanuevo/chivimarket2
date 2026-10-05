@@ -112,6 +112,9 @@ class BusinessController extends Controller
 
     public function show(Business $business)
     {
+        // Auto-increment the view counter
+        $business->increment('views_count');
+
         // Cargar siempre las categorías e imágenes
         $business->load(['categories', 'images']);
 

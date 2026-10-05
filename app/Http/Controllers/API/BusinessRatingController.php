@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Validator;
  */
 class BusinessRatingController extends Controller
 {
- 
+
     /**
      * @OA\Post(
      *     path="/api/businesses/{business}/ratings",
@@ -68,7 +68,7 @@ class BusinessRatingController extends Controller
         $user = Auth::user();
 
         $validator = Validator::make($request->all(), [
-            'service_quality' => 'required|integer|between:1,5',
+            'rating' => 'required|integer|between:1,5',
             'comment' => 'nullable|string|max:500'
         ]);
 
@@ -90,7 +90,7 @@ class BusinessRatingController extends Controller
         $rating = BusinessRating::create([
             'business_id' => $business->id,
             'user_id' => $user->id,
-            'service_quality' => $request->service_quality,
+            'rating' => $request->rating,
             'comment' => $request->comment
         ]);
 
@@ -101,7 +101,7 @@ class BusinessRatingController extends Controller
     }
 
 
-      /**
+    /**
      * @OA\Get(
      *     path="/api/businesses/{business}/ratings",
      *     summary="Listar calificaciones de un negocio",
@@ -133,7 +133,7 @@ class BusinessRatingController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        $averageRating = $ratings->avg('service_quality');
+        $averageRating = $ratings->avg('rating');
 
         return response()->json([
             'ratings' => $ratings,
