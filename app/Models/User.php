@@ -60,4 +60,14 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasOne(Subscription::class);
     }
+
+    public function favoriteBusinesses()
+    {
+        return $this->belongsToMany(Business::class, 'favorite_businesses', 'user_id', 'business_id')->withTimestamps();
+    }
+
+    public function favoriteProducts()
+    {
+        return $this->belongsToMany(Product::class, 'favorite_products', 'user_id', 'product_id')->withTimestamps();
+    }
 }

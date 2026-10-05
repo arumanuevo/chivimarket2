@@ -17,6 +17,7 @@ use App\Http\Controllers\API\TestPusherController;
 use App\Http\Controllers\API\MessageController;
 use App\Http\Controllers\API\ImageController;
 use App\Http\Controllers\API\ActivationController;
+use App\Http\Controllers\API\FavoriteController;
 use App\Http\Controllers\ShowerAdminController;
 use App\Http\Resources\SubscriptionResource;
 use App\Http\Resources\UserResource;
@@ -127,6 +128,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/subscription/change-plan', [SubscriptionController::class, 'changePlan']);
     Route::get('/subscription/status', [SubscriptionController::class, 'status']);
     Route::put('/subscription/upgrade', [SubscriptionController::class, 'upgrade']);
+
+    // Favoritos
+    Route::post('/favorites/businesses/{business}', [FavoriteController::class, 'toggleBusiness']);
+    Route::post('/favorites/products/{product}', [FavoriteController::class, 'toggleProduct']);
+    Route::get('/favorites', [FavoriteController::class, 'myFavorites']);
 
     Route::post('/track-contact', [ContactController::class, 'trackContact']);
 
