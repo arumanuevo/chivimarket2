@@ -251,7 +251,8 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                             }
                           },
                         ),
-                    )
+                      ),
+                    ),
                   ],
                 ),
               ),
