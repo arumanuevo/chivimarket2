@@ -10,8 +10,9 @@ import 'product_detail_page.dart';
 
 class PublicBusinessPage extends StatefulWidget {
   final Map<String, dynamic> business;
+  final Map<String, dynamic>? highlightedProduct;
 
-  const PublicBusinessPage({Key? key, required this.business}) : super(key: key);
+  const PublicBusinessPage({Key? key, required this.business, this.highlightedProduct}) : super(key: key);
 
   @override
   State<PublicBusinessPage> createState() => _PublicBusinessPageState();
@@ -135,7 +136,42 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                 ),
               ),
             ),
-            
+
+            if (widget.highlightedProduct != null)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      border: Border.all(color: Theme.of(context).colorScheme.primary),
+                      borderRadius: BorderRadius.circular(16)
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.shopping_bag, color: Colors.orangeAccent, size: 36),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Vienes a comprar:', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 12)),
+                              Text(widget.highlightedProduct!['name'] ?? '', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                            ]
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(color: Colors.orangeAccent, borderRadius: BorderRadius.circular(8)),
+                          child: Text('\$${widget.highlightedProduct!['price']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                        ),
+                      ],
+                    )
+                  ),
+                ),
+              ),
+
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               sliver: SliverToBoxAdapter(

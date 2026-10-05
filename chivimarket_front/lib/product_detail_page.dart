@@ -133,7 +133,7 @@ class ProductDetailPage extends StatelessWidget {
                             ),
                             onPressed: () {
                               if (business.isNotEmpty) {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: business)));
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: business, highlightedProduct: product)));
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Este producto no tiene una tienda asociada aún.'), backgroundColor: Colors.orange));
                               }
