@@ -76,7 +76,7 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Reseña publicada con éxito!')));
         _fetchReviews();
       } else if (res.statusCode == 403) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ya has calificado esto antes.', backgroundColor: Colors.orange)));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ya has calificado esto antes.'), backgroundColor: Colors.orange));
       } else {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al publicar la reseña.')));
       }
