@@ -290,11 +290,25 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                               ? (item['address'] ?? 'Tienda') 
                               : (item['business'] != null ? (item['business']['name'] ?? 'Local') : 'Local');
                           final priceOrRating = isBusiness 
-                              ? '⭐ ${item['avg_rating'] ?? 'Nuevo'}   🔥 ${item['views_count'] ?? 0} vistas' 
-                              : '\$${item['price']}   🔥 ${item['views_count'] ?? 0} vistas';
+                              ? '⭐ ${item['avg_rating'] ?? 'Nuevo'}' 
+                              : '\$${item['price']}';
+
+                          final viewsStr = '👀 ${item['views_count'] ?? 0}';
                           
                           return GestureDetector(
                             onTap: () {
+                              final currentId = item['id'];
+                              // Hacemos el llamado a la API solo para disparar el incremento de vistas por background
+                              if (isBusiness) {
+                                ApiService.get('/businesses/$currentId');
+                              } else {
+                                ApiService.get('/products/$currentId');
+                              }
+
+                              // Optimistic UI increment
+                              setState(() {
+                                item['views_count'] = (item['views_count'] ?? 0) + 1;
+                              });
                               if (isBusiness) {
                                 Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: item)));
                               } else {
@@ -332,9 +346,18 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                             const SizedBox(height: 4),
-                                            Text(
-                                              priceOrRating,
-                                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Theme.of(context).colorScheme.primary),
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  priceOrRating,
+                                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Theme.of(context).colorScheme.primary),
+                                                ),
+                                                Text(
+                                                  viewsStr,
+                                                  style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                                                )
+                                              ],
                                             ),
                                             const SizedBox(height: 4),
                                             Row(
