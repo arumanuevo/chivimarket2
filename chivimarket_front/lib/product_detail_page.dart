@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'main.dart'; // Reutilizamos AnimatedGradientBackground y GlassContainer
+import 'public_business_page.dart';
 
 class ProductDetailPage extends StatelessWidget {
   final Map<String, dynamic> product;
@@ -126,15 +127,19 @@ class ProductDetailPage extends StatelessWidget {
                           height: 56,
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.greenAccent,
+                              backgroundColor: Colors.orangeAccent,
                               foregroundColor: Colors.black87,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                             ),
                             onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Añadido a tu carrito! (Simulado)')));
+                              if (business.isNotEmpty) {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: business)));
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Este producto no tiene una tienda asociada aún.', backgroundColor: Colors.orange)));
+                              }
                             },
-                            icon: const Icon(Icons.shopping_cart_checkout),
-                            label: const Text('Comprar Ahora', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                            icon: const Icon(Icons.map_rounded),
+                            label: const Text('Ir a Comprarlo (Ver Mapa)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
                           ),
                         )
                       ],
