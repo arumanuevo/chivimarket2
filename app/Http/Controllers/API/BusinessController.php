@@ -899,6 +899,14 @@ class BusinessController extends Controller
                 ->orderBy('distance');
         }
 
+        if ($request->has('sort_by')) {
+            $sortBy = $request->sort_by;
+            $order = $request->get('order', 'desc'); // Ratings y views son mejor Descendentes.
+            if (in_array($sortBy, ['avg_rating', 'views_count', 'created_at'])) {
+                $query->orderBy($sortBy, $order);
+            }
+        }
+
         return response()->json($query->get());
     }
 

@@ -230,7 +230,7 @@ class ProductController extends Controller
         if ($request->has('sort_by')) {
             $sortBy = $request->sort_by;
             $order = $request->get('order', 'asc');
-            if (in_array($sortBy, ['price', 'name', 'created_at'])) {
+            if (in_array($sortBy, ['price', 'name', 'created_at', 'views_count'])) {
                 $query->orderBy($sortBy, $order);
             }
         }

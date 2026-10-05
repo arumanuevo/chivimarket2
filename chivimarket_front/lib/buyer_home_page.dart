@@ -22,6 +22,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
   bool _isLoading = true;
   List<dynamic> _items = []; // Can be products or businesses
   String _searchMode = 'products'; // 'products' or 'businesses'
+  String _sortBy = 'default'; // 'default', 'views_count', 'price', 'avg_rating'
   bool _showMap = false;
   final TextEditingController _searchController = TextEditingController();
   
@@ -88,6 +89,10 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
       String endpoint = _searchMode == 'products' 
           ? '/products/search?query=$query' 
           : '/businesses/search?name=$query';
+
+      if (_sortBy != 'default') {
+        endpoint += '&sort_by=$_sortBy';
+      }
           
       final res = await ApiService.get(endpoint);
       if (res.statusCode == 200) {
@@ -238,6 +243,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                             if (val != null) {
                               setState(() {
                                 _searchMode = val;
+                                _sortBy = 'default'; // Reset sort upon changing mode to avoid invalid dropdown values
                                 _searchController.clear();
                                 if (val != 'businesses') _showMap = false;
                               });
@@ -245,8 +251,36 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                             }
                           },
                         ),
-                      ),
                     )
+                  ],
+                ),
+              ),
+
+              // Botones de filtro de ordenamiento (Sort By)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  children: [
+                    Text('Ordenar por:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                    const SizedBox(width: 8),
+                    DropdownButton<String>(
+                      value: _sortBy,
+                      dropdownColor: Theme.of(context).colorScheme.surface,
+                      style: TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                      underline: const SizedBox(),
+                      items: [
+                        DropdownMenuItem(value: 'default', child: Text('Relevancia')),
+                        DropdownMenuItem(value: 'views_count', child: Text('🔥 Más Populares (Vistas)')),
+                        if (_searchMode == 'products') DropdownMenuItem(value: 'price', child: Text('💸 Precio')),
+                        if (_searchMode == 'businesses') DropdownMenuItem(value: 'avg_rating', child: Text('⭐ Mejor Calificados')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() => _sortBy = val);
+                          _performSearch(_searchController.text);
+                        }
+                      },
+                    ),
                   ],
                 ),
               ),
