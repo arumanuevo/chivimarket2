@@ -8,6 +8,7 @@ import 'api_service.dart';
 import 'main.dart'; // Animations and global things
 import 'product_detail_page.dart';
 import 'public_business_page.dart';
+import 'favorites_page.dart';
 
 class BuyerHomePage extends StatefulWidget {
   const BuyerHomePage({Key? key}) : super(key: key);
@@ -441,7 +442,10 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
             ListTile(
               leading: Icon(Icons.favorite, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
               title: Text('Mis Favoritos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
-              onTap: () {},
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesPage())).then((_) => _fetchFavorites());
+              },
             ),
             ListTile(
               leading: Icon(Icons.shopping_bag, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
