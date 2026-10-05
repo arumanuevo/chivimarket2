@@ -125,7 +125,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
 
   Future<void> _toggleFavorite(bool isBusiness, dynamic item) async {
     if (!_isLoggedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Debes iniciar sesión con una cuenta para guardar favoritos!', backgroundColor: Colors.orange)));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Debes iniciar sesión con una cuenta para guardar favoritos!'), backgroundColor: Colors.orange));
       return;
     }
     
