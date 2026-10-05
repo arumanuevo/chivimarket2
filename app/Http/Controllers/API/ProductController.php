@@ -17,9 +17,8 @@ class ProductController extends Controller
     public function explore()
     {
         $products = \App\Models\Product::with([
-            'business' => function ($q) {
-                $q->select('id', 'name', 'logo_url');
-            }
+            'business',
+            'images'
         ])
             ->where('is_active', true)
             ->inRandomOrder()
