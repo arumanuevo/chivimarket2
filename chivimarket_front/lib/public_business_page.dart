@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ltlng;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'api_service.dart';
 import 'main.dart'; // GlassContainer & Animations
 import 'product_detail_page.dart';
@@ -60,28 +61,56 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
           border: Border.all(color: Colors.orangeAccent.withOpacity(0.5)),
           borderRadius: BorderRadius.circular(16)
         ),
-        child: IgnorePointer(
-          child: FlutterMap(
-            options: MapOptions(
-              initialCenter: ltlng.LatLng(lat, lng),
-              initialZoom: 15.0,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=$token',
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: ltlng.LatLng(lat, lng),
-                    width: 40, height: 40,
-                    alignment: Alignment.topCenter,
-                    child: const Icon(Icons.location_on, color: Colors.orangeAccent, size: 40),
+        child: Stack(
+          children: [
+            IgnorePointer(
+              child: FlutterMap(
+                options: MapOptions(
+                  initialCenter: ltlng.LatLng(lat, lng),
+                  initialZoom: 15.0,
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=$token',
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: ltlng.LatLng(lat, lng),
+                        width: 40, height: 40,
+                        alignment: Alignment.topCenter,
+                        child: const Icon(Icons.location_on, color: Colors.orangeAccent, size: 40),
+                      )
+                    ],
                   )
                 ],
-              )
-            ],
-          ),
+              ),
+            ),
+            // Capa interactiva de navegación
+            Positioned(
+              bottom: 8,
+              right: 8,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white.withOpacity(0.9),
+                  foregroundColor: Colors.blueAccent[700],
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+                onPressed: () async {
+                  final String googleMapsUrl = 'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
+                  final Uri url = Uri.parse(googleMapsUrl);
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  } else {
+                    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No se pudo abrir Google Maps')));
+                  }
+                },
+                icon: const Icon(Icons.directions, size: 20),
+                label: const Text('Cómo LLegar', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
         ),
       ),
     );
