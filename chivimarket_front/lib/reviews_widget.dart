@@ -25,7 +25,7 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
   double _average = 0.0;
   int _total = 0;
 
-  int _selectedRating = 5;
+  int _selectedRating = 0;
   final TextEditingController _commentController = TextEditingController();
   bool _isSubmitting = false;
 
@@ -57,6 +57,11 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
   }
 
   Future<void> _submitReview() async {
+    if (_selectedRating == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Haz clic en las estrellas para indicar tu calificación.'), backgroundColor: Colors.orange));
+      return;
+    }
+
     if (_commentController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Recomendamos escribir un pequeño comentario')));
       // No cortamos la ejecución porque el backend permite nullable string
@@ -72,7 +77,7 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
 
       if (res.statusCode == 201) {
         _commentController.clear();
-        setState(() => _selectedRating = 5);
+        setState(() => _selectedRating = 0);
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Reseña publicada con éxito!')));
         _fetchReviews();
       } else if (res.statusCode == 403) {
