@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'api_service.dart';
 import 'main.dart'; // GlassContainer & Animations
 import 'product_detail_page.dart';
+import 'reviews_widget.dart';
 
 class PublicBusinessPage extends StatefulWidget {
   final Map<String, dynamic> business;
@@ -21,12 +22,19 @@ class PublicBusinessPage extends StatefulWidget {
 
 class _PublicBusinessPageState extends State<PublicBusinessPage> {
   bool _isLoading = true;
+  bool _isLoggedIn = false;
   List<dynamic> _products = [];
 
   @override
   void initState() {
     super.initState();
+    _checkLogin();
     _fetchProducts();
+  }
+
+  Future<void> _checkLogin() async {
+    final t = await ApiService.getToken();
+    if (mounted) setState(() => _isLoggedIn = t != null);
   }
 
   Future<void> _fetchProducts() async {
@@ -272,7 +280,20 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                 ),
               ),
             
-            const SliverPadding(padding: EdgeInsets.only(bottom: 24))
+            const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+            
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ReviewsWidget(
+                  entityType: 'businesses',
+                  entityId: widget.business['id'] as int,
+                  isLoggedIn: _isLoggedIn,
+                ),
+              ),
+            ),
+            
+            const SliverPadding(padding: EdgeInsets.only(bottom: 48)),
           ],
         ),
       ),

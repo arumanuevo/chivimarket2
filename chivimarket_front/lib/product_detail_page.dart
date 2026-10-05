@@ -2,15 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'main.dart'; // Reutilizamos AnimatedGradientBackground y GlassContainer
 import 'public_business_page.dart';
+import 'reviews_widget.dart';
+import 'api_service.dart';
 
-class ProductDetailPage extends StatelessWidget {
+class ProductDetailPage extends StatefulWidget {
   final Map<String, dynamic> product;
 
   const ProductDetailPage({Key? key, required this.product}) : super(key: key);
 
+  @override
+  State<ProductDetailPage> createState() => _ProductDetailPageState();
+}
+
+class _ProductDetailPageState extends State<ProductDetailPage> {
+  bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    ApiService.getToken().then((token) {
+      if (mounted) setState(() => _isLoggedIn = token != null);
+    });
+  }
   String _getImageUrl() {
-    if (product['images'] != null && product['images'].isNotEmpty) {
-      String url = product['images'][0]['full_url'] ?? product['images'][0]['url'];
+    if (widget.product['images'] != null && widget.product['images'].isNotEmpty) {
+      String url = widget.product['images'][0]['full_url'] ?? widget.product['images'][0]['url'];
       if (!url.startsWith('http')) return 'https://chivimarket.arumasoft.com/$url';
       return url;
     }
@@ -20,7 +36,7 @@ class ProductDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageUrl = _getImageUrl();
-    final business = product['business'] ?? {};
+    final business = widget.product['business'] ?? {};
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -88,14 +104,14 @@ class ProductDetailPage extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                product['name'] ?? 'Producto Remasterizado',
+                                widget.product['name'] ?? 'Producto Remasterizado',
                                 style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
                               ),
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               decoration: BoxDecoration(color: Colors.orangeAccent, borderRadius: BorderRadius.circular(12)),
-                              child: Text('\$${product['price']}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.black87)),
+                              child: Text('\$${widget.product['price']}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.black87)),
                             )
                           ],
                         ),
@@ -117,7 +133,7 @@ class ProductDetailPage extends StatelessWidget {
                         Text('Descripción del Artículo', style: GoogleFonts.outfit(fontSize: 18, color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 12),
                         Text(
-                          product['description'] ?? 'No hay descripción disponible para este producto en este momento.',
+                          widget.product['description'] ?? 'No hay descripción disponible para este producto en este momento.',
                           style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 15, height: 1.5),
                         ),
                         
@@ -133,7 +149,7 @@ class ProductDetailPage extends StatelessWidget {
                             ),
                             onPressed: () {
                               if (business.isNotEmpty) {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: business, highlightedProduct: product)));
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: business, highlightedProduct: widget.product)));
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Este producto no tiene una tienda asociada aún.'), backgroundColor: Colors.orange));
                               }
@@ -146,7 +162,18 @@ class ProductDetailPage extends StatelessWidget {
                     ),
                   ),
                 ),
-              )
+              ),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: ReviewsWidget(
+                  entityType: 'products',
+                  entityId: widget.product['id'] as int,
+                  isLoggedIn: _isLoggedIn,
+                ),
+              ),
+              
+              const SizedBox(height: 48),
             ],
           ),
         ),
