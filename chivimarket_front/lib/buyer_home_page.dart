@@ -23,6 +23,9 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
   String _searchMode = 'products'; // 'products' or 'businesses'
   bool _showMap = false;
   final TextEditingController _searchController = TextEditingController();
+  
+  List<int> _favoriteProductIds = [];
+  List<int> _favoriteBusinessIds = [];
 
   @override
   void initState() {
@@ -102,6 +105,53 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     setState(() {
       _isLoggedIn = token != null;
     });
+    if (_isLoggedIn) {
+      _fetchFavorites();
+    }
+  }
+
+  Future<void> _fetchFavorites() async {
+    try {
+      final res = await ApiService.get('/favorites');
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        if (mounted) setState(() {
+          _favoriteBusinessIds = (data['businesses'] as List).map((b) => b['id'] as int).toList();
+          _favoriteProductIds = (data['products'] as List).map((p) => p['id'] as int).toList();
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _toggleFavorite(bool isBusiness, dynamic item) async {
+    if (!_isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Debes iniciar sesión con una cuenta para guardar favoritos!', backgroundColor: Colors.orange)));
+      return;
+    }
+    
+    final id = item['id'] as int;
+    final endpoint = isBusiness ? '/favorites/businesses/$id' : '/favorites/products/$id';
+    
+    // UI Optimistic update
+    setState(() {
+      if (isBusiness) {
+        if (_favoriteBusinessIds.contains(id)) _favoriteBusinessIds.remove(id);
+        else _favoriteBusinessIds.add(id);
+      } else {
+        if (_favoriteProductIds.contains(id)) _favoriteProductIds.remove(id);
+        else _favoriteProductIds.add(id);
+      }
+    });
+
+    try {
+      final res = await ApiService.post(endpoint, {});
+      if (res.statusCode != 200) {
+        // Revert on failure
+        _fetchFavorites();
+      }
+    } catch (_) {
+      _fetchFavorites();
+    }
   }
 
   void _logout() async {
@@ -319,6 +369,20 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                                         child: const Text('Promocionado', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
                                       ),
                                     ),
+                                  // Botón de Favoritos
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: IconButton(
+                                      icon: Icon(
+                                        (isBusiness ? _favoriteBusinessIds.contains(item['id']) : _favoriteProductIds.contains(item['id']))
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                        color: Colors.redAccent,
+                                      ),
+                                      onPressed: () => _toggleFavorite(isBusiness, item),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
