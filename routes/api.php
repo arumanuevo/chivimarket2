@@ -20,6 +20,8 @@ use App\Http\Controllers\API\ActivationController;
 use App\Http\Controllers\API\FavoriteController;
 use App\Http\Controllers\API\BusinessRatingController;
 use App\Http\Controllers\API\ProductRatingController;
+use App\Http\Controllers\API\PromotionController;
+use App\Http\Controllers\API\VoucherController;
 use App\Http\Controllers\ShowerAdminController;
 use App\Http\Resources\SubscriptionResource;
 use App\Http\Resources\UserResource;
@@ -208,6 +210,21 @@ Route::get('products/{product}/ratings', [ProductRatingController::class, 'index
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('businesses/{business}/ratings', [BusinessRatingController::class, 'store']);
     Route::post('products/{product}/ratings', [ProductRatingController::class, 'store']);
+});
+
+// ----------------------------------------------------
+// ECOSSISTEMA O2O / RPG (Promociones y Vouchers)
+// ----------------------------------------------------
+Route::get('businesses/{business}/promotions', [PromotionController::class, 'index']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('businesses/{business}/promotions', [PromotionController::class, 'store']);
+    Route::put('promotions/{promotion}', [PromotionController::class, 'update']);
+    Route::delete('promotions/{promotion}', [PromotionController::class, 'destroy']);
+
+    Route::post('promotions/{promotion}/claim', [VoucherController::class, 'claim']);
+    Route::get('vouchers/my-vouchers', [VoucherController::class, 'myVouchers']);
+    Route::post('vouchers/redeem', [VoucherController::class, 'redeem']);
 });
 
 

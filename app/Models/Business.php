@@ -97,6 +97,11 @@ class Business extends Model
         }
         return 'https://via.placeholder.com/300x200?text=Sin+Imagen';
     }
+
+    public function promotions()
+    {
+        return $this->hasMany(Promotion::class);
+    }
 }
 
 

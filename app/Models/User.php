@@ -23,6 +23,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'xp_points',
+        'level'
     ];
 
     /**
@@ -59,6 +61,17 @@ class User extends Authenticatable implements MustVerifyEmail
     public function subscription()
     {
         return $this->hasOne(Subscription::class);
+    }
+
+    public function notifications()
+    {
+        return $this->morphMany(Notification::class, 'notifiable')
+            ->orderBy('created_at', 'desc');
+    }
+
+    public function vouchers()
+    {
+        return $this->hasMany(Voucher::class);
     }
 
     public function favoriteBusinesses()
