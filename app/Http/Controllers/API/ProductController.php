@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Cache;
 
 class ProductController extends Controller
 {
@@ -235,7 +236,15 @@ class ProductController extends Controller
             }
         }
 
-        return response()->json($query->get());
+
+        // Cache Inteligente MD5
+        $cacheKey = 'products_search_' . md5(json_encode($request->all()));
+
+        $results = Cache::remember($cacheKey, 60 * 5, function () use ($query) {
+            return $query->paginate(30);
+        });
+
+        return response()->json($results);
     }
 
 
