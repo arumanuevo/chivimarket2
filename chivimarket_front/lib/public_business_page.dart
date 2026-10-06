@@ -9,6 +9,7 @@ import 'api_service.dart';
 import 'main.dart'; // GlassContainer & Animations
 import 'product_detail_page.dart';
 import 'reviews_widget.dart';
+import 'promotions_list_widget.dart';
 
 class PublicBusinessPage extends StatefulWidget {
   final Map<String, dynamic> business;
@@ -213,6 +214,16 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               sliver: SliverToBoxAdapter(
                 child: Text('Catálogo de Productos', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+              ),
+            ),
+            
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                child: PromotionsListWidget(
+                  businessId: widget.business['id'] as int,
+                  isLoggedIn: _isLoggedIn,
+                ),
               ),
             ),
 
