@@ -15,6 +15,7 @@ class PromotionController extends Controller
     public function index(Business $business)
     {
         $promotions = $business->promotions()
+            ->with('product') // Incluir el producto si existe
             ->where('is_active', true)
             ->where(function ($query) {
                 $query->whereNull('expires_at')
@@ -34,6 +35,7 @@ class PromotionController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
+            'product_id' => 'nullable|integer|exists:products,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'required_level' => 'integer|min:1',

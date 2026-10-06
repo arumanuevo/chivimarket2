@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
-    
+
 
     use HasFactory;
 
@@ -26,7 +26,7 @@ class Product extends Model
     protected $casts = [
         'is_active' => 'boolean'
     ];
-    
+
     /**
      * Relación con el negocio al que pertenece el producto.
      */
@@ -54,5 +54,10 @@ class Product extends Model
     public function ratings()
     {
         return $this->hasMany(ProductRating::class);
+    }
+
+    public function promotions()
+    {
+        return $this->hasMany(Promotion::class);
     }
 }

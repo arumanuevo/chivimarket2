@@ -11,6 +11,7 @@ class Promotion extends Model
 
     protected $fillable = [
         'business_id',
+        'product_id',
         'title',
         'description',
         'required_level',
@@ -27,6 +28,11 @@ class Promotion extends Model
     public function business()
     {
         return $this->belongsTo(Business::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
     }
 
     public function vouchers()
