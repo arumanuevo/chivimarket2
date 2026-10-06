@@ -188,13 +188,17 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                     ),
                     const SizedBox(width: 8),
                     // Dropdown para cambiar modo de búsqueda
-                    GlassContainer(
+                    Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      borderRadius: 30,
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+                      ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _searchMode,
-                          dropdownColor: Theme.of(context).colorScheme.surface,
+                          dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
                           icon: Icon(Icons.filter_list, color: Theme.of(context).colorScheme.primary),
                           items: [
                             DropdownMenuItem(value: 'products', child: Text('Productos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
@@ -227,7 +231,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                     const SizedBox(width: 8),
                     DropdownButton<String>(
                       value: _sortBy,
-                      dropdownColor: Theme.of(context).colorScheme.surface,
+                      dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
                       style: TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
                       underline: const SizedBox(),
                       items: [
