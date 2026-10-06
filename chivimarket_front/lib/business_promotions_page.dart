@@ -121,6 +121,7 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
                     Navigator.pop(ctx, true);
                   } else {
                     setStateModal(() => isSaving = false);
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error ${res.statusCode}: ${res.body}'), backgroundColor: Colors.redAccent));
                   }
                 },
                 child: isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black)) : const Text('Lanzar Promo', style: TextStyle(fontWeight: FontWeight.bold)),
