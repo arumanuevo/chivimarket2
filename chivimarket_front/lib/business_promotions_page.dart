@@ -74,7 +74,7 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
                   DropdownButtonFormField<String>(
                     decoration: const InputDecoration(labelText: 'Aplicar a...', border: OutlineInputBorder()),
                     value: selectedProductId,
-                    dropdownColor: Theme.of(context).colorScheme.surface,
+                    dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
                     items: [
                       const DropdownMenuItem(value: null, child: Text('- Toda la Tienda -', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold))),
                       ...storeProducts.map((p) => DropdownMenuItem(value: p['id'].toString(), child: Text(p['name'], style: const TextStyle(color: Colors.white)))),
