@@ -16,6 +16,7 @@ class Promotion extends Model
         'description',
         'required_level',
         'max_uses_per_user',
+        'max_total_claims',
         'is_active',
         'expires_at'
     ];

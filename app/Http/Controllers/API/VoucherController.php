@@ -30,13 +30,21 @@ class VoucherController extends Controller
             ], 403);
         }
 
-        // 3. Check usage limit
+        // 3. Check individual usage limit
         $claimCount = Voucher::where('promotion_id', $promotion->id)
             ->where('user_id', $user->id)
             ->count();
 
         if ($claimCount >= $promotion->max_uses_per_user) {
-            return response()->json(['message' => 'Has alcanzado el límite de reclamos para esta promoción.'], 403);
+            return response()->json(['message' => 'Has alcanzado el límite personal de reclamos.'], 403);
+        }
+
+        // 4. Check global stock limit
+        if ($promotion->max_total_claims !== null) {
+            $totalClaims = Voucher::where('promotion_id', $promotion->id)->count();
+            if ($totalClaims >= $promotion->max_total_claims) {
+                return response()->json(['message' => '¡Lo sentimos! El stock global de esta oferta se ha agotado.'], 403);
+            }
         }
 
         // Generate unique code (E.g. CHIVI-4A8F9)
