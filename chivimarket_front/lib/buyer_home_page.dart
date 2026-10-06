@@ -33,7 +33,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
   void initState() {
     super.initState();
     _checkLogin();
-    _fetchExploreProducts();
+    _performSearch('');
   }
 
   @override
@@ -42,62 +42,24 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     super.dispose();
   }
 
-  Future<void> _fetchExploreProducts() async {
-    setState(() => _isLoading = true);
-    try {
-      final res = await ApiService.get('/explore/products');
-      if (res.statusCode == 200) {
-        if (mounted) setState(() {
-          _items = jsonDecode(res.body);
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _fetchTopBusinesses() async {
-    setState(() => _isLoading = true);
-    try {
-      final res = await ApiService.get('/businesses/top-rated');
-      if (res.statusCode == 200) {
-        if (mounted) setState(() {
-          // Backend returns paginated data for businesses/top-rated
-          final data = jsonDecode(res.body);
-          _items = data['data'] ?? [];
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   Future<void> _performSearch(String query) async {
-    if (query.isEmpty) {
-      if (_searchMode == 'products') {
-        _fetchExploreProducts();
-      } else {
-        _fetchTopBusinesses();
-      }
-      return;
-    }
-    
     setState(() => _isLoading = true);
+    
     try {
       String endpoint = _searchMode == 'products' 
           ? '/products/search?query=$query' 
           : '/businesses/search?name=$query';
 
       if (_sortBy != 'default') {
-        endpoint += '&sort_by=$_sortBy';
+        String orderParam = (_sortBy == 'views_count' || _sortBy == 'avg_rating') ? 'desc' : 'asc';
+        endpoint += '&sort_by=$_sortBy&order=$orderParam';
       }
           
       final res = await ApiService.get(endpoint);
       if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
         if (mounted) setState(() {
-          _items = jsonDecode(res.body);
+          _items = data is List ? data : (data['data'] ?? []);
           _isLoading = false;
         });
       }
@@ -105,7 +67,6 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
       if (mounted) setState(() => _isLoading = false);
     }
   }
-
   Future<void> _checkLogin() async {
     final token = await ApiService.getToken();
     setState(() {
