@@ -5,6 +5,7 @@ import 'api_service.dart';
 import 'main.dart'; 
 import 'edit_business_page.dart'; 
 import 'products_page.dart';
+import 'business_promotions_page.dart';
 
 class MyBusinessesPage extends StatefulWidget {
   MyBusinessesPage({Key? key}) : super(key: key);
@@ -104,7 +105,19 @@ class _MyBusinessesPageState extends State<MyBusinessesPage> {
                                         if (result == true) _fetchMyBusinesses();
                                       },
                                       icon: Icon(Icons.edit, size: 16),
-                                      label: Text('Editar Tienda', style: TextStyle(fontSize: 12)),
+                                      label: Text('Editar', style: TextStyle(fontSize: 12)),
+                                    ),
+                                    SizedBox(width: 8),
+                                    ElevatedButton.icon(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.orangeAccent, foregroundColor: Colors.black87
+                                      ),
+                                      onPressed: () async {
+                                        await Navigator.push(context, MaterialPageRoute(builder: (context) => BusinessPromotionsPage(business: business)));
+                                        _fetchMyBusinesses(); 
+                                      },
+                                      icon: Icon(Icons.local_offer, size: 16),
+                                      label: Text('Ofertas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                                     ),
                                     SizedBox(width: 8),
                                     ElevatedButton.icon(
