@@ -211,7 +211,18 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
           Navigator.pop(context, true);
         }
       } else {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Verifique los campos: ${textResponse.statusCode}'), backgroundColor: Colors.red));
+        if (mounted) {
+          String errorMessage = 'Verifique los campos: ${textResponse.statusCode}';
+          try {
+            final decoded = jsonDecode(textResponse.body);
+            if (decoded['message'] != null) {
+              errorMessage = decoded['message'];
+            } else if (decoded is Map) {
+              errorMessage = "Error: ${decoded.values.first[0]}";
+            }
+          } catch (_) {}
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: Colors.redAccent));
+        }
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Excepción: $e'), backgroundColor: Colors.red));

@@ -121,7 +121,16 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
                     Navigator.pop(ctx, true);
                   } else {
                     setStateModal(() => isSaving = false);
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error ${res.statusCode}: ${res.body}'), backgroundColor: Colors.redAccent));
+                    String errorMsg = "Ocurrió un error inesperado al guardar.";
+                    try {
+                      final decoded = jsonDecode(res.body);
+                      if (decoded['message'] != null) {
+                        errorMsg = decoded['message'];
+                      } else if (decoded is Map) {
+                        errorMsg = "Revisa los campos: ${decoded.values.first[0]}";
+                      }
+                    } catch (_) {}
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMsg), backgroundColor: Colors.redAccent));
                   }
                 },
                 child: isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black)) : const Text('Lanzar Promo', style: TextStyle(fontWeight: FontWeight.bold)),

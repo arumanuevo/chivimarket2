@@ -16,6 +16,8 @@ class _DashboardPageState extends State<DashboardPage> {
   String _userName = "Comerciante";
   String _plan = "Cargando...";
   String _storesTracker = "- / -";
+  int _currentStores = 0;
+  int _storeLimit = 1;
   bool _isSuperAdmin = false;
   bool _isLoading = true;
 
@@ -35,7 +37,10 @@ class _DashboardPageState extends State<DashboardPage> {
             _userName = data['user']['name'] ?? 'Usuario';
             _isSuperAdmin = data['is_super_admin'] ?? false;
             _plan = data['subscription_stats']['plan'] ?? 'Free';
-            _storesTracker = "${data['subscription_stats']['current']} / ${data['subscription_stats']['limit']}";
+            _currentStores = data['subscription_stats']['current'] ?? 0;
+            _storeLimit = data['subscription_stats']['limit'] ?? 1;
+            final dynamicLimit = _storeLimit > 900 ? '∞' : _storeLimit.toString();
+            _storesTracker = "$_currentStores / $dynamicLimit";
             _isLoading = false;
           });
         }
@@ -111,6 +116,35 @@ class _DashboardPageState extends State<DashboardPage> {
               title: Text('Crear Nuevo Negocio', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
               onTap: () async {
                 Navigator.pop(context);
+                if (_currentStores >= _storeLimit) {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      backgroundColor: Theme.of(context).colorScheme.surface,
+                      title: Row(
+                        children: [
+                          const Icon(Icons.warning_amber_rounded, color: Colors.orangeAccent, size: 28),
+                          const SizedBox(width: 8),
+                          const Text('Límite Alcanzado'),
+                        ],
+                      ),
+                      content: const Text('Has alcanzado la cantidad máxima de tiendas permitidas en tu plan actual. Para expandir tu negocio, por favor sube de nivel tu suscripción.', style: TextStyle(fontSize: 14)),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Entendido', style: TextStyle(color: Colors.grey))),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black),
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            Navigator.pushNamed(context, '/subscription-plans'); // Asume que tienes esta ruta
+                          },
+                          child: const Text('VER PLANES PRO', style: TextStyle(fontWeight: FontWeight.bold)),
+                        )
+                      ],
+                    )
+                  );
+                  return;
+                }
+                
                 final result = await Navigator.pushNamed(context, '/create-business');
                 if (result == true) _fetchProfile();
               },

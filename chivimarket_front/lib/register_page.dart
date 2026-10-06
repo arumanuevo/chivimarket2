@@ -37,7 +37,18 @@ class _RegisterPageState extends State<RegisterPage> {
            Navigator.pushReplacementNamed(context, '/login');
         }
       } else {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${response.statusCode} - ${response.body}'), backgroundColor: Colors.red));
+        if (mounted) {
+          String errorMessage = 'Ocurrió un error al registrarse.';
+          try {
+            final decoded = jsonDecode(response.body);
+            if (decoded['message'] != null) {
+              errorMessage = decoded['message'];
+            } else if (decoded is Map) {
+              errorMessage = "Revisa: ${decoded.values.first[0]}";
+            }
+          } catch (_) {}
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage), backgroundColor: Colors.redAccent));
+        }
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error de red: $e'), backgroundColor: Colors.red));

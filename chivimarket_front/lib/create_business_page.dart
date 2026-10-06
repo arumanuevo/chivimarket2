@@ -176,7 +176,20 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${response.statusCode}'), backgroundColor: Colors.red));
+          String errorMessage = 'Ocurrió un error inesperado al procesar la solicitud.';
+          try {
+            final decoded = jsonDecode(response.body);
+            if (decoded['message'] != null) {
+              errorMessage = decoded['message'];
+            } else if (decoded is Map) {
+              errorMessage = "Por favor completa correctamente los campos: ${decoded.values.first[0]}";
+            }
+          } catch (_) {}
+          
+          if (response.statusCode == 403) {
+            errorMessage = 'Límite de negocios alcanzado. Por favor sube de plan para crear más tiendas.';
+          }
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage, style: const TextStyle(fontWeight: FontWeight.bold)), backgroundColor: Colors.redAccent, duration: const Duration(seconds: 5)));
         }
       }
     } catch (e) {
