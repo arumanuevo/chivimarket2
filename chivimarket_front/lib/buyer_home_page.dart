@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ltlng;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'my_vouchers_page.dart';
 import 'api_service.dart';
 import 'main.dart'; // Animations and global things
 import 'product_detail_page.dart';
@@ -468,6 +469,14 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const FavoritesPage())).then((_) => _fetchFavorites());
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.wallet_giftcard, color: Colors.greenAccent),
+              title: const Text('Billetera de Beneficios', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const MyVouchersPage()));
               },
             ),
             ListTile(

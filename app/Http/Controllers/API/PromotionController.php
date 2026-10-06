@@ -27,6 +27,21 @@ class PromotionController extends Controller
         return response()->json($promotions);
     }
 
+    // Obtener promociones activas de un PRODUCTO (API Pública)
+    public function productPromotions(\App\Models\Product $product)
+    {
+        $promotions = $product->promotions()
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($promotions);
+    }
+
     // Crear promoción (Protegido - Solo dueño del negocio)
     public function store(Request $request, Business $business)
     {

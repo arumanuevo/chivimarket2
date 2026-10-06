@@ -5,10 +5,11 @@ import 'api_service.dart';
 import 'main.dart'; // import GlassContainer
 
 class PromotionsListWidget extends StatefulWidget {
-  final int businessId;
+  final int? businessId;
+  final int? productId;
   final bool isLoggedIn;
 
-  const PromotionsListWidget({Key? key, required this.businessId, required this.isLoggedIn}) : super(key: key);
+  const PromotionsListWidget({Key? key, this.businessId, this.productId, required this.isLoggedIn}) : super(key: key);
 
   @override
   State<PromotionsListWidget> createState() => _PromotionsListWidgetState();
@@ -27,7 +28,11 @@ class _PromotionsListWidgetState extends State<PromotionsListWidget> {
 
   Future<void> _fetchPromotions() async {
     try {
-      final res = await ApiService.get('/businesses/${widget.businessId}/promotions');
+      final endpoint = widget.productId != null 
+          ? '/products/${widget.productId}/promotions'
+          : '/businesses/${widget.businessId}/promotions';
+
+      final res = await ApiService.get(endpoint);
       if (res.statusCode == 200) {
         if (mounted) setState(() {
           _promotions = jsonDecode(res.body);

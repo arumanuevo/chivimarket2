@@ -45,6 +45,18 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
     final levelCtrl = TextEditingController(text: '1');
     final usesCtrl = TextEditingController(text: '1');
     bool isSaving = false;
+    
+    // Fetch products para el dropdown
+    List<dynamic> storeProducts = [];
+    try {
+      final pRes = await ApiService.get('/products/search?business=${widget.business['id']}');
+      if (pRes.statusCode == 200) {
+         final data = jsonDecode(pRes.body);
+         storeProducts = data is List ? data : (data['data'] ?? []);
+      }
+    } catch (_) {}
+
+    String? selectedProductId;
 
     await showDialog(
       context: context,
@@ -57,16 +69,28 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(labelText: 'Aplicar a...', border: OutlineInputBorder()),
+                    value: selectedProductId,
+                    dropdownColor: Theme.of(context).colorScheme.surface,
+                    items: [
+                      const DropdownMenuItem(value: null, child: Text('- Toda la Tienda -', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold))),
+                      ...storeProducts.map((p) => DropdownMenuItem(value: p['id'].toString(), child: Text(p['name'], style: const TextStyle(color: Colors.white)))),
+                    ],
+                    onChanged: (val) => setStateModal(() => selectedProductId = val),
+                  ),
+                  const SizedBox(height: 12),
                   TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Título (Ej: 2x1 en Pintas)', border: OutlineInputBorder()), style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                   const SizedBox(height: 12),
                   TextField(controller: descCtrl, maxLines: 2, decoration: const InputDecoration(labelText: 'Instrucciones / Descripción', border: OutlineInputBorder()), style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: TextField(controller: levelCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Nivel RPG Requerido', border: OutlineInputBorder()), style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
+                      Expanded(child: TextField(controller: levelCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Nivel RPG', border: OutlineInputBorder()), style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
                       const SizedBox(width: 8),
-                      Expanded(child: TextField(controller: usesCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Máx. Usos/Persona', border: OutlineInputBorder()), style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
+                      Expanded(child: TextField(controller: usesCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Máx Usos/Pers', border: OutlineInputBorder()), style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
                     ],
                   )
                 ],
@@ -79,20 +103,27 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
                 onPressed: isSaving ? null : () async {
                   if (titleCtrl.text.isEmpty) return;
                   setStateModal(() => isSaving = true);
-                  final res = await ApiService.post('/businesses/${widget.business['id']}/promotions', {
+                  
+                  final bodyData = {
                     'title': titleCtrl.text,
                     'description': descCtrl.text,
                     'required_level': levelCtrl.text,
                     'max_uses_per_user': usesCtrl.text,
                     'is_active': true
-                  });
+                  };
+                  if (selectedProductId != null) {
+                    bodyData['product_id'] = selectedProductId!;
+                  }
+
+                  final res = await ApiService.post('/businesses/${widget.business['id']}/promotions', bodyData);
+                  
                   if (res.statusCode == 201) {
                     Navigator.pop(ctx, true);
                   } else {
                     setStateModal(() => isSaving = false);
                   }
                 },
-                child: isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black)) : const Text('Lanzar Promoción', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: isSaving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black)) : const Text('Lanzar Promo', style: TextStyle(fontWeight: FontWeight.bold)),
               )
             ],
           );
