@@ -29,6 +29,14 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
   String _modality = 'fisico'; // fisico, online, domicilio, mixto
   final _addressController = TextEditingController();
   
+  // Contacto & Redes
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _websiteController = TextEditingController();
+  final _facebookController = TextEditingController();
+  final _instagramController = TextEditingController();
+  final _hoursController = TextEditingController();
+  
   // Geolocation parameters Mapbox
   Timer? _debounce;
   // Carga desde el archivo .env creado localmente!
@@ -135,7 +143,15 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
         'latitude': _modality == 'online' ? null : _latitude,
         'longitude': _modality == 'online' ? null : _longitude,
         'categories': [int.parse(_selectedCategory)],
-        'metadata': _customMetadata // <- Magia Elástica pura
+        'phone': _phoneController.text.trim(),
+        'email': _emailController.text.trim(),
+        'website': _websiteController.text.trim(),
+        'metadata': {
+          'facebook': _facebookController.text.trim(),
+          'instagram': _instagramController.text.trim(),
+          'hours': _hoursController.text.trim(),
+          ..._customMetadata
+        }
       });
 
       if (response.statusCode == 201) {
@@ -235,6 +251,9 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                       }
                       setState(() => _currentStep += 1);
                     } else if (_currentStep == 1) {
+                      // Validación de contacto se puede omitir porque son opcionales
+                      setState(() => _currentStep += 1);
+                    } else if (_currentStep == 2) {
                       if (_modality != 'online' && _addressController.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('La dirección es obligatoria', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.red));
                         return;
@@ -257,9 +276,9 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           ElevatedButton(
                             onPressed: _isLoading ? null : details.onStepContinue,
                             style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onSurface),
-                            child: _isLoading && _currentStep == 2 
+                            child: _isLoading && _currentStep == 3 
                               ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface, strokeWidth: 2))
-                              : Text(_currentStep == 2 ? 'Crear Negocio' : 'Continuar'),
+                              : Text(_currentStep == 3 ? 'Crear Negocio' : 'Continuar'),
                           ),
                           if (_currentStep > 0)
                             TextButton(
@@ -305,7 +324,23 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           ),
                         ],
                       ),
+                    // PASO 2: CONTACTO Y HORARIOS
+                    Step(
+                      title: Text('Contacto', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
+                      isActive: _currentStep >= 1,
+                      content: Column(
+                        children: [
+                          TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'Teléfono / WhatsApp', prefixIcon: Icon(Icons.phone, color: Colors.greenAccent)), style: const TextStyle(color: Colors.white)),
+                          const SizedBox(height: 12),
+                          TextField(controller: _hoursController, decoration: InputDecoration(labelText: 'Horarios (Ej: Lun a Vie 8:00 a 17:00)', prefixIcon: Icon(Icons.access_time, color: Colors.orangeAccent)), style: const TextStyle(color: Colors.white)),
+                          const SizedBox(height: 12),
+                          TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email Comercial', prefixIcon: Icon(Icons.email, color: Colors.blueAccent)), style: const TextStyle(color: Colors.white)),
+                          const SizedBox(height: 12),
+                          TextField(controller: _instagramController, decoration: InputDecoration(labelText: 'Instagram (URL o @usuario)', prefixIcon: Icon(Icons.camera_alt, color: Colors.pinkAccent)), style: const TextStyle(color: Colors.white)),
+                        ],
+                      ),
                     ),
+                    
                     
                     // PASO 2: UBICACIÓN Y CATEGORÍA
                     Step(

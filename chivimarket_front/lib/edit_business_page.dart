@@ -37,6 +37,13 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
   double? _longitude;
   final MapController _mapPreviewController = MapController();
   
+  late TextEditingController _phoneController;
+  late TextEditingController _emailController;
+  late TextEditingController _websiteController;
+  late TextEditingController _facebookController;
+  late TextEditingController _instagramController;
+  late TextEditingController _hoursController;
+
   List<dynamic> _galleryImages = [];
   final ImagePicker _picker = ImagePicker();
 
@@ -48,6 +55,15 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
     _modality = widget.business['modality'] ?? 'fisico';
     _addressController = TextEditingController(text: widget.business['address'] ?? '');
     
+    _phoneController = TextEditingController(text: widget.business['phone'] ?? '');
+    _emailController = TextEditingController(text: widget.business['email'] ?? '');
+    _websiteController = TextEditingController(text: widget.business['website'] ?? '');
+    
+    final meta = widget.business['metadata'] ?? {};
+    _facebookController = TextEditingController(text: meta['facebook'] ?? '');
+    _instagramController = TextEditingController(text: meta['instagram'] ?? '');
+    _hoursController = TextEditingController(text: meta['hours'] ?? '');
+
     if (widget.business['latitude'] != null) {
       _latitude = double.tryParse(widget.business['latitude'].toString());
     }
@@ -203,6 +219,14 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
         'address': _modality == 'online' ? null : _addressController.text,
         'latitude': _modality == 'online' ? null : _latitude,
         'longitude': _modality == 'online' ? null : _longitude,
+        'phone': _phoneController.text.trim(),
+        'email': _emailController.text.trim(),
+        'website': _websiteController.text.trim(),
+        'metadata': {
+          'facebook': _facebookController.text.trim(),
+          'instagram': _instagramController.text.trim(),
+          'hours': _hoursController.text.trim()
+        }
       });
 
       if (textResponse.statusCode == 200) {
@@ -268,7 +292,6 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                   ),
                   SizedBox(height: 16),
                   
-                  // MODALIDAD
                   DropdownButtonFormField<String>(
                     value: _modality,
                     dropdownColor: Color(0xFF1E293B),
@@ -282,6 +305,18 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                     ],
                     onChanged: (value) => setState(() => _modality = value!),
                   ),
+                  const SizedBox(height: 32),
+
+                  Text('Contacto y Horarios', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
+                  SizedBox(height: 16),
+                  TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'Teléfono / WhatsApp', prefixIcon: Icon(Icons.phone, color: Colors.greenAccent)), style: const TextStyle(color: Colors.white)),
+                  const SizedBox(height: 12),
+                  TextField(controller: _hoursController, decoration: InputDecoration(labelText: 'Horarios (Ej: Lun a Vie 8:00 a 17:00)', prefixIcon: Icon(Icons.access_time, color: Colors.orangeAccent)), style: const TextStyle(color: Colors.white)),
+                  const SizedBox(height: 12),
+                  TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email Comercial', prefixIcon: Icon(Icons.email, color: Colors.blueAccent)), style: const TextStyle(color: Colors.white)),
+                  const SizedBox(height: 12),
+                  TextField(controller: _instagramController, decoration: InputDecoration(labelText: 'Instagram (URL o @usuario)', prefixIcon: Icon(Icons.camera_alt, color: Colors.pinkAccent)), style: const TextStyle(color: Colors.white)),
+                  const SizedBox(height: 24),
                   SizedBox(height: 16),
                   
                   if (_modality != 'online') ...[

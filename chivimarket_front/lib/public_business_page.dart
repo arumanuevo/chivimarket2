@@ -167,6 +167,25 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                         const SizedBox(height: 16),
                         Text(widget.business['description'] ?? 'Este vendedor es un misterio.', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
                         const SizedBox(height: 16),
+                        
+                        if (widget.business['phone'] != null || widget.business['metadata']?['hours'] != null)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (widget.business['metadata']?['hours'] != null && widget.business['metadata']['hours'].toString().isNotEmpty)
+                                  Row(children: [const Icon(Icons.access_time, color: Colors.orangeAccent, size: 16), const SizedBox(width: 8), Expanded(child: Text(widget.business['metadata']['hours'], style: const TextStyle(color: Colors.white70)))]),
+                                if (widget.business['phone'] != null && widget.business['phone'].toString().isNotEmpty)
+                                  Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.phone, color: Colors.greenAccent, size: 16), const SizedBox(width: 8), Text(widget.business['phone'], style: const TextStyle(color: Colors.white70))])),
+                                if (widget.business['metadata']?['instagram'] != null && widget.business['metadata']['instagram'].toString().isNotEmpty)
+                                  Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.camera_alt, color: Colors.pinkAccent, size: 16), const SizedBox(width: 8), Text(widget.business['metadata']['instagram'], style: const TextStyle(color: Colors.white70))])),
+                              ],
+                            )
+                          ),
+
                         _buildMap(),
                       ],
                     ),
