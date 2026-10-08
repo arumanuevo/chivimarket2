@@ -411,7 +411,7 @@ class BusinessController extends Controller
             }
 
             if ($request->has('metadata')) {
-                $businessData['metadata'] = is_array($request->input('metadata')) ? json_encode($request->input('metadata')) : $request->input('metadata');
+                $businessData['metadata'] = $request->input('metadata');
             }
 
             // Actualizar solo si hay datos para actualizar

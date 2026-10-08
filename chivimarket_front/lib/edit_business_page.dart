@@ -64,9 +64,15 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
     _emailController = TextEditingController(text: widget.business['email'] ?? '');
     _websiteController = TextEditingController(text: widget.business['website'] ?? '');
     
-    final meta = widget.business['metadata'] ?? {};
-    _facebookController = TextEditingController(text: meta['facebook'] ?? '');
-    _instagramController = TextEditingController(text: meta['instagram'] ?? '');
+    Map<String, dynamic> meta = {};
+    if (widget.business['metadata'] is Map) {
+      meta = Map<String, dynamic>.from(widget.business['metadata']);
+    } else if (widget.business['metadata'] is String) {
+      try { meta = jsonDecode(widget.business['metadata']); } catch(_) {}
+    }
+    
+    _facebookController = TextEditingController(text: meta['facebook']?.toString() ?? '');
+    _instagramController = TextEditingController(text: meta['instagram']?.toString() ?? '');
 
     if (widget.business['latitude'] != null) {
       _latitude = double.tryParse(widget.business['latitude'].toString());
