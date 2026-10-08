@@ -258,8 +258,6 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('La dirección es obligatoria', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.red));
                         return;
                       }
-                      setState(() => _currentStep += 1);
-                    } else {
                       _submitBusiness();
                     }
                   },
@@ -276,9 +274,9 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           ElevatedButton(
                             onPressed: _isLoading ? null : details.onStepContinue,
                             style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Theme.of(context).colorScheme.onSurface),
-                            child: _isLoading && _currentStep == 3 
+                            child: _isLoading && _currentStep == 2 
                               ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface, strokeWidth: 2))
-                              : Text(_currentStep == 3 ? 'Crear Negocio' : 'Continuar'),
+                              : Text(_currentStep == 2 ? 'Crear Negocio' : 'Continuar'),
                           ),
                           if (_currentStep > 0)
                             TextButton(
@@ -324,6 +322,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           ),
                         ],
                       ),
+                    ),
                     // PASO 2: CONTACTO Y HORARIOS
                     Step(
                       title: Text('Contacto', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
@@ -345,7 +344,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                     // PASO 2: UBICACIÓN Y CATEGORÍA
                     Step(
                       title: Text('Datos y Ubicación', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
-                      isActive: _currentStep >= 1,
+                      isActive: _currentStep >= 2,
                       content: Column(
                         children: [
                           if (_modality != 'online') ...[
