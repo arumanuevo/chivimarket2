@@ -321,7 +321,7 @@ class _ProductsPageState extends State<ProductsPage> {
                    ),
                  )
                : ListView.builder(
-                   padding: const EdgeInsets.all(16),
+                   padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 88),
                    itemCount: _products.length,
                    itemBuilder: (ctx, index) {
                      final p = _products[index];
@@ -370,6 +370,7 @@ class _ProductsPageState extends State<ProductsPage> {
         icon: const Icon(Icons.add_box, size: 28),
         label: Text('NUEVO PRODUCTO', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16)),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }
