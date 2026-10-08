@@ -223,7 +223,7 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
                    const Text('RECOMPENSA DE FIDELIDAD', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.w900)),
                    Text('+${transactionDetails['xp_awarded_to_buyer']} Puntos otorgados al comprador', style: const TextStyle(color: Colors.white)),
                    if (transactionDetails['leveled_up'] == true)
-                      Text('🌟 ¡El cliente alcanzó el Nivel VIP ${transactionDetails['new_level']}!', style: const TextStyle(color: Colors.yellowAccent, fontWeight: FontWeight.bold, fontSize: 16, textAlign: TextAlign.center)),
+                      Text('🌟 ¡El cliente alcanzó el Nivel VIP ${transactionDetails['new_level']}!', style: const TextStyle(color: Colors.yellowAccent, fontWeight: FontWeight.bold, fontSize: 16), textAlign: TextAlign.center),
                  ]
                ),
              )
