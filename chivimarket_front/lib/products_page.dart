@@ -305,6 +305,18 @@ class _ProductsPageState extends State<ProductsPage> {
                        Icon(Icons.inventory_2_outlined, size: 80, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
                        const SizedBox(height: 16),
                        Text('Aún no tienes productos.\n¡Empieza a agregar stock!', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60))),
+                       const SizedBox(height: 24),
+                       ElevatedButton.icon(
+                         onPressed: () => _showProductModal(),
+                         icon: const Icon(Icons.add),
+                         label: const Text('Crear mi primer producto', style: TextStyle(fontWeight: FontWeight.bold)),
+                         style: ElevatedButton.styleFrom(
+                           backgroundColor: Colors.orangeAccent,
+                           foregroundColor: Colors.black87,
+                           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                         ),
+                       )
                      ],
                    ),
                  )
@@ -347,8 +359,16 @@ class _ProductsPageState extends State<ProductsPage> {
                         ),
                      );
                    }
-                 )
+                  )
         ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showProductModal(),
+        backgroundColor: Colors.orangeAccent,
+        foregroundColor: Colors.black87,
+        elevation: 8,
+        icon: const Icon(Icons.add_box, size: 28),
+        label: Text('NUEVO PRODUCTO', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16)),
       ),
     );
   }
