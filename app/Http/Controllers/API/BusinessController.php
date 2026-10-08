@@ -13,8 +13,10 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Services\SubscriptionService;
 use Illuminate\Support\Facades\DB;
 use App\Models\BusinessRating;
+use App\Models\BusinessImage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\BusinessResource;
 
 class BusinessController extends Controller
 {
@@ -382,10 +384,34 @@ class BusinessController extends Controller
 
             if ($request->has('lat') && !is_null($request->input('lat'))) {
                 $businessData['latitude'] = $request->input('lat');
+            } elseif ($request->has('latitude') && !is_null($request->input('latitude'))) { // Compatibility
+                $businessData['latitude'] = $request->input('latitude');
             }
 
             if ($request->has('lon') && !is_null($request->input('lon'))) {
                 $businessData['longitude'] = $request->input('lon');
+            } elseif ($request->has('longitude') && !is_null($request->input('longitude'))) {
+                $businessData['longitude'] = $request->input('longitude');
+            }
+
+            if ($request->has('modality')) {
+                $businessData['modality'] = $request->input('modality');
+            }
+
+            if ($request->has('phone')) {
+                $businessData['phone'] = $request->input('phone');
+            }
+
+            if ($request->has('email')) {
+                $businessData['email'] = $request->input('email');
+            }
+
+            if ($request->has('website')) {
+                $businessData['website'] = $request->input('website');
+            }
+
+            if ($request->has('metadata')) {
+                $businessData['metadata'] = is_array($request->input('metadata')) ? json_encode($request->input('metadata')) : $request->input('metadata');
             }
 
             // Actualizar solo si hay datos para actualizar

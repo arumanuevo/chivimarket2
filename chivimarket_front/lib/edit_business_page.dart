@@ -522,35 +522,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                   ],
                   SizedBox(height: 24),
                   
-                  // BOTÓN GUARDAR TEXTO
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, foregroundColor: Colors.black87),
-                      onPressed: _saveTextData,
-                      icon: Icon(Icons.save),
-                      label: Text('Guardar Modificaciones Teóricas', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  
-                  SizedBox(height: 16),
-                  
-                  // BOTÓN IR AL CATÁLOGO
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, foregroundColor: Colors.black87),
-                      onPressed: () {
-                         Navigator.push(context, MaterialPageRoute(builder: (context) => ProductsPage(business: widget.business)));
-                      },
-                      icon: Icon(Icons.inventory),
-                      label: Text('Gestionar Productos de este Local', style: TextStyle(fontWeight: FontWeight.bold)),
-                    ),
-                  ),
 
-                  Divider(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.24), height: 48),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -628,7 +600,36 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                           );
                         },
                       ),
+                  SizedBox(height: 32),
+                  
+                  // BOTÓN GUARDAR TEXTO
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, foregroundColor: Colors.black87),
+                      onPressed: _saveTextData,
+                      icon: Icon(Icons.save),
+                      label: Text('Guardar Modificaciones', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ),
+                  ),
+                  
                   SizedBox(height: 16),
+                  
+                  // BOTÓN IR AL CATÁLOGO
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, foregroundColor: Colors.black87),
+                      onPressed: () {
+                         Navigator.push(context, MaterialPageRoute(builder: (context) => ProductsPage(business: widget.business)));
+                      },
+                      icon: Icon(Icons.inventory),
+                      label: Text('Gestionar Productos de este Local', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  SizedBox(height: 48),
                 ],
               ),
             ),
