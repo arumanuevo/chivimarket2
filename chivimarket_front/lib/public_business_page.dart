@@ -167,26 +167,47 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                         const SizedBox(height: 16),
                         Text(widget.business['description'] ?? 'Este vendedor es un misterio.', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
                         const SizedBox(height: 16),
-                        
-                        if (widget.business['phone'] != null || widget.business['metadata']?['hours'] != null)
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            margin: const EdgeInsets.only(bottom: 16),
-                            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (widget.business['metadata']?['hours'] != null && widget.business['metadata']['hours'].toString().isNotEmpty)
-                                  Row(children: [const Icon(Icons.access_time, color: Colors.orangeAccent, size: 16), const SizedBox(width: 8), Expanded(child: Text(widget.business['metadata']['hours'], style: const TextStyle(color: Colors.white70)))]),
-                                if (widget.business['phone'] != null && widget.business['phone'].toString().isNotEmpty)
-                                  Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.phone, color: Colors.greenAccent, size: 16), const SizedBox(width: 8), Text(widget.business['phone'], style: const TextStyle(color: Colors.white70))])),
-                                if (widget.business['metadata']?['facebook'] != null && widget.business['metadata']['facebook'].toString().isNotEmpty)
-                                  Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.facebook, color: Colors.blue, size: 16), const SizedBox(width: 8), Text(widget.business['metadata']['facebook'], style: const TextStyle(color: Colors.white70))])),
-                                if (widget.business['metadata']?['instagram'] != null && widget.business['metadata']['instagram'].toString().isNotEmpty)
-                                  Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.camera_alt, color: Colors.pinkAccent, size: 16), const SizedBox(width: 8), Text(widget.business['metadata']['instagram'], style: const TextStyle(color: Colors.white70))])),
-                              ],
-                            )
-                          ),
+                        Builder(
+                          builder: (context) {
+                            final phone = widget.business['phone']?.toString() ?? '';
+                            final email = widget.business['email']?.toString() ?? '';
+                            
+                            Map<String, dynamic> meta = {};
+                            if (widget.business['metadata'] is Map) {
+                              meta = Map<String, dynamic>.from(widget.business['metadata']);
+                            } else if (widget.business['metadata'] is String) {
+                              try { meta = jsonDecode(widget.business['metadata']); } catch(_) {}
+                            }
+
+                            final hours = meta['hours']?.toString() ?? '';
+                            final instagram = meta['instagram']?.toString() ?? '';
+                            final facebook = meta['facebook']?.toString() ?? '';
+
+                            if (phone.isNotEmpty || hours.isNotEmpty || instagram.isNotEmpty || facebook.isNotEmpty || email.isNotEmpty) {
+                              return Container(
+                                padding: const EdgeInsets.all(12),
+                                margin: const EdgeInsets.only(bottom: 16),
+                                decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (hours.isNotEmpty)
+                                      Row(children: [const Icon(Icons.access_time, color: Colors.orangeAccent, size: 16), const SizedBox(width: 8), Expanded(child: Text(hours, style: const TextStyle(color: Colors.white70)))]),
+                                    if (phone.isNotEmpty)
+                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.phone, color: Colors.greenAccent, size: 16), const SizedBox(width: 8), Text(phone, style: const TextStyle(color: Colors.white70))])),
+                                    if (email.isNotEmpty)
+                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.email, color: Colors.blueAccent, size: 16), const SizedBox(width: 8), Text(email, style: const TextStyle(color: Colors.white70))])),
+                                    if (facebook.isNotEmpty)
+                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.facebook, color: Colors.blue, size: 16), const SizedBox(width: 8), Text(facebook, style: const TextStyle(color: Colors.white70))])),
+                                    if (instagram.isNotEmpty)
+                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.camera_alt, color: Colors.pinkAccent, size: 16), const SizedBox(width: 8), Text(instagram, style: const TextStyle(color: Colors.white70))])),
+                                  ],
+                                )
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          }
+                        ),
 
                         _buildMap(),
                       ],

@@ -22,6 +22,8 @@ class BusinessResource extends JsonResource
             'phone' => $this->phone,
             'email' => $this->email,
             'website' => $this->website,
+            'modality' => $this->modality,
+            'metadata' => $this->metadata,
             'logo_url' => $this->logo_url ? $baseUrl . '/' . $this->logo_url : null,
             'cover_image_url' => $this->cover_image_url ? $baseUrl . '/api/image/' . basename($this->cover_image_url) : null,
             'is_active' => $this->is_active,
