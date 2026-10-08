@@ -336,8 +336,6 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                         children: [
                           TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'Teléfono / WhatsApp', prefixIcon: Icon(Icons.phone, color: Colors.greenAccent)), style: const TextStyle(color: Colors.white)),
                           const SizedBox(height: 12),
-                          TextField(controller: _hoursController, decoration: InputDecoration(labelText: 'Horarios (Ej: Lun a Vie 8:00 a 17:00)', prefixIcon: Icon(Icons.access_time, color: Colors.orangeAccent)), style: const TextStyle(color: Colors.white)),
-                          const SizedBox(height: 12),
                           TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email Comercial', prefixIcon: Icon(Icons.email, color: Colors.blueAccent)), style: const TextStyle(color: Colors.white)),
                           const SizedBox(height: 12),
                           TextField(controller: _facebookController, decoration: InputDecoration(labelText: 'Página de Facebook', prefixIcon: Icon(Icons.facebook, color: Colors.blue)), style: const TextStyle(color: Colors.white)),
