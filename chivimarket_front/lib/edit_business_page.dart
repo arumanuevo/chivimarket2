@@ -73,6 +73,25 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
     
     _facebookController = TextEditingController(text: meta['facebook']?.toString() ?? '');
     _instagramController = TextEditingController(text: meta['instagram']?.toString() ?? '');
+    
+    // Parsear el string de horarios de vuelta a su estado visible
+    final hoursStr = meta['hours']?.toString() ?? '';
+    if (hoursStr.isNotEmpty && hoursStr.contains(' - ')) {
+      final parts = hoursStr.split(' - ');
+      final daysPart = parts[0];
+      _selectedDays = daysPart.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+      
+      if (parts.length > 1) {
+        final timeHours = parts[1].split(' a ');
+        if (timeHours.length == 2) {
+           final openP = timeHours[0].split(':');
+           if (openP.length == 2) _openTime = TimeOfDay(hour: int.tryParse(openP[0]) ?? 8, minute: int.tryParse(openP[1]) ?? 0);
+           
+           final closeP = timeHours[1].split(':');
+           if (closeP.length == 2) _closeTime = TimeOfDay(hour: int.tryParse(closeP[0]) ?? 18, minute: int.tryParse(closeP[1]) ?? 0);
+        }
+      }
+    }
 
     if (widget.business['latitude'] != null) {
       _latitude = double.tryParse(widget.business['latitude'].toString());
