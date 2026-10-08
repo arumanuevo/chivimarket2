@@ -131,6 +131,13 @@ class VoucherController extends Controller
 
         $buyer->save();
 
+        // Calcular cuántos vouchers HA CANJEADO en ESTE LOCAL histórico
+        $loyaltyVisits = Voucher::where('user_id', $buyer->id)
+            ->where('status', 'redeemed')
+            ->whereHas('promotion', function ($q) use ($voucher) {
+                $q->where('business_id', $voucher->promotion->business_id);
+            })->count();
+
         return response()->json([
             'message' => '¡Voucher validado con éxito!',
             'transaction_details' => [
@@ -138,7 +145,8 @@ class VoucherController extends Controller
                 'promotion' => $voucher->promotion->title,
                 'xp_awarded_to_buyer' => $xpToGive,
                 'leveled_up' => $leveledUp,
-                'new_level' => $buyer->level
+                'new_level' => $buyer->level,
+                'total_business_visits' => $loyaltyVisits
             ]
         ]);
     }

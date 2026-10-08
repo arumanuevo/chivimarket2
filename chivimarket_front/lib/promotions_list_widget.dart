@@ -94,7 +94,7 @@ class _PromotionsListWidgetState extends State<PromotionsListWidget> {
                       Text(promo['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
                       if (promo['description'] != null) Text(promo['description'], style: const TextStyle(color: Colors.white70, fontSize: 12)),
                       const SizedBox(height: 4),
-                      Text('Req. Nivel ${promo['required_level']} RPG', style: TextStyle(color: Colors.blueAccent.withOpacity(0.8), fontSize: 10, fontWeight: FontWeight.w900)),
+                      Text('Req. Nivel VIP: ${promo['required_level']}', style: TextStyle(color: Colors.blueAccent.withOpacity(0.8), fontSize: 10, fontWeight: FontWeight.w900)),
                     ],
                   ),
                 ),

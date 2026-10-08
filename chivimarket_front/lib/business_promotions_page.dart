@@ -88,7 +88,7 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Expanded(child: TextField(controller: levelCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Nivel RPG', border: OutlineInputBorder()), style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
+                      Expanded(child: TextField(controller: levelCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Nivel Fidelidad Requerido', border: OutlineInputBorder()), style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
                       const SizedBox(width: 8),
                       Expanded(child: TextField(controller: usesCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Máx Usos/Pers', border: OutlineInputBorder()), style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
                     ],
@@ -210,7 +210,9 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
           children: [
              Icon(Icons.verified, color: Colors.greenAccent, size: 60),
              const SizedBox(height: 16),
-             Text('Cliente: ${transactionDetails['buyer_name']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+             Text('Cliente: ${transactionDetails['buyer_name']}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+             Text('Ha redimido: ${transactionDetails['total_business_visits']} cupones aquí.', style: const TextStyle(color: Colors.lightGreenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+             const SizedBox(height: 8),
              Text('Promo: ${transactionDetails['promotion']}', style: const TextStyle(color: Colors.white70)),
              const SizedBox(height: 16),
              Container(
@@ -218,10 +220,10 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
                decoration: BoxDecoration(color: Colors.orange.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
                child: Column(
                  children: [
-                   const Text('RPG REWARD', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.w900)),
-                   Text('+${transactionDetails['xp_awarded_to_buyer']} XP otorgados al comprador', style: const TextStyle(color: Colors.white)),
+                   const Text('RECOMPENSA DE FIDELIDAD', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.w900)),
+                   Text('+${transactionDetails['xp_awarded_to_buyer']} Puntos otorgados al comprador', style: const TextStyle(color: Colors.white)),
                    if (transactionDetails['leveled_up'] == true)
-                      Text('🌟 ¡El usuario subió al Nivel ${transactionDetails['new_level']}!', style: const TextStyle(color: Colors.yellowAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text('🌟 ¡El cliente alcanzó el Nivel VIP ${transactionDetails['new_level']}!', style: const TextStyle(color: Colors.yellowAccent, fontWeight: FontWeight.bold, fontSize: 16, textAlign: TextAlign.center)),
                  ]
                ),
              )
