@@ -42,7 +42,12 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
   late TextEditingController _websiteController;
   late TextEditingController _facebookController;
   late TextEditingController _instagramController;
-  late TextEditingController _hoursController;
+  
+  // Variables estandarizadas de horarios
+  TimeOfDay _openTime = const TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay _closeTime = const TimeOfDay(hour: 18, minute: 0);
+  final List<String> _daysOfWeek = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
+  List<String> _selectedDays = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie'];
 
   List<dynamic> _galleryImages = [];
   final ImagePicker _picker = ImagePicker();
@@ -62,7 +67,6 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
     final meta = widget.business['metadata'] ?? {};
     _facebookController = TextEditingController(text: meta['facebook'] ?? '');
     _instagramController = TextEditingController(text: meta['instagram'] ?? '');
-    _hoursController = TextEditingController(text: meta['hours'] ?? '');
 
     if (widget.business['latitude'] != null) {
       _latitude = double.tryParse(widget.business['latitude'].toString());
@@ -225,7 +229,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
         'metadata': {
           'facebook': _facebookController.text.trim(),
           'instagram': _instagramController.text.trim(),
-          'hours': _hoursController.text.trim()
+          'hours': '${_selectedDays.join(', ')} - ${_openTime.hour.toString().padLeft(2, '0')}:${_openTime.minute.toString().padLeft(2, '0')} a ${_closeTime.hour.toString().padLeft(2, '0')}:${_closeTime.minute.toString().padLeft(2, '0')}'
         }
       });
 
@@ -311,11 +315,79 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                   SizedBox(height: 16),
                   TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'Teléfono / WhatsApp', prefixIcon: Icon(Icons.phone, color: Colors.greenAccent)), style: const TextStyle(color: Colors.white)),
                   const SizedBox(height: 12),
-                  TextField(controller: _hoursController, decoration: InputDecoration(labelText: 'Horarios (Ej: Lun a Vie 8:00 a 17:00)', prefixIcon: Icon(Icons.access_time, color: Colors.orangeAccent)), style: const TextStyle(color: Colors.white)),
-                  const SizedBox(height: 12),
                   TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email Comercial', prefixIcon: Icon(Icons.email, color: Colors.blueAccent)), style: const TextStyle(color: Colors.white)),
                   const SizedBox(height: 12),
+                  TextField(controller: _facebookController, decoration: InputDecoration(labelText: 'Página de Facebook', prefixIcon: Icon(Icons.facebook, color: Colors.blue)), style: const TextStyle(color: Colors.white)),
+                  const SizedBox(height: 12),
                   TextField(controller: _instagramController, decoration: InputDecoration(labelText: 'Instagram (URL o @usuario)', prefixIcon: Icon(Icons.camera_alt, color: Colors.pinkAccent)), style: const TextStyle(color: Colors.white)),
+                  const SizedBox(height: 16),
+                  
+                  // Selector de Horarios
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(border: Border.all(color: Colors.white24), borderRadius: BorderRadius.circular(12)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Días de Apertura:', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                        Wrap(
+                          spacing: 4,
+                          children: _daysOfWeek.map((day) {
+                            final isSelected = _selectedDays.contains(day);
+                            return ChoiceChip(
+                              label: Text(day, style: TextStyle(fontSize: 12, color: isSelected ? Colors.black : Colors.white)),
+                              selected: isSelected,
+                              selectedColor: Colors.orangeAccent,
+                              backgroundColor: Colors.transparent,
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedDays.add(day);
+                                  } else {
+                                    _selectedDays.remove(day);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Column(
+                              children: [
+                                Text('Apertura', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black45, foregroundColor: Colors.white),
+                                  icon: Icon(Icons.sunny, size: 16, color: Colors.yellowAccent),
+                                  label: Text(_openTime.format(context)),
+                                  onPressed: () async {
+                                    final t = await showTimePicker(context: context, initialTime: _openTime);
+                                    if (t != null) setState(() => _openTime = t);
+                                  },
+                                )
+                              ],
+                            ),
+                            Column(
+                              children: [
+                                Text('Cierre', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.black45, foregroundColor: Colors.white),
+                                  icon: Icon(Icons.nightlight_round, size: 16, color: Colors.indigoAccent),
+                                  label: Text(_closeTime.format(context)),
+                                  onPressed: () async {
+                                    final t = await showTimePicker(context: context, initialTime: _closeTime);
+                                    if (t != null) setState(() => _closeTime = t);
+                                  },
+                                )
+                              ],
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   SizedBox(height: 16),
                   

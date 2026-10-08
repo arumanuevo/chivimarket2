@@ -180,6 +180,8 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                                   Row(children: [const Icon(Icons.access_time, color: Colors.orangeAccent, size: 16), const SizedBox(width: 8), Expanded(child: Text(widget.business['metadata']['hours'], style: const TextStyle(color: Colors.white70)))]),
                                 if (widget.business['phone'] != null && widget.business['phone'].toString().isNotEmpty)
                                   Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.phone, color: Colors.greenAccent, size: 16), const SizedBox(width: 8), Text(widget.business['phone'], style: const TextStyle(color: Colors.white70))])),
+                                if (widget.business['metadata']?['facebook'] != null && widget.business['metadata']['facebook'].toString().isNotEmpty)
+                                  Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.facebook, color: Colors.blue, size: 16), const SizedBox(width: 8), Text(widget.business['metadata']['facebook'], style: const TextStyle(color: Colors.white70))])),
                                 if (widget.business['metadata']?['instagram'] != null && widget.business['metadata']['instagram'].toString().isNotEmpty)
                                   Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.camera_alt, color: Colors.pinkAccent, size: 16), const SizedBox(width: 8), Text(widget.business['metadata']['instagram'], style: const TextStyle(color: Colors.white70))])),
                               ],

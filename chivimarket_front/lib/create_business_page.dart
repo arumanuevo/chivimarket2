@@ -35,7 +35,12 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
   final _websiteController = TextEditingController();
   final _facebookController = TextEditingController();
   final _instagramController = TextEditingController();
-  final _hoursController = TextEditingController();
+  
+  // Variables estandarizadas de horarios
+  TimeOfDay _openTime = const TimeOfDay(hour: 8, minute: 0);
+  TimeOfDay _closeTime = const TimeOfDay(hour: 18, minute: 0);
+  final List<String> _daysOfWeek = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
+  List<String> _selectedDays = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie'];
   
   // Geolocation parameters Mapbox
   Timer? _debounce;
@@ -149,7 +154,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
         'metadata': {
           'facebook': _facebookController.text.trim(),
           'instagram': _instagramController.text.trim(),
-          'hours': _hoursController.text.trim(),
+          'hours': '${_selectedDays.join(', ')} - ${_openTime.hour.toString().padLeft(2, '0')}:${_openTime.minute.toString().padLeft(2, '0')} a ${_closeTime.hour.toString().padLeft(2, '0')}:${_closeTime.minute.toString().padLeft(2, '0')}',
           ..._customMetadata
         }
       });
@@ -335,7 +340,78 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           const SizedBox(height: 12),
                           TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email Comercial', prefixIcon: Icon(Icons.email, color: Colors.blueAccent)), style: const TextStyle(color: Colors.white)),
                           const SizedBox(height: 12),
+                          TextField(controller: _facebookController, decoration: InputDecoration(labelText: 'Página de Facebook', prefixIcon: Icon(Icons.facebook, color: Colors.blue)), style: const TextStyle(color: Colors.white)),
+                          const SizedBox(height: 12),
                           TextField(controller: _instagramController, decoration: InputDecoration(labelText: 'Instagram (URL o @usuario)', prefixIcon: Icon(Icons.camera_alt, color: Colors.pinkAccent)), style: const TextStyle(color: Colors.white)),
+                          const SizedBox(height: 16),
+                          
+                          // Selector de Horarios
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(border: Border.all(color: Colors.white24), borderRadius: BorderRadius.circular(12)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Días de Apertura:', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                                Wrap(
+                                  spacing: 4,
+                                  children: _daysOfWeek.map((day) {
+                                    final isSelected = _selectedDays.contains(day);
+                                    return ChoiceChip(
+                                      label: Text(day, style: TextStyle(fontSize: 12, color: isSelected ? Colors.black : Colors.white)),
+                                      selected: isSelected,
+                                      selectedColor: Colors.orangeAccent,
+                                      backgroundColor: Colors.transparent,
+                                      onSelected: (selected) {
+                                        setState(() {
+                                          if (selected) {
+                                            _selectedDays.add(day);
+                                          } else {
+                                            _selectedDays.remove(day);
+                                          }
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Column(
+                                      children: [
+                                        Text('Apertura', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                        ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.black45, foregroundColor: Colors.white),
+                                          icon: Icon(Icons.sunny, size: 16, color: Colors.yellowAccent),
+                                          label: Text(_openTime.format(context)),
+                                          onPressed: () async {
+                                            final t = await showTimePicker(context: context, initialTime: _openTime);
+                                            if (t != null) setState(() => _openTime = t);
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                    Column(
+                                      children: [
+                                        Text('Cierre', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                        ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.black45, foregroundColor: Colors.white),
+                                          icon: Icon(Icons.nightlight_round, size: 16, color: Colors.indigoAccent),
+                                          label: Text(_closeTime.format(context)),
+                                          onPressed: () async {
+                                            final t = await showTimePicker(context: context, initialTime: _closeTime);
+                                            if (t != null) setState(() => _closeTime = t);
+                                          },
+                                        )
+                                      ],
+                                    )
+                                  ],
+                                )
+                              ],
+                            ),
+                          )
+
                         ],
                       ),
                     ),
