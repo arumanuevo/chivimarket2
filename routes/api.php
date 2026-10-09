@@ -215,6 +215,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // ----------------------------------------------------
 // ECOSSISTEMA O2O / RPG (Promociones y Vouchers)
 // ----------------------------------------------------
+Route::get('promotions/all', [PromotionController::class, 'getAllActivePromotions']);
 Route::get('businesses/{business}/promotions', [PromotionController::class, 'index']);
 Route::get('products/{product}/promotions', [PromotionController::class, 'productPromotions']);
 

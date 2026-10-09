@@ -49,9 +49,11 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     try {
       String endpoint = _searchMode == 'products' 
           ? '/products/search?query=$query' 
-          : '/businesses/search?name=$query';
+          : _searchMode == 'businesses' 
+              ? '/businesses/search?name=$query'
+              : '/promotions/all';
 
-      if (_sortBy != 'default') {
+      if (_sortBy != 'default' && _searchMode != 'promotions') {
         String orderParam = (_sortBy == 'views_count' || _sortBy == 'avg_rating') ? 'desc' : 'asc';
         endpoint += '&sort_by=$_sortBy&order=$orderParam';
       }
@@ -204,6 +206,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                           items: [
                             DropdownMenuItem(value: 'products', child: Text('Productos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
                             DropdownMenuItem(value: 'businesses', child: Text('Tiendas', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
+                            DropdownMenuItem(value: 'promotions', child: Text('Promo / Vouchers', style: TextStyle(color: Colors.pinkAccent, fontWeight: FontWeight.bold))),
                           ],
                           onChanged: (val) {
                             if (val != null) {
@@ -285,19 +288,34 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                         itemBuilder: (context, index) {
                           final item = _items[index];
                           final isBusiness = _searchMode == 'businesses';
-                          final isSponsored = !isBusiness && (item['is_sponsored'] == true);
-                          final title = item['name'] ?? '';
-                          final subtitle = isBusiness 
-                              ? (item['address'] ?? 'Tienda') 
-                              : (item['business'] != null ? (item['business']['name'] ?? 'Local') : 'Local');
-                          final priceOrRating = isBusiness 
-                              ? '⭐ ${item['avg_rating'] ?? 'Nuevo'}' 
-                              : '\$${item['price']}';
+                          final isPromo = _searchMode == 'promotions';
+                          final isSponsored = !isBusiness && !isPromo && (item['is_sponsored'] == true);
+                          
+                          final title = isPromo ? (item['title'] ?? 'Voucher') : (item['name'] ?? '');
+                          final subtitle = isPromo 
+                              ? (item['business'] != null ? item['business']['name'] : 'Beneficio Exclusivo')
+                              : isBusiness 
+                                  ? (item['address'] ?? 'Tienda') 
+                                  : (item['business'] != null ? (item['business']['name'] ?? 'Local') : 'Local');
+                          
+                          final priceOrRating = isPromo
+                              ? '🏆 Lvl. ${item['required_level'] ?? 1}'
+                              : isBusiness 
+                                  ? '⭐ ${item['avg_rating'] ?? 'Nuevo'}' 
+                                  : '\$${item['price']}';
 
-                          final viewsStr = '👀 ${item['views_count'] ?? 0}';
+                          final viewsStr = isPromo ? '🎁 ${item['max_uses_per_user'] ?? 1}x/u' : '👀 ${item['views_count'] ?? 0}';
                           
                           return GestureDetector(
                             onTap: () {
+                              if (isPromo) {
+                                // Dirige a la tienda para canjear 
+                                if (item['business'] != null) {
+                                   Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: item['business'])));
+                                }
+                                return;
+                              }
+                              
                               final currentId = item['id'];
                               // Hacemos el llamado a la API solo para disparar el incremento de vistas por background
                               if (isBusiness) {
