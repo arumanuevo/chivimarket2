@@ -54,11 +54,30 @@ class _ProductsPageState extends State<ProductsPage> {
   }
   
   Future<void> _pickImages() async {
-    final List<XFile> images = await _picker.pickMultiImage();
-    if (images.isNotEmpty) {
-      setState(() {
-        _selectedImages.addAll(images.map((e) => File(e.path)));
-      });
+    final source = await showDialog<ImageSource>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text('Seleccionar origen', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, ImageSource.camera), child: const Text('Tomar Foto')),
+          TextButton(onPressed: () => Navigator.pop(context, ImageSource.gallery), child: const Text('Múltiples de Galería')),
+        ],
+      )
+    );
+
+    if (source == null) return;
+
+    if (source == ImageSource.camera) {
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera, imageQuality: 70, maxWidth: 1000, maxHeight: 1000);
+      if (image != null) {
+        setState(() => _selectedImages.add(File(image.path)));
+      }
+    } else {
+      final List<XFile> images = await _picker.pickMultiImage(imageQuality: 70, maxWidth: 1000, maxHeight: 1000);
+      if (images.isNotEmpty) {
+        setState(() => _selectedImages.addAll(images.map((e) => File(e.path))));
+      }
     }
   }
 

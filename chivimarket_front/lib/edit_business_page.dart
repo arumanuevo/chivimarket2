@@ -156,11 +156,25 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
   }
 
   Future<void> _uploadNewImage() async {
+    final source = await showDialog<ImageSource>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        title: Text('Seleccionar origen', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, ImageSource.camera), child: const Text('Cámara')),
+          TextButton(onPressed: () => Navigator.pop(context, ImageSource.gallery), child: const Text('Galería')),
+        ],
+      )
+    );
+
+    if (source == null) return;
+
     final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery, 
-      imageQuality: 50, 
-      maxWidth: 800,
-      maxHeight: 800,
+      source: source, 
+      imageQuality: 70, 
+      maxWidth: 1000,
+      maxHeight: 1000,
     );
 
     if (image != null) {
