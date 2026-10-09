@@ -168,7 +168,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 });
 
-Route::get('/check-business/{business}', function (Request $request, Business $business) {
+Route::get('/check-business/{business}', function (Request $request, \App\Models\Business $business) {
     $user = $request->user();
     return response()->json([
         'user_id' => $user->id,
@@ -188,7 +188,7 @@ Route::get('businesses/{business}', [BusinessController::class, 'show']);
 
 Route::get('/test', [TestSwaggerController::class, 'index']);
 
-Route::patch('businesses/{business}/images/reset-primary', [BusinessImageController::class, 'resetPrimary'])->middleware('auth:sanctum');
+Route::patch('businesses/{business}/images/reset-primary', [\App\Http\Controllers\API\BusinessImageController::class, 'resetPrimary'])->middleware('auth:sanctum');
 
 // Rutas para el logo del negocio (protegidas)
 //Route::post('businesses/{business}/logo', [BusinessLogoController::class, 'store'])->middleware('auth:sanctum');

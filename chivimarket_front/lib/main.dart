@@ -9,7 +9,6 @@ import 'create_business_page.dart';
 import 'my_businesses_page.dart';
 import 'superadmin_page.dart';
 import 'buyer_home_page.dart';
-import 'upgrade_plan_page.dart';
 import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -83,7 +82,6 @@ class ChivimarketApp extends StatelessWidget {
             '/my-businesses': (context) => MyBusinessesPage(),
             '/super-admin': (context) => SuperAdminPage(),
             '/cuenta-verificada': (context) => CuentaVerificadaPage(),
-            '/upgrade-plan': (context) => UpgradePlanPage(),
           },
         );
       }

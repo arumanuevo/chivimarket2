@@ -8,8 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Services\SubscriptionService;
-use App\Models\Business;
-use App\Models\User;
 
 class SubscriptionController extends Controller
 {
