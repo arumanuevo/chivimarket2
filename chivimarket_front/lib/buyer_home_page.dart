@@ -412,20 +412,21 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                                         child: const Text('Promocionado', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
                                       ),
                                     ),
-                                  // Botón de Favoritos
-                                  Positioned(
-                                    top: 4,
-                                    right: 4,
-                                    child: IconButton(
-                                      icon: Icon(
-                                        (isBusiness ? _favoriteBusinessIds.contains(item['id']) : _favoriteProductIds.contains(item['id']))
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                        color: Colors.redAccent,
+                                  // Botón de Favoritos (Oculto en promos)
+                                  if (!isPromo)
+                                    Positioned(
+                                      top: 4,
+                                      right: 4,
+                                      child: IconButton(
+                                        icon: Icon(
+                                          (isBusiness ? _favoriteBusinessIds.contains(item['id']) : _favoriteProductIds.contains(item['id']))
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                          color: Colors.redAccent,
+                                        ),
+                                        onPressed: () => _toggleFavorite(isBusiness, item),
                                       ),
-                                      onPressed: () => _toggleFavorite(isBusiness, item),
                                     ),
-                                  ),
                                 ],
                               ),
                             ),
