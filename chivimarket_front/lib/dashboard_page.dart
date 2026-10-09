@@ -218,7 +218,10 @@ class _DashboardPageState extends State<DashboardPage> {
                       _buildActionCard(context, 'Editar Locales', Icons.edit_document, () {
                         Navigator.pushNamed(context, '/my-businesses');
                       }),
-                      _buildActionCard(context, 'Mejorar Plan', Icons.rocket_launch, () {}),
+                      _buildActionCard(context, 'Mejorar Plan', Icons.rocket_launch, () async {
+                        final res = await Navigator.pushNamed(context, '/upgrade-plan');
+                        if (res == true) _fetchProfile(); // Refrescar rango actual si compraste
+                      }),
                       if (_isSuperAdmin)
                         _buildActionCard(context, 'God Mode: Gestión', Icons.people_alt, () {
                           Navigator.pushNamed(context, '/super-admin');
