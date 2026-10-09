@@ -412,21 +412,29 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                                         child: const Text('Promocionado', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
                                       ),
                                     ),
-                                  // Botón de Favoritos (Oculto en promos)
-                                  if (!isPromo)
-                                    Positioned(
-                                      top: 4,
-                                      right: 4,
-                                      child: IconButton(
-                                        icon: Icon(
-                                          (isBusiness ? _favoriteBusinessIds.contains(item['id']) : _favoriteProductIds.contains(item['id']))
-                                            ? Icons.favorite
-                                            : Icons.favorite_border,
-                                          color: Colors.redAccent,
-                                        ),
-                                        onPressed: () => _toggleFavorite(isBusiness, item),
+                                  // Botón de Favoritos
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: IconButton(
+                                      icon: Icon(
+                                        (isBusiness || isPromo ? _favoriteBusinessIds.contains(isPromo ? item['business_id'] : item['id']) : _favoriteProductIds.contains(item['id']))
+                                          ? Icons.favorite
+                                          : Icons.favorite_border,
+                                        color: Colors.redAccent,
                                       ),
+                                      onPressed: () {
+                                          if (isPromo) {
+                                            if (item['business'] != null) {
+                                                _toggleFavorite(true, item['business']);
+                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tienda agregada a Favoritos desde el Voucher'), backgroundColor: Colors.green));
+                                            }
+                                          } else {
+                                            _toggleFavorite(isBusiness, item);
+                                          }
+                                      },
                                     ),
+                                  ),
                                 ],
                               ),
                             ),

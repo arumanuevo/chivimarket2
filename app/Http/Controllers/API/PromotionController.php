@@ -36,6 +36,8 @@ class PromotionController extends Controller
                 $query->whereNull('expires_at')
                     ->orWhere('expires_at', '>', now());
             })
+            ->withCount('vouchers') // Counts how many vouchers are claimed
+            ->havingRaw('vouchers_count < max_total_claims OR max_total_claims IS NULL')
             ->orderBy('created_at', 'desc')
             ->get();
 
