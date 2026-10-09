@@ -24,6 +24,7 @@ class PublicBusinessPage extends StatefulWidget {
 class _PublicBusinessPageState extends State<PublicBusinessPage> {
   bool _isLoading = true;
   bool _isLoggedIn = false;
+  bool _isFavorite = false;
   List<dynamic> _products = [];
 
   @override
@@ -36,6 +37,43 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
   Future<void> _checkLogin() async {
     final t = await ApiService.getToken();
     if (mounted) setState(() => _isLoggedIn = t != null);
+    if (_isLoggedIn) {
+      _checkFavoriteStatus();
+    }
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    try {
+      final res = await ApiService.get('/favorites');
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body);
+        final businessIds = (data['businesses'] as List).map((b) => b['id'] as int).toList();
+        if (mounted) setState(() {
+          _isFavorite = businessIds.contains(widget.business['id']);
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (!_isLoggedIn) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Debes iniciar sesión con una cuenta para darle Like!'), backgroundColor: Colors.orange));
+      return;
+    }
+
+    setState(() => _isFavorite = !_isFavorite);
+    
+    try {
+      final res = await ApiService.post('/favorites/businesses/${widget.business['id']}', {});
+      if (res.statusCode != 200) {
+        setState(() => _isFavorite = !_isFavorite);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al guardar favorito'), backgroundColor: Colors.red));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Favoritos actualizados'), backgroundColor: Colors.green));
+      }
+    } catch (_) {
+      setState(() => _isFavorite = !_isFavorite);
+    }
   }
 
   Future<void> _fetchProducts() async {
@@ -134,6 +172,13 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
         backgroundColor: Colors.black87.withOpacity(0.6),
         elevation: 0,
         leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        actions: [
+          IconButton(
+            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.redAccent : Colors.white),
+            tooltip: 'Añadir a Favoritos',
+            onPressed: _toggleFavorite,
+          )
+        ],
       ),
       body: AnimatedGradientBackground(
         child: CustomScrollView(
