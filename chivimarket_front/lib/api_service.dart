@@ -3,8 +3,12 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
-  // Base URL a tu servidor Wiroos (cambiar aquí si luego es otro dominio)
-  static const String baseUrl = 'https://chivimarket.arumasoft.com/api';
+  // Base URL configurable: --dart-define=API_URL=http://localhost:8000/api
+  // Por defecto apunta al servidor de produccion (Wiroos)
+  static const String baseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'https://chivimarket.arumasoft.com/api',
+  );
 
   // Obtener el token guardado localmente
   static Future<String?> getToken() async {
