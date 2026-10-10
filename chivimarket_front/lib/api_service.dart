@@ -31,6 +31,8 @@ class ApiService {
       Uri.parse('$baseUrl$endpoint'),
       headers: {
         'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Accept-Language': 'es-ES,es;q=0.9',
         if (token != null) 'Authorization': 'Bearer $token',
       },
     );
@@ -44,6 +46,8 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Accept-Language': 'es-ES,es;q=0.9',
         if (token != null) 'Authorization': 'Bearer $token',
       },
       body: jsonEncode(data),
@@ -58,6 +62,8 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Accept-Language': 'es-ES,es;q=0.9',
         if (token != null) 'Authorization': 'Bearer $token',
       },
       body: jsonEncode(data),
@@ -70,6 +76,8 @@ class ApiService {
       Uri.parse('$baseUrl$endpoint'),
       headers: {
         'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Accept-Language': 'es-ES,es;q=0.9',
         if (token != null) 'Authorization': 'Bearer $token',
       },
     );
@@ -82,7 +90,9 @@ class ApiService {
     
     // Configurar Cabeceras
     request.headers.addAll({
-      'Accept': 'application/json',
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+        'Accept-Language': 'es-ES,es;q=0.9',
       if (token != null) 'Authorization': 'Bearer $token',
     });
 
@@ -95,4 +105,3 @@ class ApiService {
     return await request.send();
   }
 }
-

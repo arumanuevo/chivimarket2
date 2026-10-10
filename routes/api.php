@@ -186,8 +186,6 @@ Route::patch('businesses/{business}/images/{image}', [\App\Http\Controllers\API\
 // BÃºsqueda de negocios (PÃšBLICA)
 Route::get('businesses/{business}', [BusinessController::class, 'show']);
 
-Route::get('/test', [TestSwaggerController::class, 'index']);
-
 Route::patch('businesses/{business}/images/reset-primary', [\App\Http\Controllers\API\BusinessImageController::class, 'resetPrimary'])->middleware('auth:sanctum');
 
 // Rutas para el logo del negocio (protegidas)
