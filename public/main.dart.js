@@ -8853,7 +8853,7 @@ var $async$a6E=A.w(function(a,b){if(a===1)return A.y(b,r)
 for(;;)switch(s){case 0:if($.a2==null)A.auG()
 $.a2.toString
 s=2
-return A.n($.O9().yA("env.txt"),$async$a6E)
+return A.n($.O9().yA("config.json"),$async$a6E)
 case 2:s=3
 return A.n(A.aea("6LfajdItAAAAALK0AsHklkRGZz6D_kwQfNw1zNhi"),$async$a6E)
 case 3:if($.a2==null)A.auG()
