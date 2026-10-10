@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'dart:ui';
@@ -11,14 +11,14 @@ import 'superadmin_page.dart';
 import 'buyer_home_page.dart';
 import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: "config.json"); // Carga archivo config
-  // TODO: ¡Pega tu SITKEY pública de ReCAPTCHA aquí para el Frontend!
+  // dotenv removido
+  // TODO: Â¡Pega tu SITKEY pÃºblica de ReCAPTCHA aquÃ­ para el Frontend!
   await GRecaptchaV3.ready('6LfajdItAAAAALK0AsHklkRGZz6D_kwQfNw1zNhi');
   runApp(ChivimarketApp());
 }
@@ -267,7 +267,7 @@ class LandingPage extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Más Poderoso de Chivilcoy',
+                        'MÃ¡s Poderoso de Chivilcoy',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.inter(
                           fontSize: 64,
@@ -410,7 +410,7 @@ class _LoginPageState extends State<LoginPage> {
                   controller: _emailController,
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'Correo Electrónico',
+                    labelText: 'Correo ElectrÃ³nico',
                     labelStyle: TextStyle(color: Colors.white60),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
@@ -423,7 +423,7 @@ class _LoginPageState extends State<LoginPage> {
                   obscureText: true,
                   style: TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'Contraseña',
+                    labelText: 'ContraseÃ±a',
                     labelStyle: TextStyle(color: Colors.white60),
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
@@ -476,7 +476,7 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(height: 16),
                 TextButton(
                   onPressed: () => Navigator.pushNamed(context, '/register'),
-                  child: Text('¿No tienes cuenta? Registra tu Comercio Aquí', style: TextStyle(color: Colors.white70)),
+                  child: Text('Â¿No tienes cuenta? Registra tu Comercio AquÃ­', style: TextStyle(color: Colors.white70)),
                 )
               ],
             ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -6,7 +6,7 @@ import 'dart:io' show File;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'app_config.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ltlng;
 import 'api_service.dart';
@@ -30,7 +30,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
   
   String _modality = 'fisico';
   Timer? _debounce;
-  final String _mapboxToken = dotenv.env['MAPBOX_TOKEN'] ?? 'FALTA_TOKEN';
+  final String _mapboxToken = AppConfig.mapboxToken;
   List<Map<String, dynamic>> _addressSuggestions = [];
   bool _isSearchingAddress = false;
   double? _latitude;
@@ -162,8 +162,8 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: Text('Seleccionar origen', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, ImageSource.camera), child: const Text('Cámara')),
-          TextButton(onPressed: () => Navigator.pop(context, ImageSource.gallery), child: const Text('Galería')),
+          TextButton(onPressed: () => Navigator.pop(context, ImageSource.camera), child: const Text('CÃ¡mara')),
+          TextButton(onPressed: () => Navigator.pop(context, ImageSource.gallery), child: const Text('GalerÃ­a')),
         ],
       )
     );
@@ -199,7 +199,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
             setState(() {
                _galleryImages.add(newImage);
             });
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Foto subida a la galería'), backgroundColor: Colors.green));
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Foto subida a la galerÃ­a'), backgroundColor: Colors.green));
           }
         } else {
           if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al subir imagen al servidor.'), backgroundColor: Colors.red));
@@ -218,7 +218,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
       builder: (context) => AlertDialog(
         backgroundColor: Color(0xFF1E293B),
         title: Text('Borrar foto', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-        content: Text('¿Estás seguro de que deseas eliminar esta fotografía?', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+        content: Text('Â¿EstÃ¡s seguro de que deseas eliminar esta fotografÃ­a?', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancelar', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60)))),
           TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Eliminar', style: TextStyle(color: Colors.redAccent))),
@@ -246,7 +246,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('No se pudo borrar: ${response.statusCode}'), backgroundColor: Colors.red));
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Excepción: $e'), backgroundColor: Colors.red));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ExcepciÃ³n: $e'), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -292,7 +292,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
         }
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Excepción: $e'), backgroundColor: Colors.red));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ExcepciÃ³n: $e'), backgroundColor: Colors.red));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -331,7 +331,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                     controller: _descController,
                     maxLines: 3,
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                    decoration: InputDecoration(labelText: 'Descripción', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                    decoration: InputDecoration(labelText: 'DescripciÃ³n', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                   ),
                   SizedBox(height: 16),
                   
@@ -341,10 +341,10 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                     decoration: InputDecoration(labelText: 'Modalidad de Servicio', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                     items: const [
-                      DropdownMenuItem(value: 'fisico', child: Text('Local Físico (Presencial)')),
+                      DropdownMenuItem(value: 'fisico', child: Text('Local FÃ­sico (Presencial)')),
                       DropdownMenuItem(value: 'domicilio', child: Text('Servicio a Domicilio')),
                       DropdownMenuItem(value: 'online', child: Text('Puramente Online / Digital')),
-                      DropdownMenuItem(value: 'mixto', child: Text('Mixto (Físico y Online)')),
+                      DropdownMenuItem(value: 'mixto', child: Text('Mixto (FÃ­sico y Online)')),
                     ],
                     onChanged: (value) => setState(() => _modality = value!),
                   ),
@@ -352,11 +352,11 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
 
                   Text('Contacto y Horarios', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
                   SizedBox(height: 16),
-                  TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'Teléfono / WhatsApp', prefixIcon: Icon(Icons.phone, color: Colors.greenAccent)), style: const TextStyle(color: Colors.white)),
+                  TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'TelÃ©fono / WhatsApp', prefixIcon: Icon(Icons.phone, color: Colors.greenAccent)), style: const TextStyle(color: Colors.white)),
                   const SizedBox(height: 12),
                   TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email Comercial', prefixIcon: Icon(Icons.email, color: Colors.blueAccent)), style: const TextStyle(color: Colors.white)),
                   const SizedBox(height: 12),
-                  TextField(controller: _facebookController, decoration: InputDecoration(labelText: 'Página de Facebook', prefixIcon: Icon(Icons.facebook, color: Colors.blue)), style: const TextStyle(color: Colors.white)),
+                  TextField(controller: _facebookController, decoration: InputDecoration(labelText: 'PÃ¡gina de Facebook', prefixIcon: Icon(Icons.facebook, color: Colors.blue)), style: const TextStyle(color: Colors.white)),
                   const SizedBox(height: 12),
                   TextField(controller: _instagramController, decoration: InputDecoration(labelText: 'Instagram (URL o @usuario)', prefixIcon: Icon(Icons.camera_alt, color: Colors.pinkAccent)), style: const TextStyle(color: Colors.white)),
                   const SizedBox(height: 16),
@@ -368,7 +368,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Días de Apertura:', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                        Text('DÃ­as de Apertura:', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
                         Wrap(
                           spacing: 4,
                           children: _daysOfWeek.map((day) {
@@ -435,7 +435,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                       controller: _addressController,
                       style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                       decoration: InputDecoration(
-                        labelText: 'Dirección (Ej: Lavalle 194)', 
+                        labelText: 'DirecciÃ³n (Ej: Lavalle 194)', 
                         labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)),
                         suffixIcon: _isSearchingAddress 
                             ? Padding(padding: const EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2)) 
@@ -483,7 +483,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                           children: [
                             Icon(Icons.check_circle, color: Colors.green, size: 16),
                             SizedBox(width: 4),
-                            Text('Dirección verificada (\u00B0 $_latitude, $_longitude)', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                            Text('DirecciÃ³n verificada (\u00B0 $_latitude, $_longitude)', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       ),
@@ -566,26 +566,26 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Galería Activa', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
+                      Text('GalerÃ­a Activa', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
                       IconButton(
                         onPressed: _uploadNewImage,
                         icon: Icon(Icons.add_a_photo, color: Colors.greenAccent),
-                        tooltip: 'Añadir nueva foto',
+                        tooltip: 'AÃ±adir nueva foto',
                       )
                     ],
                   ),
                   SizedBox(height: 8),
-                  Text('Las fotos que agregues aquí se subirán al instante y aparecerán en tu vidriera.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60), fontSize: 13)),
+                  Text('Las fotos que agregues aquÃ­ se subirÃ¡n al instante y aparecerÃ¡n en tu vidriera.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60), fontSize: 13)),
                   SizedBox(height: 16),
                   
-                  // GRID DINÁMICO
+                  // GRID DINÃMICO
                   _galleryImages.isEmpty 
-                    ? Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en galería.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))))
+                    ? Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en galerÃ­a.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))))
                     : GridView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 4, // 4 columnas para que queden muy pequeñas y estéticas
+                          crossAxisCount: 4, // 4 columnas para que queden muy pequeÃ±as y estÃ©ticas
                           crossAxisSpacing: 8,
                           mainAxisSpacing: 8,
                           childAspectRatio: 1,
@@ -614,7 +614,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                                   ),
                                 ),
                               ),
-                              // Botón de eliminar superpuesto
+                              // BotÃ³n de eliminar superpuesto
                               Positioned(
                                 top: 4,
                                 right: 4,
@@ -641,7 +641,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                       ),
                   SizedBox(height: 32),
                   
-                  // BOTÓN GUARDAR TEXTO
+                  // BOTÃ“N GUARDAR TEXTO
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -655,7 +655,7 @@ class _EditBusinessPageState extends State<EditBusinessPage> {
                   
                   SizedBox(height: 16),
                   
-                  // BOTÓN IR AL CATÁLOGO
+                  // BOTÃ“N IR AL CATÃLOGO
                   SizedBox(
                     width: double.infinity,
                     height: 50,

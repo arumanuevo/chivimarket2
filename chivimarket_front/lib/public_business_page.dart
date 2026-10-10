@@ -1,9 +1,9 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ltlng;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'app_config.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'api_service.dart';
 import 'main.dart'; // GlassContainer & Animations
@@ -57,7 +57,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
 
   Future<void> _toggleFavorite() async {
     if (!_isLoggedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Debes iniciar sesión con una cuenta para darle Like!'), backgroundColor: Colors.orange));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Â¡Debes iniciar sesiÃ³n con una cuenta para darle Like!'), backgroundColor: Colors.orange));
       return;
     }
 
@@ -98,7 +98,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
     final lng = double.tryParse(widget.business['longitude'].toString());
     if (lat == null || lng == null) return const SizedBox();
 
-    final String token = dotenv.env['MAPBOX_TOKEN'] ?? '';
+    final String token = AppConfig.mapboxToken;
     
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
@@ -133,7 +133,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                 ],
               ),
             ),
-            // Capa interactiva de navegación
+            // Capa interactiva de navegaciÃ³n
             Positioned(
               bottom: 8,
               right: 8,
@@ -154,7 +154,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                   }
                 },
                 icon: const Icon(Icons.directions, size: 20),
-                label: const Text('Cómo LLegar', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text('CÃ³mo LLegar', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -175,7 +175,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
         actions: [
           IconButton(
             icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.redAccent : Colors.white),
-            tooltip: 'Añadir a Favoritos',
+            tooltip: 'AÃ±adir a Favoritos',
             onPressed: _toggleFavorite,
           )
         ],
@@ -203,7 +203,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(widget.business['name'] ?? '', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                                  Text('${(widget.business['modality'] ?? 'Físico').toString().toUpperCase()} - ⭐ ${widget.business['avg_rating'] ?? '5.0'}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                                  Text('${(widget.business['modality'] ?? 'FÃ­sico').toString().toUpperCase()} - â­ ${widget.business['avg_rating'] ?? '5.0'}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             )
@@ -300,7 +300,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               sliver: SliverToBoxAdapter(
-                child: Text('Catálogo de Productos', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                child: Text('CatÃ¡logo de Productos', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
             
@@ -319,7 +319,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
             else if (_products.isEmpty)
               SliverFillRemaining(
                 child: Center(
-                  child: Text('El vendedor aún no ha publicado artículos.', style: TextStyle(color: Colors.white54, fontSize: 16)),
+                  child: Text('El vendedor aÃºn no ha publicado artÃ­culos.', style: TextStyle(color: Colors.white54, fontSize: 16)),
                 ),
               )
             else

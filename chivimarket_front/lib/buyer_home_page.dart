@@ -1,9 +1,9 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ltlng;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'app_config.dart';
 import 'my_vouchers_page.dart';
 import 'api_service.dart';
 import 'main.dart'; // Animations and global things
@@ -95,7 +95,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
 
   Future<void> _toggleFavorite(bool isBusiness, dynamic item) async {
     if (!_isLoggedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Debes iniciar sesión con una cuenta para guardar favoritos!'), backgroundColor: Colors.orange));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Â¡Debes iniciar sesiÃ³n con una cuenta para guardar favoritos!'), backgroundColor: Colors.orange));
       return;
     }
     
@@ -129,7 +129,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     setState(() {
       _isLoggedIn = false;
     });
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sesión cerrada correctamente')));
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('SesiÃ³n cerrada correctamente')));
   }
 
   @override
@@ -140,7 +140,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
       floatingActionButton: _searchMode == 'businesses' ? FloatingActionButton.extended(
         backgroundColor: Theme.of(context).colorScheme.primary,
         icon: Icon(_showMap ? Icons.grid_view : Icons.map),
-        label: Text(_showMap ? 'Ver Cuadrícula' : 'Ver Mapa', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+        label: Text(_showMap ? 'Ver CuadrÃ­cula' : 'Ver Mapa', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         onPressed: () => setState(() => _showMap = !_showMap),
       ) : null,
       appBar: AppBar(
@@ -156,7 +156,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           IconButton(
             icon: Icon(Icons.shopping_cart, color: Theme.of(context).colorScheme.onSurface),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Carrito en construcción')));
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Carrito en construcciÃ³n')));
             },
           )
         ],
@@ -190,7 +190,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Dropdown para cambiar modo de búsqueda
+                    // Dropdown para cambiar modo de bÃºsqueda
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
@@ -240,9 +240,9 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                       underline: const SizedBox(),
                       items: [
                         DropdownMenuItem(value: 'default', child: Text('Relevancia')),
-                        DropdownMenuItem(value: 'views_count', child: Text('🔥 Más Populares (Vistas)')),
-                        if (_searchMode == 'products') DropdownMenuItem(value: 'price', child: Text('💸 Precio')),
-                        if (_searchMode == 'businesses') DropdownMenuItem(value: 'avg_rating', child: Text('⭐ Mejor Calificados')),
+                        DropdownMenuItem(value: 'views_count', child: Text('ðŸ”¥ MÃ¡s Populares (Vistas)')),
+                        if (_searchMode == 'products') DropdownMenuItem(value: 'price', child: Text('ðŸ’¸ Precio')),
+                        if (_searchMode == 'businesses') DropdownMenuItem(value: 'avg_rating', child: Text('â­ Mejor Calificados')),
                       ],
                       onChanged: (val) {
                         if (val != null) {
@@ -268,7 +268,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                            const SizedBox(height: 16),
                            Text('Sin resultados', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
                            const SizedBox(height: 8),
-                           Text('Intenta con otra búsqueda', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
+                           Text('Intenta con otra bÃºsqueda', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
                         ],
                       ),
                      )
@@ -279,7 +279,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                            child: GridView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 240, // Más grandes, estilo MercadoLibre
+                          maxCrossAxisExtent: 240, // MÃ¡s grandes, estilo MercadoLibre
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                           childAspectRatio: 0.70, // Espacio suficiente para foto cuadrada y texto
@@ -299,12 +299,12 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                                   : (item['business'] != null ? (item['business']['name'] ?? 'Local') : 'Local');
                           
                           final priceOrRating = isPromo
-                              ? '🏆 Lvl. ${item['required_level'] ?? 1}'
+                              ? 'ðŸ† Lvl. ${item['required_level'] ?? 1}'
                               : isBusiness 
-                                  ? '⭐ ${item['avg_rating'] ?? 'Nuevo'}' 
+                                  ? 'â­ ${item['avg_rating'] ?? 'Nuevo'}' 
                                   : '\$${item['price']}';
 
-                          final viewsStr = isPromo ? '🎁 ${item['max_uses_per_user'] ?? 1}x/u' : '👀 ${item['views_count'] ?? 0}';
+                          final viewsStr = isPromo ? 'ðŸŽ ${item['max_uses_per_user'] ?? 1}x/u' : 'ðŸ‘€ ${item['views_count'] ?? 0}';
                           
                           return GestureDetector(
                             onTap: () {
@@ -412,7 +412,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                                         child: const Text('Promocionado', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
                                       ),
                                     ),
-                                  // Botón de Favoritos
+                                  // BotÃ³n de Favoritos
                                   Positioned(
                                     top: 4,
                                     right: 4,
@@ -514,7 +514,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
             const Divider(color: Colors.white24),
             ListTile(
               leading: const Icon(Icons.storefront, color: Colors.orangeAccent),
-              title: const Text('¡Vender mis servicios!', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+              title: const Text('Â¡Vender mis servicios!', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
               subtitle: Text('Ir a mi panel de negocios', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 12)),
               onTap: () {
                 Navigator.pop(context);
@@ -524,7 +524,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
             const Divider(color: Colors.white24),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.redAccent),
-              title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.redAccent)),
+              title: const Text('Cerrar SesiÃ³n', style: TextStyle(color: Colors.redAccent)),
               onTap: () {
                 Navigator.pop(context);
                 _logout();
@@ -537,7 +537,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
   }
 
   Widget _buildMapView() {
-    final String mapboxToken = dotenv.env['MAPBOX_TOKEN'] ?? '';
+    final String mapboxToken = AppConfig.mapboxToken;
     final mapItems = _items.where((b) => b['latitude'] != null && b['longitude'] != null).toList();
 
     return FlutterMap(
@@ -566,7 +566,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      constraints: BoxConstraints(maxWidth: 130), // Límite estricto de largo
+                      constraints: BoxConstraints(maxWidth: 130), // LÃ­mite estricto de largo
                       decoration: BoxDecoration(
                         color: Colors.black87, // Fondo oscuro permanente alto contraste
                         borderRadius: BorderRadius.circular(6),
@@ -575,7 +575,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                       ),
                       child: Text(
                         b['name'] ?? 'Local', 
-                        maxLines: 1, // Obliga a una sola línea
+                        maxLines: 1, // Obliga a una sola lÃ­nea
                         style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold), 
                         overflow: TextOverflow.ellipsis, // Corta con (...) si es muy largo
                         textAlign: TextAlign.center,
