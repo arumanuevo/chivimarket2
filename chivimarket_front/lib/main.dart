@@ -17,7 +17,7 @@ final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env"); // Carga el archivo .env
+  await dotenv.load(fileName: "env.txt"); // Carga el archivo env.txt
   // TODO: ¡Pega tu SITKEY pública de ReCAPTCHA aquí para el Frontend!
   await GRecaptchaV3.ready('6LfajdItAAAAALK0AsHklkRGZz6D_kwQfNw1zNhi');
   runApp(ChivimarketApp());
