@@ -11,7 +11,7 @@ use App\Http\Controllers\ShowerAdminController;
 
 // Ruta principal (welcome)
 Route::get('/', function () {
-    return view('welcome');
+    return response()->file(public_path('index.html'));
 });
 
 // Rutas para el formulario de mensajes al ESP32
