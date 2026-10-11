@@ -25,6 +25,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
   String _searchMode = 'products'; // 'products' or 'businesses'
   String _sortBy = 'default'; // 'default', 'views_count', 'price', 'avg_rating'
   bool _showMap = false;
+  bool _showHeroBanner = true;
   final TextEditingController _searchController = TextEditingController();
   
   List<int> _favoriteProductIds = [];
@@ -146,6 +147,22 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
       appBar: AppBar(
         title: Text('ChiviMarket', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 24, color: Theme.of(context).colorScheme.onSurface)),
         actions: [
+          if (!_isLoggedIn)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 4.0),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  elevation: 2,
+                ),
+                icon: const Icon(Icons.login, size: 16),
+                label: const Text('Ingresar', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                onPressed: () => Navigator.pushNamed(context, '/login').then((_) => _checkLogin()),
+              ),
+            ),
           IconButton(
             icon: Icon(themeNotifier.value == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode, color: Colors.orangeAccent),
             tooltip: 'Cambiar Tema',
@@ -167,6 +184,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              _buildHeroBanner(),
               // Buscador y Filtro
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -493,11 +511,20 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           
           if (!_isLoggedIn) ...[
             ListTile(
-              leading: Icon(Icons.login, color: Theme.of(context).colorScheme.onSurface),
-              title: Text('Ingresar / Registrarse', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+              leading: Icon(Icons.login, color: Theme.of(context).colorScheme.primary),
+              title: Text('Ingresar a mi Cuenta', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/login').then((_) => _checkLogin());
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.storefront, color: Colors.orangeAccent),
+              title: const Text('¡Publicá tu Negocio Gratis!', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+              subtitle: Text('Llegá a toda la comunidad de Chivilcoy', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.55), fontSize: 12)),
+              onTap: () {
+                Navigator.pop(context);
+                _showPublishPromoDialog();
               },
             ),
           ],
@@ -602,6 +629,332 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           }).toList(),
         ),
       ],
+    );
+  }
+
+  Widget _buildHeroBanner() {
+    if (!_showHeroBanner || _searchController.text.trim().isNotEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 6, 16, 10),
+      child: GlassContainer(
+        borderRadius: 22,
+        padding: EdgeInsets.all(isMobile ? 16 : 22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Top Bar del Banner: Badge local + Cerrar
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFF97316), Color(0xFFEA580C)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFF97316).withOpacity(0.35),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.location_on, color: Colors.white, size: 13),
+                      SizedBox(width: 4),
+                      Text(
+                        'Chivilcoy Conectado',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.greenAccent.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
+                  ),
+                  child: const Text(
+                    '100% Local',
+                    style: TextStyle(
+                      color: Colors.greenAccent,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                InkWell(
+                  onTap: () => setState(() => _showHeroBanner = false),
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.close,
+                      size: 15,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Título Impactante
+            Text(
+              '¡Comprá, descubrí y vendé en tu ciudad!',
+              style: GoogleFonts.outfit(
+                fontSize: isMobile ? 21 : 26,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 6),
+
+            // Subtítulo
+            Text(
+              'Encontrá locales cercanos, productos con stock real y cupones de descuento exclusivos. ¿Tenés un comercio o servicio? Sumate hoy mismo gratis.',
+              style: GoogleFonts.inter(
+                fontSize: isMobile ? 13 : 14.5,
+                height: 1.4,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Accesos directos / Filtros rápidos
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildHeroActionChip(
+                  icon: Icons.storefront,
+                  label: 'Ver Tiendas & Mapa',
+                  color: Colors.blueAccent,
+                  isSelected: _searchMode == 'businesses',
+                  onTap: () {
+                    setState(() {
+                      _searchMode = 'businesses';
+                      _searchController.clear();
+                    });
+                    _performSearch('');
+                  },
+                ),
+                _buildHeroActionChip(
+                  icon: Icons.local_offer,
+                  label: 'Cupones & Vouchers',
+                  color: Colors.pinkAccent,
+                  isSelected: _searchMode == 'promotions',
+                  onTap: () {
+                    setState(() {
+                      _searchMode = 'promotions';
+                      _searchController.clear();
+                    });
+                    _performSearch('');
+                  },
+                ),
+                _buildHeroCtaChip(
+                  icon: Icons.rocket_launch,
+                  label: _isLoggedIn ? 'Mi Panel de Negocios' : '¡Publicá tu Negocio Gratis!',
+                  onTap: () {
+                    if (_isLoggedIn) {
+                      Navigator.pushNamed(context, '/dashboard');
+                    } else {
+                      _showPublishPromoDialog();
+                    }
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroActionChip({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.25) : color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? color : color.withOpacity(0.3),
+            width: isSelected ? 1.5 : 1.0,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: color),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                fontSize: 12.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeroCtaChip({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFF97316), Color(0xFFEA580C)],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFF97316).withOpacity(0.4),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: Colors.white),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 12.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPublishPromoDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orangeAccent.withOpacity(0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.rocket_launch, color: Colors.orangeAccent, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Impulsá tu Negocio',
+                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Publicá tus servicios o local comercial en ChiviMarket y llegá a toda la comunidad de Chivilcoy.',
+              style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8)),
+            ),
+            const SizedBox(height: 16),
+            _buildDialogFeature(Icons.pin_drop, 'Tu tienda visible en el mapa satelital de la ciudad.'),
+            _buildDialogFeature(Icons.inventory_2, 'Catálogo digital con fotos, stock y precios.'),
+            _buildDialogFeature(Icons.confirmation_number, 'Creá cupones de descuento y promociones.'),
+            _buildDialogFeature(Icons.check_circle, 'Comenzá 100% GRATIS sin comisiones iniciales.'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamed(context, '/login').then((_) => _checkLogin());
+            },
+            child: const Text('Ya tengo cuenta'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pushNamed(context, '/register').then((_) => _checkLogin());
+            },
+            child: const Text('Crear mi Cuenta Gratis', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDialogFeature(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.orangeAccent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
