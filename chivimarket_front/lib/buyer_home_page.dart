@@ -181,301 +181,325 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
       drawer: _buildBuyerDrawer(),
       body: AnimatedGradientBackground(
         child: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+          child: RefreshIndicator(
+            onRefresh: () => _performSearch(_searchController.text),
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: _buildHeroBanner(),
+                ),
+                SliverToBoxAdapter(
+                  child: _buildSearchBarAndFilters(),
+                ),
+                if (_isLoading)
+                  const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (_items.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _buildEmptyState(),
+                  )
+                else if (_showMap && _searchMode == 'businesses')
+                  SliverFillRemaining(
+                    hasScrollBody: true,
+                    child: _buildMapView(),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 240,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.70,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _buildItemCard(_items[index]),
+                        childCount: _items.length,
+                      ),
+                    ),
+                  ),
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 80),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchBarAndFilters() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Buscador y Selector de Modo
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Row(
             children: [
-              _buildHeroBanner(),
-              // Buscador y Filtro
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GlassContainer(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        borderRadius: 30,
-                        child: TextField(
-                          controller: _searchController,
-                          style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                          decoration: InputDecoration(
-                            hintText: _searchMode == 'products' ? 'Buscar productos...' : 'Buscar tiendas...',
-                            hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
-                            border: InputBorder.none,
-                            icon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
-                          ),
-                          onSubmitted: (val) => _performSearch(val),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Dropdown para cambiar modo de búsqueda
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _searchMode,
-                          dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
-                          icon: Icon(Icons.filter_list, color: Theme.of(context).colorScheme.primary),
-                          items: [
-                            DropdownMenuItem(value: 'products', child: Text('Productos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
-                            DropdownMenuItem(value: 'businesses', child: Text('Tiendas', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
-                            DropdownMenuItem(value: 'promotions', child: Text('Promo / Vouchers', style: TextStyle(color: Colors.pinkAccent, fontWeight: FontWeight.bold))),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() {
-                                _searchMode = val;
-                                _sortBy = 'default'; // Reset sort upon changing mode to avoid invalid dropdown values
-                                _searchController.clear();
-                                if (val != 'businesses') _showMap = false;
-                              });
-                              _performSearch('');
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Botones de filtro de ordenamiento (Sort By)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  children: [
-                    Text('Ordenar por:', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                    const SizedBox(width: 8),
-                    DropdownButton<String>(
-                      value: _sortBy,
-                      dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
-                      style: TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
-                      underline: const SizedBox(),
-                      items: [
-                        DropdownMenuItem(value: 'default', child: Text('Relevancia')),
-                        DropdownMenuItem(value: 'views_count', child: Text('🔥 Más Populares (Vistas)')),
-                        if (_searchMode == 'products') DropdownMenuItem(value: 'price', child: Text('💸 Precio')),
-                        if (_searchMode == 'businesses') DropdownMenuItem(value: 'avg_rating', child: Text('⭐ Mejor Calificados')),
-                      ],
-                      onChanged: (val) {
-                        if (val != null) {
-                          setState(() => _sortBy = val);
-                          _performSearch(_searchController.text);
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Contenido exploratorio / Vitrina
               Expanded(
-                child: _isLoading 
-                ? const Center(child: CircularProgressIndicator())
-                : _items.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                           Icon(Icons.search_off, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
-                           const SizedBox(height: 16),
-                           Text('Sin resultados', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
-                           const SizedBox(height: 8),
-                           Text('Intenta con otra búsqueda', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
-                        ],
-                      ),
-                     )
-                   : _showMap && _searchMode == 'businesses'
-                       ? _buildMapView()
-                       : RefreshIndicator(
-                           onRefresh: () => _performSearch(_searchController.text),
-                           child: GridView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                          maxCrossAxisExtent: 240, // Más grandes, estilo MercadoLibre
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 0.70, // Espacio suficiente para foto cuadrada y texto
-                        ),
-                        itemCount: _items.length,
-                        itemBuilder: (context, index) {
-                          final item = _items[index];
-                          final isBusiness = _searchMode == 'businesses';
-                          final isPromo = _searchMode == 'promotions';
-                          final isSponsored = !isBusiness && !isPromo && (item['is_sponsored'] == true);
-                          
-                          final title = isPromo ? (item['title'] ?? 'Voucher') : (item['name'] ?? '');
-                          final subtitle = isPromo 
-                              ? (item['business'] != null ? item['business']['name'] : 'Beneficio Exclusivo')
-                              : isBusiness 
-                                  ? (item['address'] ?? 'Tienda') 
-                                  : (item['business'] != null ? (item['business']['name'] ?? 'Local') : 'Local');
-                          
-                          final priceOrRating = isPromo
-                              ? '🏆 Lvl. ${item['required_level'] ?? 1}'
-                              : isBusiness 
-                                  ? '⭐ ${item['avg_rating'] ?? 'Nuevo'}' 
-                                  : '\$${item['price']}';
-
-                          final viewsStr = isPromo ? '🎁 ${item['max_uses_per_user'] ?? 1}x/u' : '👀 ${item['views_count'] ?? 0}';
-                          
-                          return GestureDetector(
-                            onTap: () {
-                              if (isPromo) {
-                                // Dirige a la tienda para canjear 
-                                if (item['business'] != null) {
-                                   Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: item['business'])));
-                                }
-                                return;
-                              }
-                              
-                              final currentId = item['id'];
-                              // Hacemos el llamado a la API solo para disparar el incremento de vistas por background
-                              if (isBusiness) {
-                                ApiService.get('/businesses/$currentId');
-                              } else {
-                                ApiService.get('/products/$currentId');
-                              }
-
-                              // Optimistic UI increment
-                              setState(() {
-                                item['views_count'] = (item['views_count'] ?? 0) + 1;
-                              });
-                              if (isBusiness) {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: item)));
-                              } else {
-                                Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailPage(product: item)));
-                              }
-                            },
-                            child: GlassContainer(
-                              padding: EdgeInsets.zero,
-                              borderRadius: 16,
-                              child: Stack(
-                                children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      // Imagen Placeholder
-                                      Expanded(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.surface,
-                                            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                                          ),
-                                          child: Icon(isBusiness ? Icons.store : Icons.image, size: 48, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
-                                        ),
-                                      ),
-                                      // Detalles
-                                      Padding(
-                                        padding: const EdgeInsets.all(12.0),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              title,
-                                              style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  priceOrRating,
-                                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Theme.of(context).colorScheme.primary),
-                                                ),
-                                                Text(
-                                                  viewsStr,
-                                                  style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
-                                                )
-                                              ],
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Row(
-                                              children: [
-                                                Icon(isBusiness ? Icons.location_on : Icons.storefront, size: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
-                                                const SizedBox(width: 4),
-                                                Expanded(
-                                                  child: Text(
-                                                    subtitle,
-                                                    style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
-                                                    overflow: TextOverflow.ellipsis,
-                                                  ),
-                                                ),
-                                              ],
-                                            )
-                                          ],
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                  // Etiqueta de Promocionado
-                                  if (isSponsored)
-                                    Positioned(
-                                      top: 8,
-                                      left: 8,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.amberAccent,
-                                          borderRadius: BorderRadius.circular(12),
-                                          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)]
-                                        ),
-                                        child: const Text('Promocionado', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
-                                      ),
-                                    ),
-                                  // Botón de Favoritos
-                                  Positioned(
-                                    top: 4,
-                                    right: 4,
-                                    child: IconButton(
-                                      icon: Icon(
-                                        (isBusiness || isPromo ? _favoriteBusinessIds.contains(isPromo ? item['business_id'] : item['id']) : _favoriteProductIds.contains(item['id']))
-                                          ? Icons.favorite
-                                          : Icons.favorite_border,
-                                        color: Colors.redAccent,
-                                      ),
-                                      onPressed: () {
-                                          if (!_isLoggedIn) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: const Text('¡Debes iniciar sesión para agregar a favoritos!'),
-                                                backgroundColor: Colors.orange,
-                                                action: SnackBarAction(
-                                                  label: 'Ingresar',
-                                                  textColor: Colors.white,
-                                                  onPressed: () => Navigator.pushNamed(context, '/login'),
-                                                ),
-                                              ),
-                                            );
-                                            return;
-                                          }
-                                          if (isPromo) {
-                                            if (item['business'] != null) {
-                                              _toggleFavorite(true, item['business']);
-                                            }
-                                          } else {
-                                            _toggleFavorite(isBusiness, item);
-                                          }
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                child: GlassContainer(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  borderRadius: 30,
+                  child: TextField(
+                    controller: _searchController,
+                    style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    decoration: InputDecoration(
+                      hintText: _searchMode == 'products' ? 'Buscar productos...' : 'Buscar tiendas...',
+                      hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                      border: InputBorder.none,
+                      icon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
                     ),
-              )
+                    onSubmitted: (val) => _performSearch(val),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Dropdown para cambiar modo de búsqueda
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _searchMode,
+                    dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
+                    icon: Icon(Icons.filter_list, color: Theme.of(context).colorScheme.primary),
+                    items: [
+                      DropdownMenuItem(value: 'products', child: Text('Productos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
+                      DropdownMenuItem(value: 'businesses', child: Text('Tiendas', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
+                      DropdownMenuItem(value: 'promotions', child: Text('Promo / Vouchers', style: TextStyle(color: Colors.pinkAccent, fontWeight: FontWeight.bold))),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() {
+                          _searchMode = val;
+                          _sortBy = 'default';
+                          _searchController.clear();
+                          if (val != 'businesses') _showMap = false;
+                        });
+                        _performSearch('');
+                      }
+                    },
+                  ),
+                ),
+              ),
             ],
           ),
+        ),
+
+        // Botones de filtro de ordenamiento (Sort By)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Row(
+            children: [
+              const Text('Ordenar por:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              const SizedBox(width: 8),
+              DropdownButton<String>(
+                value: _sortBy,
+                dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
+                style: const TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                underline: const SizedBox(),
+                items: [
+                  const DropdownMenuItem(value: 'default', child: Text('Relevancia')),
+                  const DropdownMenuItem(value: 'views_count', child: Text('🔥 Más Populares (Vistas)')),
+                  if (_searchMode == 'products') const DropdownMenuItem(value: 'price', child: Text('💸 Precio')),
+                  if (_searchMode == 'businesses') const DropdownMenuItem(value: 'avg_rating', child: Text('⭐ Mejor Calificados')),
+                ],
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() => _sortBy = val);
+                    _performSearch(_searchController.text);
+                  }
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off, size: 80, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+          const SizedBox(height: 16),
+          Text('Sin resultados', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
+          const SizedBox(height: 8),
+          Text('Intenta con otra búsqueda', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItemCard(dynamic item) {
+    final isBusiness = _searchMode == 'businesses';
+    final isPromo = _searchMode == 'promotions';
+    final isSponsored = !isBusiness && !isPromo && (item['is_sponsored'] == true);
+    
+    final title = isPromo ? (item['title'] ?? 'Voucher') : (item['name'] ?? '');
+    final subtitle = isPromo 
+        ? (item['business'] != null ? item['business']['name'] : 'Beneficio Exclusivo')
+        : isBusiness 
+            ? (item['address'] ?? 'Tienda') 
+            : (item['business'] != null ? (item['business']['name'] ?? 'Local') : 'Local');
+    
+    final priceOrRating = isPromo
+        ? '🏆 Lvl. ${item['required_level'] ?? 1}'
+        : isBusiness 
+            ? '⭐ ${item['avg_rating'] ?? 'Nuevo'}' 
+            : '\$${item['price']}';
+
+    final viewsStr = isPromo ? '🎁 ${item['max_uses_per_user'] ?? 1}x/u' : '👀 ${item['views_count'] ?? 0}';
+    
+    return GestureDetector(
+      onTap: () {
+        if (isPromo) {
+          if (item['business'] != null) {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: item['business'])));
+          }
+          return;
+        }
+        
+        final currentId = item['id'];
+        if (isBusiness) {
+          ApiService.get('/businesses/$currentId');
+        } else {
+          ApiService.get('/products/$currentId');
+        }
+
+        setState(() {
+          item['views_count'] = (item['views_count'] ?? 0) + 1;
+        });
+        if (isBusiness) {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: item)));
+        } else {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailPage(product: item)));
+        }
+      },
+      child: GlassContainer(
+        padding: EdgeInsets.zero,
+        borderRadius: 16,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    ),
+                    child: Icon(isBusiness ? Icons.store : Icons.image, size: 48, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            priceOrRating,
+                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Theme.of(context).colorScheme.primary),
+                          ),
+                          Text(
+                            viewsStr,
+                            style: TextStyle(fontSize: 10, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(isBusiness ? Icons.location_on : Icons.storefront, size: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              subtitle,
+                              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      )
+                    ],
+                  ),
+                )
+              ],
+            ),
+            if (isSponsored)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.amberAccent,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)]
+                  ),
+                  child: const Text('Promocionado', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
+                ),
+              ),
+            Positioned(
+              top: 4,
+              right: 4,
+              child: IconButton(
+                icon: Icon(
+                  (isBusiness || isPromo ? _favoriteBusinessIds.contains(isPromo ? item['business_id'] : item['id']) : _favoriteProductIds.contains(item['id']))
+                    ? Icons.favorite
+                    : Icons.favorite_border,
+                  color: Colors.redAccent,
+                ),
+                onPressed: () {
+                  if (!_isLoggedIn) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('¡Debes iniciar sesión para agregar a favoritos!'),
+                        backgroundColor: Colors.orange,
+                        action: SnackBarAction(
+                          label: 'Ingresar',
+                          textColor: Colors.white,
+                          onPressed: () => Navigator.pushNamed(context, '/login'),
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+                  if (isPromo) {
+                    if (item['business'] != null) {
+                      _toggleFavorite(true, item['business']);
+                    }
+                  } else {
+                    _toggleFavorite(isBusiness, item);
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
