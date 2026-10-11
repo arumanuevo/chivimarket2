@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -189,8 +190,12 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                 SliverToBoxAdapter(
                   child: _buildHeroBanner(),
                 ),
-                SliverToBoxAdapter(
-                  child: _buildSearchBarAndFilters(),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _SearchBarDelegate(
+                    child: _buildSearchBarAndFilters(),
+                    height: 92.0,
+                  ),
                 ),
                 if (_isLoading)
                   const SliverFillRemaining(
@@ -236,25 +241,28 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
 
   Widget _buildSearchBarAndFilters() {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Buscador y Selector de Modo
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 6.0, 16.0, 2.0),
           child: Row(
             children: [
               Expanded(
                 child: GlassContainer(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
                   borderRadius: 30,
                   child: TextField(
                     controller: _searchController,
                     style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                     decoration: InputDecoration(
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
                       hintText: _searchMode == 'products' ? 'Buscar productos...' : 'Buscar tiendas...',
                       hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
                       border: InputBorder.none,
-                      icon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
+                      icon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary, size: 20),
                     ),
                     onSubmitted: (val) => _performSearch(val),
                   ),
@@ -263,7 +271,8 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
               const SizedBox(width: 8),
               // Dropdown para cambiar modo de búsqueda
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                 decoration: BoxDecoration(
                   color: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
                   borderRadius: BorderRadius.circular(30),
@@ -273,11 +282,11 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                   child: DropdownButton<String>(
                     value: _searchMode,
                     dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
-                    icon: Icon(Icons.filter_list, color: Theme.of(context).colorScheme.primary),
+                    icon: Icon(Icons.filter_list, color: Theme.of(context).colorScheme.primary, size: 18),
                     items: [
-                      DropdownMenuItem(value: 'products', child: Text('Productos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
-                      DropdownMenuItem(value: 'businesses', child: Text('Tiendas', style: TextStyle(color: Theme.of(context).colorScheme.onSurface))),
-                      DropdownMenuItem(value: 'promotions', child: Text('Promo / Vouchers', style: TextStyle(color: Colors.pinkAccent, fontWeight: FontWeight.bold))),
+                      DropdownMenuItem(value: 'products', child: Text('Productos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13))),
+                      DropdownMenuItem(value: 'businesses', child: Text('Tiendas', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13))),
+                      DropdownMenuItem(value: 'promotions', child: Text('Promo / Vouchers', style: TextStyle(color: Colors.pinkAccent, fontWeight: FontWeight.bold, fontSize: 13))),
                     ],
                     onChanged: (val) {
                       if (val != null) {
@@ -302,13 +311,14 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
             children: [
-              const Text('Ordenar por:', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              Text('Ordenar por:', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 11)),
               const SizedBox(width: 8),
               DropdownButton<String>(
                 value: _sortBy,
                 dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
                 style: const TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
                 underline: const SizedBox(),
+                isDense: true,
                 items: [
                   const DropdownMenuItem(value: 'default', child: Text('Relevancia')),
                   const DropdownMenuItem(value: 'views_count', child: Text('🔥 Más Populares (Vistas)')),
@@ -980,5 +990,56 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
         ],
       ),
     );
+  }
+}
+
+class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  final double height;
+
+  _SearchBarDelegate({required this.child, this.height = 92.0});
+
+  @override
+  double get minExtent => height;
+
+  @override
+  double get maxExtent => height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isPinned = shrinkOffset > 0 || overlapsContent;
+
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: isPinned ? 16.0 : 0.0, sigmaY: isPinned ? 16.0 : 0.0),
+        child: Container(
+          height: height,
+          decoration: BoxDecoration(
+            color: isPinned
+                ? (isDark ? const Color(0xE61E293B) : const Color(0xE6F1F5F9))
+                : Colors.transparent,
+            border: isPinned
+                ? Border(bottom: BorderSide(color: (isDark ? Colors.white12 : Colors.black12), width: 1))
+                : null,
+            boxShadow: isPinned
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ]
+                : null,
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _SearchBarDelegate oldDelegate) {
+    return oldDelegate.child != child || oldDelegate.height != height;
   }
 }
