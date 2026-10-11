@@ -1,6 +1,4 @@
 ﻿class AppConfig {
-  static String get mapboxToken =>
-      "pk.eyJ1Ijoic2Nhc3RlbGxhbm8xMCI" +
-      "sImEiOiJjbXVzaTU2ZGowa3BuMndwcG9yeGM4NTVwIn0." +
-      "fNbgdFQ0x7crgIpG-uyUnQ";
+  static const String mapboxToken =
+      "pk.eyJ1Ijoic2Nhc3RlbGxhbm8xMCIsImEiOiJjbGd6MzA4cGwwY21lM21ubWF1YXk3dmJjIn0.dSVxEPqf8Lo1HvR6Ur_JsA";
 }

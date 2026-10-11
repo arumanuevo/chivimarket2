@@ -57,7 +57,17 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
 
   Future<void> _toggleFavorite() async {
     if (!_isLoggedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Debes iniciar sesión con una cuenta para darle Like!'), backgroundColor: Colors.orange));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('¡Debes iniciar sesión con una cuenta para darle Like!'),
+          backgroundColor: Colors.orange,
+          action: SnackBarAction(
+            label: 'Ingresar',
+            textColor: Colors.white,
+            onPressed: () => Navigator.pushNamed(context, '/login'),
+          ),
+        ),
+      );
       return;
     }
 

@@ -424,10 +424,23 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                                         color: Colors.redAccent,
                                       ),
                                       onPressed: () {
+                                          if (!_isLoggedIn) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: const Text('¡Debes iniciar sesión para agregar a favoritos!'),
+                                                backgroundColor: Colors.orange,
+                                                action: SnackBarAction(
+                                                  label: 'Ingresar',
+                                                  textColor: Colors.white,
+                                                  onPressed: () => Navigator.pushNamed(context, '/login'),
+                                                ),
+                                              ),
+                                            );
+                                            return;
+                                          }
                                           if (isPromo) {
                                             if (item['business'] != null) {
-                                                _toggleFavorite(true, item['business']);
-                                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Tienda agregada a Favoritos desde el Voucher'), backgroundColor: Colors.green));
+                                              _toggleFavorite(true, item['business']);
                                             }
                                           } else {
                                             _toggleFavorite(isBusiness, item);
