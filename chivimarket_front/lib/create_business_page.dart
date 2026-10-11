@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -52,11 +52,11 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
   double? _longitude;
   final MapController _mapPreviewController = MapController();
   
-  // CategorÃ­a Principal
+  // Categoría Principal
   String _selectedCategory = '1';
 
-  // Constructor dinÃ¡mico de Metadata (Elasticidad real)
-  // Almacenaremos propiedades como {"AtenciÃ³n 24hs": true, "Tipo de Especialidad": "Electricista"}
+  // Constructor dinámico de Metadata (Elasticidad real)
+  // Almacenaremos propiedades como {"Atención 24hs": true, "Tipo de Especialidad": "Electricista"}
   final Map<String, dynamic> _customMetadata = {};
   
   // Controladores para agregar nueva propiedad a mano
@@ -64,7 +64,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
   final _customFeatureValueController = TextEditingController();
   String _customFeatureType = 'Booleano (Si/No)'; // O 'Texto'
 
-  // FotografÃ­as en preparaciÃ³n para subir (Usamos XFile para compatibilidad Multiplataforma (Web/MÃ³vil))
+  // Fotografías en preparación para subir (Usamos XFile para compatibilidad Multiplataforma (Web/Móvil))
   final ImagePicker _picker = ImagePicker();
   List<XFile> _pendingImages = [];
 
@@ -75,8 +75,8 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         title: Text('Seleccionar origen', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, ImageSource.camera), child: const Text('CÃ¡mara')),
-          TextButton(onPressed: () => Navigator.pop(context, ImageSource.gallery), child: const Text('GalerÃ­a')),
+          TextButton(onPressed: () => Navigator.pop(context, ImageSource.camera), child: const Text('Cámara')),
+          TextButton(onPressed: () => Navigator.pop(context, ImageSource.gallery), child: const Text('Galería')),
         ],
       )
     );
@@ -175,13 +175,13 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
 
       if (response.statusCode == 201) {
         
-        // 2. Si el texto se creÃ³ y nos devuelve el ID, subimos las imÃ¡genes
+        // 2. Si el texto se creó y nos devuelve el ID, subimos las imágenes
         final createdBusiness = jsonDecode(response.body);
         final businessId = createdBusiness['id'];
 
         bool allImagesUploaded = true;
         
-        // Subimos las fotos en memoria una a una directo al controlador de la GalerÃ­a
+        // Subimos las fotos en memoria una a una directo al controlador de la Galería
         for (int i = 0; i < _pendingImages.length; i++) {
           final bytes = await _pendingImages[i].readAsBytes();
           List<http.MultipartFile> singleMultipart = [
@@ -201,17 +201,17 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
 
         if (mounted) {
           if (allImagesUploaded && _pendingImages.isNotEmpty) {
-             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Â¡Tienda Creada Exitosamente con GalerÃ­a!'), backgroundColor: Colors.green));
+             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('¡Tienda Creada Exitosamente con Galería!'), backgroundColor: Colors.green));
           } else if (_pendingImages.isNotEmpty) {
              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Tienda creada, pero fallaron algunas fotos.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.orange));
           } else {
-             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Â¡Tienda Creada Exitosamente!'), backgroundColor: Colors.green));
+             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('¡Tienda Creada Exitosamente!'), backgroundColor: Colors.green));
           }
           Navigator.pop(context, true); // Volver al Dashboard
         }
       } else {
         if (mounted) {
-          String errorMessage = 'OcurriÃ³ un error inesperado al procesar la solicitud.';
+          String errorMessage = 'Ocurrió un error inesperado al procesar la solicitud.';
           try {
             final decoded = jsonDecode(response.body);
             if (decoded['message'] != null) {
@@ -222,7 +222,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
           } catch (_) {}
           
           if (response.statusCode == 403) {
-            errorMessage = 'LÃ­mite de negocios alcanzado. Por favor sube de plan para crear mÃ¡s tiendas.';
+            errorMessage = 'Límite de negocios alcanzado. Por favor sube de plan para crear más tiendas.';
           }
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMessage, style: const TextStyle(fontWeight: FontWeight.bold)), backgroundColor: Colors.redAccent, duration: const Duration(seconds: 5)));
         }
@@ -270,11 +270,11 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                       }
                       setState(() => _currentStep += 1);
                     } else if (_currentStep == 1) {
-                      // ValidaciÃ³n de contacto se puede omitir porque son opcionales
+                      // Validación de contacto se puede omitir porque son opcionales
                       setState(() => _currentStep += 1);
                     } else if (_currentStep == 2) {
                       if (_modality != 'online' && _addressController.text.trim().isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('La direcciÃ³n es obligatoria', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.red));
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('La dirección es obligatoria', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)), backgroundColor: Colors.red));
                         return;
                       }
                       _submitBusiness();
@@ -300,14 +300,14 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           if (_currentStep > 0)
                             TextButton(
                               onPressed: _isLoading ? null : details.onStepCancel, 
-                              child: Text('AtrÃ¡s', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)))
+                              child: Text('Atrás', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)))
                             ),
                         ],
                       ),
                     );
                   },
                   steps: [
-                    // PASO 1: DATOS BÃSICOS
+                    // PASO 1: DATOS BÁSICOS
                     Step(
                       title: Text('Perfil', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
                       isActive: _currentStep >= 0,
@@ -323,7 +323,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                             controller: _descriptionController,
                             maxLines: 3,
                             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            decoration: InputDecoration(labelText: 'DescripciÃ³n del rubro', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                            decoration: InputDecoration(labelText: 'Descripción del rubro', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                           ),
                           SizedBox(height: 24),
                           DropdownButtonFormField<String>(
@@ -332,10 +332,10 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                             decoration: InputDecoration(labelText: 'Modalidad de Servicio', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             items: const [
-                              DropdownMenuItem(value: 'fisico', child: Text('Local FÃ­sico (Presencial)')),
+                              DropdownMenuItem(value: 'fisico', child: Text('Local Físico (Presencial)')),
                               DropdownMenuItem(value: 'domicilio', child: Text('Servicio a Domicilio')),
                               DropdownMenuItem(value: 'online', child: Text('Puramente Online / Digital')),
-                              DropdownMenuItem(value: 'mixto', child: Text('Mixto (FÃ­sico y Online)')),
+                              DropdownMenuItem(value: 'mixto', child: Text('Mixto (Físico y Online)')),
                             ],
                             onChanged: (value) => setState(() => _modality = value!),
                           ),
@@ -348,11 +348,11 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                       isActive: _currentStep >= 1,
                       content: Column(
                         children: [
-                          TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'TelÃ©fono / WhatsApp', prefixIcon: Icon(Icons.phone, color: Colors.greenAccent)), style: const TextStyle(color: Colors.white)),
+                          TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'Teléfono / WhatsApp', prefixIcon: Icon(Icons.phone, color: Colors.greenAccent)), style: const TextStyle(color: Colors.white)),
                           const SizedBox(height: 12),
                           TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email Comercial', prefixIcon: Icon(Icons.email, color: Colors.blueAccent)), style: const TextStyle(color: Colors.white)),
                           const SizedBox(height: 12),
-                          TextField(controller: _facebookController, decoration: InputDecoration(labelText: 'PÃ¡gina de Facebook', prefixIcon: Icon(Icons.facebook, color: Colors.blue)), style: const TextStyle(color: Colors.white)),
+                          TextField(controller: _facebookController, decoration: InputDecoration(labelText: 'Página de Facebook', prefixIcon: Icon(Icons.facebook, color: Colors.blue)), style: const TextStyle(color: Colors.white)),
                           const SizedBox(height: 12),
                           TextField(controller: _instagramController, decoration: InputDecoration(labelText: 'Instagram (URL o @usuario)', prefixIcon: Icon(Icons.camera_alt, color: Colors.pinkAccent)), style: const TextStyle(color: Colors.white)),
                           const SizedBox(height: 16),
@@ -364,7 +364,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('DÃ­as de Apertura:', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                                Text('Días de Apertura:', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
                                 Wrap(
                                   spacing: 4,
                                   children: _daysOfWeek.map((day) {
@@ -429,20 +429,20 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                     ),
                     
                     
-                    // PASO 2: UBICACIÃ“N Y CATEGORÃA
+                    // PASO 2: UBICACIÓN Y CATEGORÍA
                     Step(
-                      title: Text('Datos y UbicaciÃ³n', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
+                      title: Text('Datos y Ubicación', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
                       isActive: _currentStep >= 2,
                       content: Column(
                         children: [
                           if (_modality != 'online') ...[
-                            Text('Busca tu direcciÃ³n para geolocalizarte en Chivilcoy', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                            Text('Busca tu dirección para geolocalizarte en Chivilcoy', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             SizedBox(height: 8),
                             TextField(
                               controller: _addressController,
                               style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                               decoration: InputDecoration(
-                                labelText: 'DirecciÃ³n (Ej: Lavalle 194)', 
+                                labelText: 'Dirección (Ej: Lavalle 194)', 
                                 labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)),
                                 suffixIcon: _isSearchingAddress 
                                     ? Padding(padding: const EdgeInsets.all(12), child: CircularProgressIndicator(strokeWidth: 2)) 
@@ -490,7 +490,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                   children: [
                                     Icon(Icons.check_circle, color: Colors.green, size: 16),
                                     SizedBox(width: 4),
-                                    Text('DirecciÃ³n verificada (\u00B0 $_latitude, $_longitude)', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
+                                    Text('Dirección verificada (\u00B0 $_latitude, $_longitude)', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                                   ],
                                 ),
                               ),
@@ -570,19 +570,19 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           if (_modality == 'online')
                             Padding(
                               padding: EdgeInsets.all(8.0),
-                              child: Text('Como seleccionaste Online, tu negocio buscarÃ¡ posicionarse sin limitaciÃ³n geogrÃ¡fica.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontStyle: FontStyle.italic)),
+                              child: Text('Como seleccionaste Online, tu negocio buscará posicionarse sin limitación geográfica.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontStyle: FontStyle.italic)),
                             ),
                           SizedBox(height: 24),
                           DropdownButtonFormField<String>(
                             value: _selectedCategory,
                             dropdownColor: Color(0xFF1E293B),
                             style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                            decoration: InputDecoration(labelText: 'CategorÃ­a Principal', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                            decoration: InputDecoration(labelText: 'Categoría Principal', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                             items: const [
-                              DropdownMenuItem(value: '1', child: Text('GastronomÃ­a')),
+                              DropdownMenuItem(value: '1', child: Text('Gastronomía')),
                               DropdownMenuItem(value: '2', child: Text('Indumentaria y Moda')),
                               DropdownMenuItem(value: '3', child: Text('Servicios y Profesionales')),
-                              DropdownMenuItem(value: '4', child: Text('TecnologÃ­a')),
+                              DropdownMenuItem(value: '4', child: Text('Tecnología')),
                               DropdownMenuItem(value: '5', child: Text('Salud y Cuidado')),
                               DropdownMenuItem(value: '6', child: Text('Otro Rubro / General')),
                             ],
@@ -592,14 +592,14 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                       ),
                     ),
 
-                    // PASO 3: ATRIBUTOS AD-HOC Y ELÃSTICOS (CONSTRUCTOR)
+                    // PASO 3: ATRIBUTOS AD-HOC Y ELÁSTICOS (CONSTRUCTOR)
                     Step(
                       title: Text('Atributos y Fotos', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface)),
                       isActive: _currentStep >= 2,
                       content: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Agrega caracterÃ­sticas especÃ­ficas de tu rubro:', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+                          Text('Agrega características específicas de tu rubro:', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
                           SizedBox(height: 16),
                           
                           // LISTA DE ATRIBUTOS AGREGADOS
@@ -613,7 +613,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                   return ListTile(
                                     contentPadding: EdgeInsets.zero,
                                     title: Text(entry.key, style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
-                                    subtitle: Text(entry.value is bool ? (entry.value ? 'SÃ­' : 'No') : entry.value.toString(), style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                                    subtitle: Text(entry.value is bool ? (entry.value ? 'Sí' : 'No') : entry.value.toString(), style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                                     trailing: IconButton(
                                       icon: Icon(Icons.delete, color: Colors.redAccent),
                                       onPressed: () => setState(() => _customMetadata.remove(entry.key)),
@@ -631,7 +631,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('AÃ±adir nueva caracterÃ­stica', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
+                                Text('Añadir nueva característica', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                                 SizedBox(height: 12),
                                 TextField(
                                   controller: _customFeatureKeyController,
@@ -645,7 +645,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                   style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                                   decoration: InputDecoration(labelText: 'Tipo de Respuesta', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
                                   items: const [
-                                    DropdownMenuItem(value: 'Booleano (Si/No)', child: Text('SÃ­ / No')),
+                                    DropdownMenuItem(value: 'Booleano (Si/No)', child: Text('Sí / No')),
                                     DropdownMenuItem(value: 'Texto', child: Text('Texto Libre')),
                                   ],
                                   onChanged: (value) => setState(() => _customFeatureType = value!),
@@ -655,7 +655,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                   TextField(
                                     controller: _customFeatureValueController,
                                     style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                                    decoration: InputDecoration(labelText: 'Valor (Ej: Fibra Ã“ptica 100MB)', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
+                                    decoration: InputDecoration(labelText: 'Valor (Ej: Fibra Óptica 100MB)', labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70), fontSize: 12)),
                                   ),
                                 ],
                                 SizedBox(height: 16),
@@ -685,21 +685,21 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Preparar GalerÃ­a', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
+                              Text('Preparar Galería', style: GoogleFonts.outfit(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.bold)),
                               IconButton(
                                 onPressed: _pickImage,
                                 icon: Icon(Icons.add_a_photo, color: Colors.greenAccent),
-                                tooltip: 'AÃ±adir nueva foto',
+                                tooltip: 'Añadir nueva foto',
                               )
                             ],
                           ),
                           SizedBox(height: 8),
-                          Text('Las fotos que agregues aquÃ­ se subirÃ¡n al momento de pulsar Crear Tienda.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60), fontSize: 13)),
+                          Text('Las fotos que agregues aquí se subirán al momento de pulsar Crear Tienda.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.60), fontSize: 13)),
                           SizedBox(height: 16),
                           
-                          // GRID DINÃMICO
+                          // GRID DINÁMICO
                           _pendingImages.isEmpty 
-                            ? Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en preparaciÃ³n.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))))
+                            ? Center(child: Padding(padding: EdgeInsets.all(16.0), child: Text('No hay fotos en preparación.', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.54)))))
                             : GridView.builder(
                                 shrinkWrap: true,
                                 physics: NeverScrollableScrollPhysics(),
@@ -730,7 +730,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                           ),
                                         ),
                                       ),
-                                      // BotÃ³n de eliminar superpuesto
+                                      // Botón de eliminar superpuesto
                                       Positioned(
                                         top: 4,
                                         right: 4,

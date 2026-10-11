@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -57,7 +57,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
 
   Future<void> _toggleFavorite() async {
     if (!_isLoggedIn) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Â¡Debes iniciar sesiÃ³n con una cuenta para darle Like!'), backgroundColor: Colors.orange));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('¡Debes iniciar sesión con una cuenta para darle Like!'), backgroundColor: Colors.orange));
       return;
     }
 
@@ -133,7 +133,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                 ],
               ),
             ),
-            // Capa interactiva de navegaciÃ³n
+            // Capa interactiva de navegación
             Positioned(
               bottom: 8,
               right: 8,
@@ -154,7 +154,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                   }
                 },
                 icon: const Icon(Icons.directions, size: 20),
-                label: const Text('CÃ³mo LLegar', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text('Cómo LLegar', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],
@@ -175,7 +175,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
         actions: [
           IconButton(
             icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.redAccent : Colors.white),
-            tooltip: 'AÃ±adir a Favoritos',
+            tooltip: 'Añadir a Favoritos',
             onPressed: _toggleFavorite,
           )
         ],
@@ -203,7 +203,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(widget.business['name'] ?? '', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                                  Text('${(widget.business['modality'] ?? 'FÃ­sico').toString().toUpperCase()} - â­ ${widget.business['avg_rating'] ?? '5.0'}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                                  Text('${(widget.business['modality'] ?? 'Físico').toString().toUpperCase()} - ⭐ ${widget.business['avg_rating'] ?? '5.0'}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold)),
                                 ],
                               ),
                             )
@@ -300,7 +300,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               sliver: SliverToBoxAdapter(
-                child: Text('CatÃ¡logo de Productos', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                child: Text('Catálogo de Productos', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
             
@@ -319,7 +319,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
             else if (_products.isEmpty)
               SliverFillRemaining(
                 child: Center(
-                  child: Text('El vendedor aÃºn no ha publicado artÃ­culos.', style: TextStyle(color: Colors.white54, fontSize: 16)),
+                  child: Text('El vendedor aún no ha publicado artículos.', style: TextStyle(color: Colors.white54, fontSize: 16)),
                 ),
               )
             else
