@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'dart:convert';
 import 'api_service.dart';
 import 'main.dart'; // Para reutilizar GlassContainer y AnimatedGradientBackground
+import 'upgrade_plan_page.dart';
 
 class DashboardPage extends StatefulWidget {
   DashboardPage({Key? key}) : super(key: key);
@@ -135,7 +136,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black),
                           onPressed: () {
                             Navigator.pop(ctx);
-                            Navigator.pushNamed(context, '/subscription-plans'); // Asume que tienes esta ruta
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => UpgradePlanPage())).then((_) => _fetchProfile());
                           },
                           child: const Text('VER PLANES PRO', style: TextStyle(fontWeight: FontWeight.bold)),
                         )
@@ -161,7 +162,10 @@ class _DashboardPageState extends State<DashboardPage> {
             ListTile(
               leading: Icon(Icons.star, color: Colors.amber),
               title: Text('Suscripción Pro', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
-              onTap: () {}, // Aquí irá la ruta de simular pago
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => UpgradePlanPage())).then((_) => _fetchProfile());
+              },
             ),
             const Divider(color: Colors.white24),
             ListTile(
@@ -218,7 +222,9 @@ class _DashboardPageState extends State<DashboardPage> {
                       _buildActionCard(context, 'Editar Locales', Icons.edit_document, () {
                         Navigator.pushNamed(context, '/my-businesses');
                       }),
-                      _buildActionCard(context, 'Mejorar Plan', Icons.rocket_launch, () {}),
+                      _buildActionCard(context, 'Mejorar Plan', Icons.rocket_launch, () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => UpgradePlanPage())).then((_) => _fetchProfile());
+                      }),
                       if (_isSuperAdmin)
                         _buildActionCard(context, 'God Mode: Gestión', Icons.people_alt, () {
                           Navigator.pushNamed(context, '/super-admin');
