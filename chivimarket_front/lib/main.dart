@@ -10,6 +10,7 @@ import 'my_businesses_page.dart';
 import 'superadmin_page.dart';
 import 'buyer_home_page.dart';
 import 'legal_terms_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 
 
@@ -377,6 +378,39 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  @override
+  void initState() {
+    super.initState();
+    _checkIncomingGoogleToken();
+  }
+
+  Future<void> _checkIncomingGoogleToken() async {
+    final uri = Uri.base;
+    if (uri.queryParameters.containsKey('token')) {
+      final token = uri.queryParameters['token'];
+      if (token != null && token.isNotEmpty) {
+        await ApiService.saveToken(token);
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/buyer-home');
+        }
+      }
+    } else if (uri.queryParameters.containsKey('error')) {
+      _showError('No se pudo autenticar con Google. Intenta nuevamente.');
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    setState(() => _isGoogleLoading = true);
+    try {
+      final googleUrl = Uri.parse('${ApiService.baseUrl}/auth/google');
+      await launchUrl(googleUrl, webOnlyWindowName: '_self');
+    } catch (e) {
+      _showError('Error al iniciar Google Sign-In: $e');
+    } finally {
+      if (mounted) setState(() => _isGoogleLoading = false);
+    }
+  }
+
   void _showError(String msg) {
     if(!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.redAccent));
@@ -461,7 +495,7 @@ class _LoginPageState extends State<LoginPage> {
                   width: double.infinity,
                   height: 56,
                   child: OutlinedButton.icon(
-                    onPressed: () {}, // Backend login url for future
+                    onPressed: _isGoogleLoading ? null : _loginWithGoogle,
                     icon: _isGoogleLoading 
                       ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)) 
                       : Icon(Icons.g_mobiledata, size: 36, color: Colors.white),

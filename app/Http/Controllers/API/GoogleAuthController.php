@@ -90,24 +90,23 @@ class GoogleAuthController extends Controller
 
             if (!$user) {
                 $user = User::create([
-                    'name' => $googleUser->getName(),
+                    'name' => $googleUser->getName() ?? $googleUser->getNickname() ?? 'Usuario Google',
                     'email' => $googleUser->getEmail(),
                     'password' => Hash::make(Str::random(24)),
                 ]);
             }
 
+            if (!$user->hasVerifiedEmail()) {
+                $user->markEmailAsVerified();
+            }
+
             $token = $user->createToken('auth_token')->plainTextToken;
 
-            // Al ser un flujo web completo, puedes redirigir a un scheme de Flutter Ej: chivimarket://login?token=...
-            // o a una página web de éxito.
-            return response()->json([
-                'token' => $token,
-                'user_id' => $user->id,
-                'message' => 'Por favor intercepta este token y envíalo a tu app.'
-            ]);
+            return redirect('/?token=' . $token);
 
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Error en Callback de Google'], 500);
+            Log::error('Error en Callback de Google: ' . $e->getMessage());
+            return redirect('/?error=google_auth_failed');
         }
     }
 }

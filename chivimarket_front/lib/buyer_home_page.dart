@@ -73,6 +73,31 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     }
   }
   Future<void> _checkLogin() async {
+    final uri = Uri.base;
+    if (uri.queryParameters.containsKey('token')) {
+      final tokenFromUrl = uri.queryParameters['token'];
+      if (tokenFromUrl != null && tokenFromUrl.isNotEmpty) {
+        await ApiService.saveToken(tokenFromUrl);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('¡Bienvenido! Sesión iniciada con Google 🎉'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      }
+    } else if (uri.queryParameters.containsKey('error')) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se pudo autenticar con Google.'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+
     final token = await ApiService.getToken();
     setState(() {
       _isLoggedIn = token != null;
