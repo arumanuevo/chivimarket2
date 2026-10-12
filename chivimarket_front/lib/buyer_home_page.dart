@@ -228,8 +228,8 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                       ),
                     ),
                   ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 80),
+                SliverToBoxAdapter(
+                  child: _buildLegalFooter(),
                 ),
               ],
             ),
@@ -605,6 +605,126 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
               },
             ),
           ],
+          const Divider(color: Colors.white24),
+          ListTile(
+            leading: Icon(Icons.gavel_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+            title: Text('Avisos Legales y Términos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+            subtitle: Text('Defensa del consumidor y exenciones', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 11)),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/terminos-y-condiciones');
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegalFooter() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 28, bottom: 40),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.black.withOpacity(0.25) : Colors.black.withOpacity(0.03),
+        border: Border(
+          top: BorderSide(color: isDark ? Colors.white10 : Colors.black12, width: 1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.storefront_rounded, size: 20, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                'ChiviMarket Chivilcoy',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: onSurface,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 680),
+            child: Text(
+              'ChiviMarket es una plataforma tecnológica de contacto e intermediación comunitaria. No es propietaria, no posee ni vende los productos o servicios publicados por terceros, ni participa en acuerdos de trueque, compraventa o entrega entre usuarios.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 11.5,
+                height: 1.45,
+                color: onSurface.withOpacity(0.6),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 16,
+            runSpacing: 8,
+            children: [
+              InkWell(
+                onTap: () => Navigator.pushNamed(context, '/terminos-y-condiciones'),
+                child: Text(
+                  'Términos y Condiciones',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).colorScheme.primary,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () => Navigator.pushNamed(context, '/terminos-y-condiciones'),
+                child: Text(
+                  'Aviso de Trueques y Usados',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: onSurface.withOpacity(0.75),
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () => Navigator.pushNamed(context, '/terminos-y-condiciones'),
+                child: Text(
+                  'Políticas de Privacidad',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: onSurface.withOpacity(0.75),
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () => Navigator.pushNamed(context, '/terminos-y-condiciones'),
+                child: Text(
+                  'Defensa del Consumidor',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: onSurface.withOpacity(0.75),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '© 2026 ChiviMarket. Todos los derechos reservados. Chivilcoy, Buenos Aires.',
+            style: TextStyle(
+              fontSize: 10.5,
+              color: onSurface.withOpacity(0.4),
+            ),
+          ),
         ],
       ),
     );

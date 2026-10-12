@@ -129,6 +129,26 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: _isLoading ? CircularProgressIndicator(color: Theme.of(context).colorScheme.onSurface) : Text('Registrarse', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text('Al registrarte aceptás nuestros ', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.65))),
+                      InkWell(
+                        onTap: () => Navigator.pushNamed(context, '/terminos-y-condiciones'),
+                        child: Text(
+                          'Términos y Condiciones',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
