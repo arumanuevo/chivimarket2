@@ -1,8 +1,18 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
 import 'api_service.dart';
 import 'legal_terms_page.dart';
+
+class SelectedPhoto {
+  final Uint8List bytes;
+  final String name;
+
+  SelectedPhoto({required this.bytes, required this.name});
+}
 
 class CreateCommunityPostPage extends StatefulWidget {
   const CreateCommunityPostPage({Key? key}) : super(key: key);
@@ -13,6 +23,7 @@ class CreateCommunityPostPage extends StatefulWidget {
 
 class _CreateCommunityPostPageState extends State<CreateCommunityPostPage> {
   final _formKey = GlobalKey<FormState>();
+  final ImagePicker _picker = ImagePicker();
 
   String _type = 'both'; // 'barter', 'sale', 'both'
   String _condition = 'buen_estado'; // 'como_nuevo', 'muy_bueno', 'buen_estado', 'con_detalles'
@@ -25,6 +36,7 @@ class _CreateCommunityPostPageState extends State<CreateCommunityPostPage> {
   final TextEditingController _zoneController = TextEditingController();
   final TextEditingController _imageUrlController = TextEditingController();
 
+  final List<SelectedPhoto> _selectedPhotos = [];
   bool _acceptedTerms = false;
   bool _isLoading = false;
 
@@ -38,6 +50,81 @@ class _CreateCommunityPostPageState extends State<CreateCommunityPostPage> {
     _zoneController.dispose();
     _imageUrlController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickPhotos() async {
+    if (_selectedPhotos.length >= 4) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Ya agregaste el máximo de 4 fotos.')),
+      );
+      return;
+    }
+
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Colors.teal),
+              title: const Text('Elegir de Galería'),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_camera, color: Colors.teal),
+              title: const Text('Tomar Foto con Cámara'),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null) return;
+
+    try {
+      if (source == ImageSource.camera) {
+        final XFile? photo = await _picker.pickImage(
+          source: ImageSource.camera,
+          maxWidth: 1200,
+          maxHeight: 1200,
+          imageQuality: 80,
+        );
+        if (photo != null) {
+          final bytes = await photo.readAsBytes();
+          if (mounted) {
+            setState(() {
+              _selectedPhotos.add(SelectedPhoto(bytes: bytes, name: photo.name));
+            });
+          }
+        }
+      } else {
+        final List<XFile> photos = await _picker.pickMultiImage(
+          maxWidth: 1200,
+          maxHeight: 1200,
+          imageQuality: 80,
+        );
+        if (photos.isNotEmpty) {
+          final availableSlots = 4 - _selectedPhotos.length;
+          final photosToAdd = photos.take(availableSlots);
+          for (final photo in photosToAdd) {
+            final bytes = await photo.readAsBytes();
+            if (mounted) {
+              setState(() {
+                _selectedPhotos.add(SelectedPhoto(bytes: bytes, name: photo.name));
+              });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al seleccionar foto: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    }
   }
 
   Future<void> _submitPost() async {
@@ -56,22 +143,47 @@ class _CreateCommunityPostPageState extends State<CreateCommunityPostPage> {
     setState(() => _isLoading = true);
 
     try {
-      final payload = {
+      final fields = <String, String>{
         'title': _titleController.text.trim(),
         'type': _type,
         'description': _descController.text.trim(),
-        'price': _priceController.text.trim().isNotEmpty ? double.tryParse(_priceController.text.trim()) : null,
-        'barter_for': (_type == 'barter' || _type == 'both') ? _barterForController.text.trim() : null,
         'condition': _condition,
         'contact_whatsapp': _whatsappController.text.trim(),
         'zone': _zoneController.text.trim().isNotEmpty ? _zoneController.text.trim() : 'Chivilcoy',
-        'image_url': _imageUrlController.text.trim().isNotEmpty ? _imageUrlController.text.trim() : null,
-        'accepted_terms': true,
+        'accepted_terms': '1',
       };
 
-      final res = await ApiService.post('/community-posts', payload);
+      if (_priceController.text.trim().isNotEmpty) {
+        fields['price'] = _priceController.text.trim();
+      }
+      if ((_type == 'barter' || _type == 'both') && _barterForController.text.trim().isNotEmpty) {
+        fields['barter_for'] = _barterForController.text.trim();
+      }
+      if (_imageUrlController.text.trim().isNotEmpty) {
+        fields['image_url'] = _imageUrlController.text.trim();
+      }
 
-      if (res.statusCode == 201) {
+      http.Response response;
+
+      if (_selectedPhotos.isNotEmpty) {
+        final multipartFiles = <http.MultipartFile>[];
+        for (int i = 0; i < _selectedPhotos.length; i++) {
+          multipartFiles.add(
+            http.MultipartFile.fromBytes(
+              'photos[]',
+              _selectedPhotos[i].bytes,
+              filename: _selectedPhotos[i].name.isNotEmpty ? _selectedPhotos[i].name : 'photo_$i.jpg',
+            ),
+          );
+        }
+
+        final streamed = await ApiService.postMultipart('/community-posts', fields, multipartFiles);
+        response = await http.Response.fromStream(streamed);
+      } else {
+        response = await ApiService.post('/community-posts', fields);
+      }
+
+      if (response.statusCode == 201) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -81,7 +193,7 @@ class _CreateCommunityPostPageState extends State<CreateCommunityPostPage> {
         );
         Navigator.pop(context, true);
       } else {
-        final err = jsonDecode(res.body);
+        final err = jsonDecode(response.body);
         final msg = err['message'] ?? err['detail'] ?? 'Error al crear la publicación';
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -160,7 +272,6 @@ class _CreateCommunityPostPageState extends State<CreateCommunityPostPage> {
                       value: 'both',
                       label: 'Venta o Trueque',
                       icon: Icons.sync_alt,
-                      subtitle: 'Acepto dinero o permuta',
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -169,7 +280,6 @@ class _CreateCommunityPostPageState extends State<CreateCommunityPostPage> {
                       value: 'barter',
                       label: 'Solo Trueque',
                       icon: Icons.swap_horiz,
-                      subtitle: 'Solo permuta directa',
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -178,10 +288,104 @@ class _CreateCommunityPostPageState extends State<CreateCommunityPostPage> {
                       value: 'sale',
                       label: 'Solo Venta',
                       icon: Icons.sell_outlined,
-                      subtitle: 'Solo dinero',
                     ),
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // ==========================================
+              // SUBIDA DE FOTOS (HASTA 4 CON COMPRESIÓN)
+              // ==========================================
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Fotos del Artículo (Máx. 4)', style: GoogleFonts.outfit(fontWeight: FontWeight.w600, fontSize: 14)),
+                  Text('${_selectedPhotos.length}/4 fotos', style: TextStyle(fontSize: 12, color: theme.colorScheme.primary, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Las fotos se optimizan y reescalan automáticamente para cargar al instante y no saturar el servidor.',
+                style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurface.withOpacity(0.6)),
+              ),
+              const SizedBox(height: 10),
+
+              // Grilla de fotos seleccionadas
+              SizedBox(
+                height: 95,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _selectedPhotos.length < 4 ? _selectedPhotos.length + 1 : 4,
+                  itemBuilder: (context, index) {
+                    if (index == _selectedPhotos.length && _selectedPhotos.length < 4) {
+                      return InkWell(
+                        onTap: _pickPhotos,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          width: 90,
+                          margin: const EdgeInsets.only(right: 10),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.white.withOpacity(0.06) : Colors.black.withOpacity(0.04),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.teal.withOpacity(0.5), style: BorderStyle.solid),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.add_a_photo_outlined, color: Colors.teal, size: 28),
+                              SizedBox(height: 4),
+                              Text('Agregar', style: TextStyle(fontSize: 11, color: Colors.teal, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    final photo = _selectedPhotos[index];
+                    return Stack(
+                      children: [
+                        Container(
+                          width: 90,
+                          margin: const EdgeInsets.only(right: 10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            image: DecorationImage(
+                              image: MemoryImage(photo.bytes),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 14,
+                          child: GestureDetector(
+                            onTap: () => setState(() => _selectedPhotos.removeAt(index)),
+                            child: const CircleAvatar(
+                              radius: 11,
+                              backgroundColor: Colors.redAccent,
+                              child: Icon(Icons.close, size: 13, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                        if (index == 0)
+                          Positioned(
+                            bottom: 4,
+                            left: 4,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.black87,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text('Principal', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
               ),
 
               const SizedBox(height: 20),
@@ -317,18 +521,21 @@ class _CreateCommunityPostPageState extends State<CreateCommunityPostPage> {
 
               const SizedBox(height: 16),
 
-              // Enlace o URL de foto
-              TextFormField(
-                controller: _imageUrlController,
-                decoration: InputDecoration(
-                  labelText: 'URL de imagen / foto del artículo (Opcional)',
-                  hintText: 'https://ejemplo.com/mifoto.jpg',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  prefixIcon: const Icon(Icons.image_outlined),
+              // Enlace alternativo si no suben foto
+              if (_selectedPhotos.isEmpty) ...[
+                TextFormField(
+                  controller: _imageUrlController,
+                  decoration: InputDecoration(
+                    labelText: 'O bien ingresá URL de foto externa (Opcional)',
+                    hintText: 'https://ejemplo.com/mifoto.jpg',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    prefixIcon: const Icon(Icons.link),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 16),
+              ],
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
               // ==========================================
               // BLINDAJE LEGAL Y POLÍTICA DE SEGURIDAD
@@ -446,7 +653,6 @@ class _CreateCommunityPostPageState extends State<CreateCommunityPostPage> {
     required String value,
     required String label,
     required IconData icon,
-    required String subtitle,
   }) {
     final isSelected = _type == value;
     final theme = Theme.of(context);

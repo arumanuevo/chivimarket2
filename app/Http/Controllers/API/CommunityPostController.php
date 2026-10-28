@@ -25,6 +25,76 @@ class CommunityPostController extends Controller
     ];
 
     /**
+     * Reescalar y comprimir una imagen usando PHP GD nativo
+     * Limita resolución a máx 1200x1200px y comprime a calidad 80 (pesa ~150-250KB)
+     */
+    private function processAndSaveImage($file): ?string
+    {
+        $destinationDir = public_path('community_images');
+        if (!file_exists($destinationDir)) {
+            @mkdir($destinationDir, 0755, true);
+        }
+
+        $extension = strtolower($file->getClientOriginalExtension());
+        $filePath = $file->getRealPath();
+
+        // 1. Crear recurso de imagen según extensión
+        $srcImage = null;
+        if (in_array($extension, ['jpg', 'jpeg'])) {
+            $srcImage = @imagecreatefromjpeg($filePath);
+        } elseif ($extension === 'png') {
+            $srcImage = @imagecreatefrompng($filePath);
+        } elseif ($extension === 'webp') {
+            $srcImage = @imagecreatefromwebp($filePath);
+        }
+
+        $filename = time() . '_' . Str::random(10) . '.jpg';
+        $targetPath = $destinationDir . DIRECTORY_SEPARATOR . $filename;
+
+        // Si GD no puede procesarla por algún motivo, guardarla directamente como fallback
+        if (!$srcImage) {
+            $file->move($destinationDir, $filename);
+            return 'community_images/' . $filename;
+        }
+
+        // 2. Calcular nuevas dimensiones proporcionales (máx 1200px)
+        $origWidth = imagesx($srcImage);
+        $origHeight = imagesy($srcImage);
+        $maxDim = 1200;
+
+        if ($origWidth > $maxDim || $origHeight > $maxDim) {
+            if ($origWidth > $origHeight) {
+                $newWidth = $maxDim;
+                $newHeight = (int) round(($origHeight * $maxDim) / $origWidth);
+            } else {
+                $newHeight = $maxDim;
+                $newWidth = (int) round(($origWidth * $maxDim) / $origHeight);
+            }
+        } else {
+            $newWidth = $origWidth;
+            $newHeight = $origHeight;
+        }
+
+        // 3. Reescalar con suavizado de alta calidad (resample)
+        $dstImage = imagecreatetruecolor($newWidth, $newHeight);
+
+        // Fondo blanco (evita fondos negros en PNG transparentes)
+        $white = imagecolorallocate($dstImage, 255, 255, 255);
+        imagefilledrectangle($dstImage, 0, 0, $newWidth, $newHeight, $white);
+
+        imagecopyresampled($dstImage, $srcImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+
+        // 4. Guardar comprimida a calidad 80
+        imagejpeg($dstImage, $targetPath, 80);
+
+        // Liberar memoria de GD
+        imagedestroy($srcImage);
+        imagedestroy($dstImage);
+
+        return 'community_images/' . $filename;
+    }
+
+    /**
      * Listado público de publicaciones de trueques y usados
      */
     public function index(Request $request)
@@ -120,7 +190,7 @@ class CommunityPostController extends Controller
     }
 
     /**
-     * Crear una nueva publicación de trueque o usado
+     * Crear una nueva publicación de trueque o usado (Hasta 4 fotos optimizadas)
      */
     public function store(Request $request)
     {
@@ -135,13 +205,16 @@ class CommunityPostController extends Controller
             'contact_name' => 'nullable|string|max:100',
             'zone' => 'nullable|string|max:100',
             'image_url' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photos' => 'nullable|array|max:4',
+            'photos.*' => 'image|mimes:jpeg,png,jpg,webp|max:10240',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
             'accepted_terms' => 'required|accepted',
         ], [
             'accepted_terms.accepted' => 'Es obligatorio aceptar la declaración jurada y los términos legales de trueques y usados para publicar.',
             'title.required' => 'El título de la publicación es obligatorio.',
             'description.required' => 'La descripción del estado del producto es obligatoria.',
-            'contact_whatsapp.required' => 'Debes ingresar un número de WhatsApp para que los vecinos interesados puedan contactarte.'
+            'contact_whatsapp.required' => 'Debes ingresar un número de WhatsApp para que los vecinos interesados puedan contactarte.',
+            'photos.max' => 'Podés subir hasta un máximo de 4 fotos por artículo.'
         ]);
 
         if ($validator->fails()) {
@@ -162,17 +235,26 @@ class CommunityPostController extends Controller
             }
         }
 
-        // Manejo de imagen
-        $imageUrl = $request->image_url;
-        if ($request->hasFile('image')) {
-            $destinationPath = public_path('community_images');
-            if (!file_exists($destinationPath)) {
-                @mkdir($destinationPath, 0755, true);
+        // Procesar hasta 4 fotos con reescalado y compresión
+        $savedImages = [];
+
+        if ($request->hasFile('photos')) {
+            $files = $request->file('photos');
+            $filesToProcess = is_array($files) ? array_slice($files, 0, 4) : [$files];
+            foreach ($filesToProcess as $file) {
+                $savedPath = $this->processAndSaveImage($file);
+                if ($savedPath) {
+                    $savedImages[] = $savedPath;
+                }
             }
-            $filename = time() . '_' . Str::random(10) . '.' . $request->file('image')->getClientOriginalExtension();
-            $request->file('image')->move($destinationPath, $filename);
-            $imageUrl = 'community_images/' . $filename;
+        } elseif ($request->hasFile('image')) {
+            $savedPath = $this->processAndSaveImage($request->file('image'));
+            if ($savedPath) {
+                $savedImages[] = $savedPath;
+            }
         }
+
+        $imageUrl = !empty($savedImages) ? $savedImages[0] : $request->image_url;
 
         $user = $request->user();
 
@@ -190,6 +272,7 @@ class CommunityPostController extends Controller
             'city' => 'Chivilcoy',
             'zone' => $request->zone ? trim($request->zone) : null,
             'image_url' => $imageUrl,
+            'images' => !empty($savedImages) ? $savedImages : ($request->image_url ? [$request->image_url] : null),
             'is_active' => true,
             'views_count' => 0,
             'accepted_terms' => true,
@@ -226,7 +309,9 @@ class CommunityPostController extends Controller
             'contact_name' => 'nullable|string|max:100',
             'zone' => 'nullable|string|max:100',
             'image_url' => 'nullable|string|max:1000',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
+            'photos' => 'nullable|array|max:4',
+            'photos.*' => 'image|mimes:jpeg,png,jpg,webp|max:10240',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:10240',
         ]);
 
         if ($validator->fails()) {
@@ -246,16 +331,27 @@ class CommunityPostController extends Controller
             }
         }
 
-        if ($request->hasFile('image')) {
-            $destinationPath = public_path('community_images');
-            if (!file_exists($destinationPath)) {
-                @mkdir($destinationPath, 0755, true);
+        if ($request->hasFile('photos')) {
+            $files = $request->file('photos');
+            $filesToProcess = is_array($files) ? array_slice($files, 0, 4) : [$files];
+            $savedImages = [];
+            foreach ($filesToProcess as $file) {
+                $savedPath = $this->processAndSaveImage($file);
+                if ($savedPath) $savedImages[] = $savedPath;
             }
-            $filename = time() . '_' . Str::random(10) . '.' . $request->file('image')->getClientOriginalExtension();
-            $request->file('image')->move($destinationPath, $filename);
-            $post->image_url = 'community_images/' . $filename;
+            if (!empty($savedImages)) {
+                $post->images = $savedImages;
+                $post->image_url = $savedImages[0];
+            }
+        } elseif ($request->hasFile('image')) {
+            $savedPath = $this->processAndSaveImage($request->file('image'));
+            if ($savedPath) {
+                $post->images = [$savedPath];
+                $post->image_url = $savedPath;
+            }
         } elseif ($request->filled('image_url')) {
             $post->image_url = $request->image_url;
+            $post->images = [$request->image_url];
         }
 
         $post->update($request->only([
@@ -290,7 +386,7 @@ class CommunityPostController extends Controller
     }
 
     /**
-     * Eliminar publicación
+     * Eliminar publicación y limpiar sus fotos del disco para no consumir espacio
      */
     public function destroy(Request $request, $id)
     {
@@ -300,9 +396,24 @@ class CommunityPostController extends Controller
             return response()->json(['message' => 'No autorizado para eliminar esta publicación.'], 403);
         }
 
+        // Limpieza de fotos físicas en el servidor
+        if ($post->images && is_array($post->images)) {
+            foreach ($post->images as $imgPath) {
+                $fullPath = public_path($imgPath);
+                if (file_exists($fullPath) && is_file($fullPath)) {
+                    @unlink($fullPath);
+                }
+            }
+        } elseif ($post->image_url) {
+            $fullPath = public_path($post->image_url);
+            if (file_exists($fullPath) && is_file($fullPath)) {
+                @unlink($fullPath);
+            }
+        }
+
         $post->delete();
 
-        return response()->json(['message' => 'Publicación eliminada correctamente.']);
+        return response()->json(['message' => 'Publicación y fotos eliminadas correctamente.']);
     }
 
     /**

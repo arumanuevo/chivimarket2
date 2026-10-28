@@ -16,13 +16,20 @@ class CommunityPostDetailPage extends StatefulWidget {
 
 class _CommunityPostDetailPageState extends State<CommunityPostDetailPage> {
   late dynamic _post;
-  bool _isLoading = false;
+  int _activeImageIndex = 0;
+  final PageController _pageController = PageController();
 
   @override
   void initState() {
     super.initState();
     _post = widget.post;
     _fetchDetails();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchDetails() async {
@@ -161,6 +168,17 @@ class _CommunityPostDetailPageState extends State<CommunityPostDetailPage> {
     }
   }
 
+  List<String> _getImagesList() {
+    final rawImages = _post['images'];
+    if (rawImages is List && rawImages.isNotEmpty) {
+      return rawImages.map((e) => e.toString()).toList();
+    }
+    if (_post['image_url'] != null && _post['image_url'].toString().trim().isNotEmpty) {
+      return [_post['image_url'].toString()];
+    }
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -171,7 +189,7 @@ class _CommunityPostDetailPageState extends State<CommunityPostDetailPage> {
     final isSale = type == 'sale';
     final isBoth = type == 'both';
 
-    final imageUrl = _post['image_url'];
+    final images = _getImagesList();
     final price = _post['price'];
     final barterFor = _post['barter_for'];
     final condition = _post['condition'];
@@ -193,21 +211,100 @@ class _CommunityPostDetailPageState extends State<CommunityPostDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Imagen del artículo
-            Container(
-              height: 260,
-              width: double.infinity,
-              color: isDark ? Colors.black26 : Colors.grey[200],
-              child: (imageUrl != null && imageUrl.toString().trim().isNotEmpty)
-                  ? Image.network(
-                      imageUrl.toString().startsWith('http')
-                          ? imageUrl
-                          : 'https://chivimarket.arumasoft.com/$imageUrl',
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildPlaceholderIcon(),
-                    )
-                  : _buildPlaceholderIcon(),
-            ),
+            // ==========================================
+            // GALERÍA DE IMÁGENES (PAGINADOR Y MINIATURAS)
+            // ==========================================
+            if (images.isNotEmpty) ...[
+              Container(
+                height: 280,
+                width: double.infinity,
+                color: isDark ? Colors.black26 : Colors.grey[200],
+                child: Stack(
+                  children: [
+                    PageView.builder(
+                      controller: _pageController,
+                      itemCount: images.length,
+                      onPageChanged: (i) => setState(() => _activeImageIndex = i),
+                      itemBuilder: (context, index) {
+                        final img = images[index];
+                        final fullUrl = img.startsWith('http')
+                            ? img
+                            : 'https://chivimarket.arumasoft.com/$img';
+                        return Image.network(
+                          fullUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildPlaceholderIcon(),
+                        );
+                      },
+                    ),
+                    if (images.length > 1)
+                      Positioned(
+                        bottom: 12,
+                        right: 16,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.65),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            '${_activeImageIndex + 1}/${images.length}',
+                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              if (images.length > 1) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 60,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: images.length,
+                    itemBuilder: (context, index) {
+                      final isSelected = index == _activeImageIndex;
+                      final img = images[index];
+                      final fullUrl = img.startsWith('http')
+                          ? img
+                          : 'https://chivimarket.arumasoft.com/$img';
+                      return GestureDetector(
+                        onTap: () {
+                          _pageController.animateToPage(
+                            index,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                        child: Container(
+                          width: 60,
+                          margin: const EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isSelected ? Colors.teal : Colors.transparent,
+                              width: 2.5,
+                            ),
+                            image: DecorationImage(
+                              image: NetworkImage(fullUrl),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ] else ...[
+              Container(
+                height: 220,
+                color: isDark ? Colors.black26 : Colors.grey[200],
+                child: _buildPlaceholderIcon(),
+              ),
+            ],
 
             Padding(
               padding: const EdgeInsets.all(20.0),
