@@ -906,6 +906,12 @@ class BusinessController extends Controller
     {
         $query = Business::query()->with(['categories', 'images']);
 
+        if ($request->has('with_products') || $request->has('showcase')) {
+            $query->with(['products' => function ($q) {
+                $q->where('is_active', true)->with('images')->latest()->limit(10);
+            }]);
+        }
+
         if ($request->has('name')) {
             $query->where('name', 'like', '%' . $request->name . '%');
         }

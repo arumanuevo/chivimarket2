@@ -10,6 +10,7 @@ import 'my_businesses_page.dart';
 import 'superadmin_page.dart';
 import 'buyer_home_page.dart';
 import 'legal_terms_page.dart';
+import 'dynamic_showcase_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 
@@ -83,6 +84,7 @@ class ChivimarketApp extends StatelessWidget {
             '/super-admin': (context) => SuperAdminPage(),
             '/cuenta-verificada': (context) => CuentaVerificadaPage(),
             '/terminos-y-condiciones': (context) => const LegalTermsPage(),
+            '/radar': (context) => const DynamicShowcasePage(),
           },
         );
       }

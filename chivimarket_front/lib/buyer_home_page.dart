@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,6 +14,7 @@ import 'favorites_page.dart';
 import 'create_community_post_page.dart';
 import 'community_post_detail_page.dart';
 import 'my_community_posts_page.dart';
+import 'dynamic_showcase_page.dart';
 
 class BuyerHomePage extends StatefulWidget {
   const BuyerHomePage({Key? key}) : super(key: key);
@@ -259,6 +260,13 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                 onPressed: () => Navigator.pushNamed(context, '/login').then((_) => _checkLogin()),
               ),
             ),
+          IconButton(
+            icon: const Icon(Icons.radar, color: Colors.teal),
+            tooltip: 'Radar de Vidrieras Cercanas',
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const DynamicShowcasePage()));
+            },
+          ),
           IconButton(
             icon: Icon(themeNotifier.value == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode, color: Colors.orangeAccent),
             tooltip: 'Cambiar Tema',
@@ -540,6 +548,29 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                     _performSearch(_searchController.text);
                   }
                 },
+              ),
+              const Spacer(),
+              InkWell(
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const DynamicShowcasePage()));
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.teal.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.teal.withOpacity(0.4)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.radar, size: 14, color: Colors.teal),
+                      SizedBox(width: 4),
+                      Text('Radar de Vidrieras', style: TextStyle(color: Colors.teal, fontSize: 11, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -865,6 +896,16 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                 _showMap = false;
               });
               _performSearch('');
+            },
+          ),
+          
+          ListTile(
+            leading: const Icon(Icons.radar, color: Colors.teal),
+            title: const Text('📡 Radar de Vidrieras', style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('Espiá comercios al paso por cercanía GPS', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.55), fontSize: 12)),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const DynamicShowcasePage()));
             },
           ),
           
@@ -1236,6 +1277,15 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
               spacing: 8,
               runSpacing: 8,
               children: [
+                _buildHeroActionChip(
+                  icon: Icons.radar,
+                  label: '📡 Radar de Vidrieras',
+                  color: Colors.teal,
+                  isSelected: false,
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const DynamicShowcasePage()));
+                  },
+                ),
                 _buildHeroActionChip(
                   icon: Icons.storefront,
                   label: 'Ver Tiendas & Mapa',
