@@ -19,10 +19,34 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>ChiviMarket - Tu Ciudad, Tus Comercios</title>
   <meta name="description" content="Descubrí comercios locales, catálogo de productos, ofertas exclusivas, radar de vidrieras por cercanía y trueques en Chivilcoy.">
-  <meta name="theme-color" content="#F97316">
+  
+  <!-- Dynamic Theme Color for Safari iOS 15+ and Chrome -->
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F172A">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F8FAFC">
+
+  <!-- iOS Meta Tags & Fullscreen Translucent Bar -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ChiviMarket">
+
+  <style>
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #0F172A;
+      overflow: hidden;
+    }
+    @media (prefers-color-scheme: light) {
+      html, body {
+        background-color: #F8FAFC;
+      }
+    }
+  </style>
 
   <!-- Open Graph / WhatsApp / Facebook / Telegram -->
   <meta property="og:type" content="website">
@@ -43,7 +67,7 @@
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="ChiviMarket">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
@@ -83,7 +107,7 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
-  <script src="flutter_bootstrap.js?v=21" async></script>
+  <script src="flutter_bootstrap.js?v=22" async></script>
 </body>
 
 </html>

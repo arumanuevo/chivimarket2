@@ -230,7 +230,10 @@ class AnimatedGradientBackground extends StatelessWidget {
               ),
             ),
           ),
-          SafeArea(child: child),
+          SafeArea(
+            bottom: false,
+            child: child,
+          ),
         ],
       ),
     );

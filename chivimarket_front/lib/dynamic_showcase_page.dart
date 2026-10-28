@@ -513,6 +513,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
+          bottom: false,
           child: Column(
             children: [
               // ==========================================

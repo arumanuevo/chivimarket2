@@ -286,6 +286,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
       drawer: _buildBuyerDrawer(),
       body: AnimatedGradientBackground(
         child: SafeArea(
+          bottom: false,
           child: RefreshIndicator(
             onRefresh: () => _performSearch(_searchController.text),
             child: CustomScrollView(
