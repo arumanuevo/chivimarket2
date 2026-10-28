@@ -324,6 +324,8 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                       delegate: SliverChildBuilderDelegate(
                         (context, index) => _buildItemCard(_items[index]),
                         childCount: _items.length,
+                        addAutomaticKeepAlives: false,
+                        addRepaintBoundaries: true,
                       ),
                     ),
                   ),
@@ -562,6 +564,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
   }
 
   Widget _buildItemCard(dynamic item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isBusiness = _searchMode == 'businesses';
     final isPromo = _searchMode == 'promotions';
     final isBarter = _searchMode == 'barter_used';
@@ -626,9 +629,23 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailPage(product: item)));
         }
       },
-      child: GlassContainer(
-        padding: EdgeInsets.zero,
-        borderRadius: 16,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B).withOpacity(0.85) : Colors.white.withOpacity(0.92),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.06),
+            width: 1.2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.25 : 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            )
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
             Column(
@@ -637,26 +654,43 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
+                      color: isDark ? Colors.black26 : Colors.grey[100],
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: (isBarter && item['image_url'] != null && item['image_url'].toString().trim().isNotEmpty)
-                        ? Image.network(
-                            item['image_url'].toString().startsWith('http')
-                                ? item['image_url']
-                                : 'https://chivimarket.arumasoft.com/${item['image_url']}',
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            errorBuilder: (_, __, ___) => Icon(Icons.swap_horiz_rounded, size: 48, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
-                          )
-                        : Icon(
-                            isBusiness 
-                                ? Icons.store 
-                                : (isBarter ? Icons.swap_horiz_rounded : Icons.image),
-                            size: 48, 
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+                    child: Builder(builder: (_) {
+                      String? imgUrl;
+                      if (isBarter && item['image_url'] != null && item['image_url'].toString().trim().isNotEmpty) {
+                        imgUrl = item['image_url'];
+                      } else if (!isBusiness && item['images'] != null && item['images'] is List && item['images'].isNotEmpty) {
+                        imgUrl = item['images'][0]['url'];
+                      } else if (isBusiness && item['logo_url'] != null && item['logo_url'].toString().trim().isNotEmpty) {
+                        imgUrl = item['logo_url'];
+                      }
+
+                      if (imgUrl != null && imgUrl.trim().isNotEmpty) {
+                        final fullUrl = imgUrl.startsWith('http') ? imgUrl : 'https://chivimarket.arumasoft.com/$imgUrl';
+                        return Image.network(
+                          fullUrl,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          cacheWidth: 380, // Decodifica miniatura optimizada: ahorro masivo de RAM GPU
+                          errorBuilder: (_, __, ___) => Icon(
+                            isBusiness ? Icons.store : (isBarter ? Icons.swap_horiz_rounded : Icons.image),
+                            size: 44,
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
                           ),
+                        );
+                      }
+
+                      return Icon(
+                        isBusiness 
+                            ? Icons.store 
+                            : (isBarter ? Icons.swap_horiz_rounded : Icons.image),
+                        size: 44, 
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+                      );
+                    }),
                   ),
                 ),
                 Padding(
@@ -1430,31 +1464,26 @@ class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPinned = shrinkOffset > 0 || overlapsContent;
 
-    return ClipRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: isPinned ? 16.0 : 0.0, sigmaY: isPinned ? 16.0 : 0.0),
-        child: Container(
-          height: height,
-          decoration: BoxDecoration(
-            color: isPinned
-                ? (isDark ? const Color(0xE61E293B) : const Color(0xE6F1F5F9))
-                : Colors.transparent,
-            border: isPinned
-                ? Border(bottom: BorderSide(color: (isDark ? Colors.white12 : Colors.black12), width: 1))
-                : null,
-            boxShadow: isPinned
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    )
-                  ]
-                : null,
-          ),
-          child: child,
-        ),
+    return Container(
+      height: height,
+      decoration: BoxDecoration(
+        color: isPinned
+            ? (isDark ? const Color(0xF21E293B) : const Color(0xF8FFFFFF))
+            : Colors.transparent,
+        border: isPinned
+            ? Border(bottom: BorderSide(color: (isDark ? Colors.white12 : Colors.black12), width: 1))
+            : null,
+        boxShadow: isPinned
+            ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                )
+              ]
+            : null,
       ),
+      child: child,
     );
   }
 

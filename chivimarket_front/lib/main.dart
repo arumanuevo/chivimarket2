@@ -99,6 +99,7 @@ class GlassContainer extends StatelessWidget {
   final double? height;
   final EdgeInsetsGeometry padding;
   final double borderRadius;
+  final bool enableBlur;
 
   GlassContainer({
     Key? key,
@@ -107,32 +108,46 @@ class GlassContainer extends StatelessWidget {
     this.height,
     this.padding = const EdgeInsets.all(32),
     this.borderRadius = 24.0,
+    this.enableBlur = false, // Desactivado por defecto para 60 FPS en celulares
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final content = Container(
+      width: width,
+      height: height,
+      padding: padding,
+      decoration: BoxDecoration(
+        color: isDark 
+            ? const Color(0xFF1E293B).withOpacity(0.75) 
+            : Colors.white.withOpacity(0.85),
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.06), 
+          width: 1.2
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.25 : 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          )
+        ],
+      ),
+      child: child,
+    );
+
+    if (!enableBlur) {
+      return content;
+    }
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(borderRadius),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8), // Optimizado (20 era muy costoso para Web)
-        child: Container(
-          width: width,
-          height: height,
-          padding: padding,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(borderRadius),
-            border: Border.all(color: Colors.white.withOpacity(0.1), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 30,
-                offset: Offset(0, 10),
-              )
-            ],
-          ),
-          child: child,
-        ),
+        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        child: content,
       ),
     );
   }
