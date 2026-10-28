@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'api_service.dart';
+import 'forgot_password_dialog.dart';
 
 void showChangePasswordDialog(BuildContext context) {
   showDialog(
@@ -99,16 +100,30 @@ class _ChangePasswordDialogContentState extends State<_ChangePasswordDialogConte
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final onSurface = theme.colorScheme.onSurface;
-    final primary = theme.colorScheme.primary;
+    final onSurface = isDark ? Colors.white : const Color(0xFF0F172A);
+    final primary = const Color(0xFFF97316);
+    // Fondo 100% SÓLIDO (Cero transparencia para que no se mezcle con el fondo)
+    final solidDialogBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final inputBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
 
     return Dialog(
-      backgroundColor: theme.colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: solidDialogBg,
+      surfaceTintColor: Colors.transparent,
+      elevation: 24,
+      shadowColor: Colors.black.withOpacity(0.6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: borderColor, width: 1.2),
+      ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Container(
         width: 440,
-        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: solidDialogBg,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        padding: const EdgeInsets.all(26),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -153,7 +168,7 @@ class _ChangePasswordDialogContentState extends State<_ChangePasswordDialogConte
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
 
               if (_errorMessage != null) ...[
                 Container(
@@ -187,13 +202,41 @@ class _ChangePasswordDialogContentState extends State<_ChangePasswordDialogConte
                 decoration: InputDecoration(
                   labelText: 'Contraseña Actual',
                   labelStyle: TextStyle(color: onSurface.withOpacity(0.6)),
+                  filled: true,
+                  fillColor: inputBg,
                   prefixIcon: Icon(Icons.lock_outline, color: onSurface.withOpacity(0.5)),
                   suffixIcon: IconButton(
                     icon: Icon(_obscureCurrent ? Icons.visibility_off : Icons.visibility, color: onSurface.withOpacity(0.5)),
                     onPressed: () => setState(() => _obscureCurrent = !_obscureCurrent),
                   ),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: primary, width: 2)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Ayuda especial para usuarios de Google OAuth o que no recuerdan la clave
+              InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                  showForgotPasswordDialog(context);
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                  child: Row(
+                    children: [
+                      Icon(Icons.g_mobiledata, size: 22, color: primary),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          '¿Iniciaste con Google o no sabes tu clave actual? Haz clic aquí para definirla con un código por email.',
+                          style: TextStyle(fontSize: 12, color: primary, fontWeight: FontWeight.w600, decoration: TextDecoration.underline),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 14),
@@ -206,12 +249,15 @@ class _ChangePasswordDialogContentState extends State<_ChangePasswordDialogConte
                 decoration: InputDecoration(
                   labelText: 'Nueva Contraseña (mínimo 8 caracteres)',
                   labelStyle: TextStyle(color: onSurface.withOpacity(0.6)),
+                  filled: true,
+                  fillColor: inputBg,
                   prefixIcon: Icon(Icons.key, color: onSurface.withOpacity(0.5)),
                   suffixIcon: IconButton(
                     icon: Icon(_obscureNew ? Icons.visibility_off : Icons.visibility, color: onSurface.withOpacity(0.5)),
                     onPressed: () => setState(() => _obscureNew = !_obscureNew),
                   ),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: primary, width: 2)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 ),
               ),
@@ -225,12 +271,15 @@ class _ChangePasswordDialogContentState extends State<_ChangePasswordDialogConte
                 decoration: InputDecoration(
                   labelText: 'Confirmar Nueva Contraseña',
                   labelStyle: TextStyle(color: onSurface.withOpacity(0.6)),
+                  filled: true,
+                  fillColor: inputBg,
                   prefixIcon: Icon(Icons.check_circle_outline, color: onSurface.withOpacity(0.5)),
                   suffixIcon: IconButton(
                     icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility, color: onSurface.withOpacity(0.5)),
                     onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
                   ),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: primary, width: 2)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 ),
               ),

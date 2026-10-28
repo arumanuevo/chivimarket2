@@ -155,16 +155,31 @@ class _ForgotPasswordDialogContentState extends State<_ForgotPasswordDialogConte
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final onSurface = theme.colorScheme.onSurface;
-    final primary = theme.colorScheme.primary;
+    final isDark = theme.brightness == Brightness.dark;
+    final onSurface = isDark ? Colors.white : const Color(0xFF0F172A);
+    final primary = const Color(0xFFF97316);
+    // Fondo 100% SÓLIDO (Cero transparencia para que no se mezcle con el fondo)
+    final solidDialogBg = isDark ? const Color(0xFF1E293B) : Colors.white;
+    final borderColor = isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final inputBg = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
 
     return Dialog(
-      backgroundColor: theme.colorScheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: solidDialogBg,
+      surfaceTintColor: Colors.transparent,
+      elevation: 24,
+      shadowColor: Colors.black.withOpacity(0.6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: borderColor, width: 1.2),
+      ),
       insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       child: Container(
         width: 440,
-        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: solidDialogBg,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        padding: const EdgeInsets.all(26),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -276,8 +291,11 @@ class _ForgotPasswordDialogContentState extends State<_ForgotPasswordDialogConte
                   decoration: InputDecoration(
                     labelText: 'Correo Electrónico',
                     labelStyle: TextStyle(color: onSurface.withOpacity(0.6)),
+                    filled: true,
+                    fillColor: inputBg,
                     prefixIcon: Icon(Icons.email_outlined, color: onSurface.withOpacity(0.5)),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: primary, width: 2)),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -315,9 +333,12 @@ class _ForgotPasswordDialogContentState extends State<_ForgotPasswordDialogConte
                   decoration: InputDecoration(
                     labelText: 'Código de 6 dígitos',
                     labelStyle: TextStyle(color: onSurface.withOpacity(0.6), letterSpacing: 0, fontSize: 14),
+                    filled: true,
+                    fillColor: inputBg,
                     prefixIcon: Icon(Icons.pin, color: onSurface.withOpacity(0.5)),
                     counterText: '',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: primary, width: 2)),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -329,12 +350,15 @@ class _ForgotPasswordDialogContentState extends State<_ForgotPasswordDialogConte
                   decoration: InputDecoration(
                     labelText: 'Nueva Contraseña (mínimo 8)',
                     labelStyle: TextStyle(color: onSurface.withOpacity(0.6)),
+                    filled: true,
+                    fillColor: inputBg,
                     prefixIcon: Icon(Icons.lock_outline, color: onSurface.withOpacity(0.5)),
                     suffixIcon: IconButton(
                       icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, color: onSurface.withOpacity(0.5)),
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: primary, width: 2)),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -346,12 +370,15 @@ class _ForgotPasswordDialogContentState extends State<_ForgotPasswordDialogConte
                   decoration: InputDecoration(
                     labelText: 'Confirmar Nueva Contraseña',
                     labelStyle: TextStyle(color: onSurface.withOpacity(0.6)),
+                    filled: true,
+                    fillColor: inputBg,
                     prefixIcon: Icon(Icons.check_circle_outline, color: onSurface.withOpacity(0.5)),
                     suffixIcon: IconButton(
                       icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility, color: onSurface.withOpacity(0.5)),
                       onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
                     ),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: borderColor)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: primary, width: 2)),
                   ),
                 ),
                 const SizedBox(height: 10),
