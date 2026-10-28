@@ -42,7 +42,7 @@ class _MyVouchersPageState extends State<MyVouchersPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
-        title: Text(title, style: const TextStyle(color: Colors.black)),
+        title: Text(title, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -60,7 +60,7 @@ class _MyVouchersPageState extends State<MyVouchersPage> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cerrar', style: TextStyle(color: Colors.black)))
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cerrar', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)))
         ],
       )
     );
@@ -68,12 +68,21 @@ class _MyVouchersPageState extends State<MyVouchersPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
+    final Color onSurface = theme.colorScheme.onSurface;
+    final Color primary = theme.colorScheme.primary;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Mi Billetera de Cupones', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text('Mi Billetera de Cupones', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: onSurface),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: AnimatedGradientBackground(
         child: SafeArea(
@@ -84,7 +93,16 @@ class _MyVouchersPageState extends State<MyVouchersPage> {
                  child: _isLoading 
                    ? const Center(child: CircularProgressIndicator())
                    : _vouchers.isEmpty
-                     ? const Center(child: Text('No tienes cupones guardados.\nExplora tiendas y reclama ofertas.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54)))
+                     ? Center(
+                         child: Column(
+                           mainAxisAlignment: MainAxisAlignment.center,
+                           children: [
+                             Icon(Icons.local_offer_outlined, size: 72, color: onSurface.withOpacity(0.2)),
+                             const SizedBox(height: 16),
+                             Text('No tienes cupones guardados.\nExplora tiendas y reclama ofertas.', textAlign: TextAlign.center, style: TextStyle(color: onSurface.withOpacity(0.55), fontSize: 15)),
+                           ],
+                         ),
+                       )
                      : RefreshIndicator(
                          onRefresh: _fetchMyVouchers,
                          child: ListView.builder(
@@ -96,7 +114,9 @@ class _MyVouchersPageState extends State<MyVouchersPage> {
                              final business = promo['business'];
                              
                              final isClaimed = voucher['status'] == 'claimed';
-                             final statusColor = isClaimed ? Colors.greenAccent : Colors.grey;
+                             final statusColor = isClaimed 
+                                 ? (isDark ? Colors.greenAccent : const Color(0xFF15803D)) 
+                                 : (isDark ? Colors.grey : Colors.grey[600]!);
                              final statusText = isClaimed ? 'DISPONIBLE PARA USAR' : (voucher['status'] == 'redeemed' ? 'YA UTILIZADO' : 'EXPIRADO');
 
                              return Padding(
@@ -112,21 +132,24 @@ class _MyVouchersPageState extends State<MyVouchersPage> {
                                        children: [
                                          Container(
                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                           decoration: BoxDecoration(color: statusColor.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                                           decoration: BoxDecoration(color: statusColor.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
                                            child: Text(statusText, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 10)),
                                          ),
-                                         Text(voucher['code'], style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.5, fontSize: 16)),
+                                         Text(voucher['code'], style: TextStyle(color: onSurface, fontWeight: FontWeight.bold, letterSpacing: 1.5, fontSize: 16)),
                                        ],
                                      ),
                                      const SizedBox(height: 12),
-                                     Text(promo['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.orangeAccent)),
-                                     Text(promo['description'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                     Text(promo['title'] ?? '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: primary)),
+                                     if (promo['description'] != null && promo['description'].toString().isNotEmpty) ...[
+                                       const SizedBox(height: 4),
+                                       Text(promo['description'] ?? '', style: TextStyle(color: onSurface.withOpacity(0.75), fontSize: 12)),
+                                     ],
                                      const SizedBox(height: 12),
                                      Row(
                                        children: [
-                                          const Icon(Icons.storefront, size: 16, color: Colors.blueAccent),
+                                          Icon(Icons.storefront, size: 16, color: isDark ? Colors.blueAccent : const Color(0xFF2563EB)),
                                           const SizedBox(width: 8),
-                                          Text(business['name'] ?? '', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                          Text(business['name'] ?? '', style: TextStyle(color: onSurface, fontWeight: FontWeight.bold)),
                                        ]
                                      ),
                                      if (isClaimed) ...[
@@ -134,25 +157,30 @@ class _MyVouchersPageState extends State<MyVouchersPage> {
                                         SizedBox(
                                           width: double.infinity,
                                           child: ElevatedButton.icon(
-                                            style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: primary, 
+                                              foregroundColor: Colors.white, 
+                                              elevation: 2,
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                                            ),
                                             onPressed: () => _showQRCodeDialog(voucher['code'], promo['title']), 
-                                            icon: const Icon(Icons.qr_code, color: Colors.black), 
+                                            icon: const Icon(Icons.qr_code, color: Colors.white), 
                                             label: const Text('MOSTRAR CÓDIGO', style: TextStyle(fontWeight: FontWeight.bold))
                                           ),
                                         )
                                      ]
                                    ],
-                                 )
+                                 ),
                                ),
                              );
-                           }
+                           },
                          ),
-                     )
+                       ),
                )
             ],
           ),
-        )
-      )
+        ),
+      ),
     );
   }
 }

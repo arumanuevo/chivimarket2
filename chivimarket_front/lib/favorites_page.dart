@@ -107,13 +107,21 @@ class _FavoritesPageState extends State<FavoritesPage> {
               borderRadius: BorderRadius.circular(8),
               child: Container(
                 width: 60, height: 60,
-                color: Colors.black26,
-                child: const Icon(Icons.image, color: Colors.white54),
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : Colors.black.withOpacity(0.04),
+                child: Icon(Icons.image, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
               ),
             ),
-            title: Text(item['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            subtitle: Text(isBusiness ? (item['address'] ?? 'Tienda') : '\$${item['price']}', style: TextStyle(color: isBusiness ? Colors.greenAccent : Colors.orangeAccent, fontWeight: FontWeight.bold)),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white54),
+            title: Text(item['name'] ?? '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.onSurface)),
+            subtitle: Text(
+              isBusiness ? (item['address'] ?? 'Tienda') : '\$${item['price']}', 
+              style: TextStyle(
+                color: isBusiness 
+                    ? (Theme.of(context).brightness == Brightness.dark ? Colors.greenAccent : const Color(0xFF15803D)) 
+                    : Theme.of(context).colorScheme.primary, 
+                fontWeight: FontWeight.bold
+              ),
+            ),
+            trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.35)),
             onTap: () {
               if (isBusiness) {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: item)));

@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -436,12 +436,12 @@ class _CommunityPostDetailPageState extends State<CommunityPostDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          children: const [
-                            Icon(Icons.security, color: Colors.orangeAccent, size: 24),
-                            SizedBox(width: 8),
+                          children: [
+                            Icon(Icons.security, color: isDark ? Colors.orangeAccent : const Color(0xFFC2410C), size: 24),
+                            const SizedBox(width: 8),
                             Text(
                               'Aviso de Seguridad Comunitario',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Colors.orangeAccent),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: isDark ? Colors.orangeAccent : const Color(0xFFC2410C)),
                             ),
                           ],
                         ),
@@ -457,9 +457,9 @@ class _CommunityPostDetailPageState extends State<CommunityPostDetailPage> {
                         const SizedBox(height: 6),
                         GestureDetector(
                           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LegalTermsPage())),
-                          child: const Text(
+                          child: Text(
                             'Ver Términos y Condiciones Legales de ChiviMarket ➔',
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.orangeAccent),
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: isDark ? Colors.orangeAccent : const Color(0xFFC2410C)),
                           ),
                         ),
                       ],

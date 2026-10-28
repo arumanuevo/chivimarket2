@@ -74,36 +74,66 @@ class _PromotionsListWidgetState extends State<PromotionsListWidget> {
     if (_isLoading) return const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()));
     if (_promotions.isEmpty) return const SizedBox.shrink(); // No mostrar nada si no hay promociones
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('🔥 Ofertas Disponibles', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
+        Text('🔥 Ofertas Disponibles', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: primary)),
         const SizedBox(height: 12),
         ..._promotions.map((promo) {
-          return GlassContainer(
-            padding: const EdgeInsets.all(16),
-            borderRadius: 16,
-            child: Row(
-              children: [
-                const Icon(Icons.local_offer, color: Colors.orange, size: 32),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(promo['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-                      if (promo['description'] != null) Text(promo['description'], style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                      const SizedBox(height: 4),
-                      Text('Req. Nivel VIP: ${promo['required_level']}', style: TextStyle(color: Colors.blueAccent.withOpacity(0.8), fontSize: 10, fontWeight: FontWeight.w900)),
-                    ],
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: GlassContainer(
+              padding: const EdgeInsets.all(16),
+              borderRadius: 16,
+              child: Row(
+                children: [
+                  Icon(Icons.local_offer, color: primary, size: 32),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(promo['title'] ?? '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: onSurface)),
+                        if (promo['description'] != null) ...[
+                          const SizedBox(height: 4),
+                          Text(promo['description'], style: TextStyle(color: onSurface.withOpacity(0.75), fontSize: 12)),
+                        ],
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: (isDark ? Colors.blueAccent : const Color(0xFF2563EB)).withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'Req. Nivel VIP: ${promo['required_level']}', 
+                            style: TextStyle(
+                              color: isDark ? Colors.lightBlueAccent : const Color(0xFF1D4ED8), 
+                              fontSize: 10.5, 
+                              fontWeight: FontWeight.w900
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: _isClaiming ? null : () => _claimVoucher(promo['id']),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.orangeAccent, foregroundColor: Colors.black),
-                  child: const Text('OBTENER', style: TextStyle(fontWeight: FontWeight.bold)),
-                )
-              ],
+                  const SizedBox(width: 12),
+                  ElevatedButton(
+                    onPressed: _isClaiming ? null : () => _claimVoucher(promo['id']),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primary, 
+                      foregroundColor: Colors.white,
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('OBTENER', style: TextStyle(fontWeight: FontWeight.bold)),
+                  )
+                ],
+              ),
             ),
           );
         }).toList(),

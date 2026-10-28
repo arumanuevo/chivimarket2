@@ -129,6 +129,11 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
       );
     }
 
+    final theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
+    final Color onSurface = theme.colorScheme.onSurface;
+    final Color primary = theme.colorScheme.primary;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -136,16 +141,19 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Reseñas', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text('Reseñas', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: onSurface)),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05), 
+                borderRadius: BorderRadius.circular(16)
+              ),
               child: Row(
                 children: [
-                  const Icon(Icons.star, color: Colors.amberAccent, size: 18),
+                  const Icon(Icons.star, color: Colors.amber, size: 18),
                   const SizedBox(width: 4),
-                  Text(_average > 0 ? _average.toString() : 'Nuevo', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-                  Text('  ($_total)', style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
+                  Text(_average > 0 ? _average.toString() : 'Nuevo', style: TextStyle(fontWeight: FontWeight.bold, color: onSurface)),
+                  Text('  ($_total)', style: TextStyle(color: onSurface.withOpacity(0.55), fontSize: 12)),
                 ],
               ),
             )
@@ -158,24 +166,27 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.black45,
+              color: isDark ? Colors.black45 : Colors.white.withOpacity(0.9),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white10)
+              border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
+              boxShadow: isDark ? [] : [
+                BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Dejar una opinión', style: GoogleFonts.outfit(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                Text('Dejar una opinión', style: GoogleFonts.outfit(color: primary, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 _buildStarSelector(),
                 TextField(
                   controller: _commentController,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: onSurface),
                   decoration: InputDecoration(
                     hintText: '¿Qué te pareció?',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                    hintStyle: TextStyle(color: onSurface.withOpacity(0.4)),
                     filled: true,
-                    fillColor: Colors.white10,
+                    fillColor: isDark ? Colors.white10 : Colors.black.withOpacity(0.04),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   ),
                   maxLines: 2,
@@ -184,11 +195,14 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
                 ElevatedButton.icon(
                   onPressed: _isSubmitting ? null : _submitReview,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amberAccent.withOpacity(0.8),
-                    foregroundColor: Colors.black87,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+                    backgroundColor: primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 2,
                   ),
-                  icon: _isSubmitting ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2)) : const Icon(Icons.send, size: 18),
+                  icon: _isSubmitting 
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                    : const Icon(Icons.send, size: 18),
                   label: const Text('Publicar', style: TextStyle(fontWeight: FontWeight.bold)),
                 )
               ],
@@ -197,12 +211,16 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
         else
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white10 : Colors.black.withOpacity(0.04), 
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
+            ),
             child: Row(
-              children: const [
-                Icon(Icons.lock_outline, color: Colors.white54),
-                SizedBox(width: 12),
-                Expanded(child: Text('Debes iniciar sesión para publicar reseñas.', style: TextStyle(color: Colors.white54))),
+              children: [
+                Icon(Icons.lock_outline, color: onSurface.withOpacity(0.5)),
+                const SizedBox(width: 12),
+                Expanded(child: Text('Debes iniciar sesión para publicar reseñas.', style: TextStyle(color: onSurface.withOpacity(0.6)))),
               ],
             ),
           ),
@@ -211,30 +229,38 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
 
         // Lista de Comentarios
         if (_ratings.isEmpty)
-          const Center(child: Text('Aún no hay opiniones. ¡Sé el primero!', style: TextStyle(color: Colors.white54, fontStyle: FontStyle.italic)))
+          Center(child: Text('Aún no hay opiniones. ¡Sé el primero!', style: TextStyle(color: onSurface.withOpacity(0.5), fontStyle: FontStyle.italic)))
         else
           ..._ratings.map((r) {
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: isDark ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.85),
                 borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.06)),
+                boxShadow: isDark ? [] : [
+                  BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 2))
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      CircleAvatar(radius: 16, backgroundColor: Colors.white24, child: const Icon(Icons.person, size: 16, color: Colors.white)),
+                      CircleAvatar(
+                        radius: 16, 
+                        backgroundColor: isDark ? Colors.white24 : Colors.black12, 
+                        child: Icon(Icons.person, size: 16, color: onSurface.withOpacity(0.8))
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: Text(r['user'] != null ? r['user']['name'] : 'Anónimo', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
+                      Expanded(child: Text(r['user'] != null ? r['user']['name'] : 'Anónimo', style: TextStyle(color: onSurface, fontWeight: FontWeight.bold))),
                       _buildStars(r['rating'] ?? 5),
                     ],
                   ),
                   if (r['comment'] != null && r['comment'].toString().isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    Text('"${r['comment']}"', style: TextStyle(color: Colors.white.withOpacity(0.8), fontStyle: FontStyle.italic)),
+                    Text('"${r['comment']}"', style: TextStyle(color: onSurface.withOpacity(0.8), fontStyle: FontStyle.italic)),
                   ]
                 ],
               ),

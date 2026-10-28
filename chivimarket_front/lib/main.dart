@@ -433,101 +433,107 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final onSurface = theme.colorScheme.onSurface;
+    final primary = theme.colorScheme.primary;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios, color: onSurface),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: AnimatedGradientBackground(
         child: Center(
-          child: GlassContainer(
-            width: 450,
-            padding: const EdgeInsets.all(40),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.dashboard_customize, size: 64, color: Theme.of(context).colorScheme.primary),
-                SizedBox(height: 24),
-                Text('Acceso Central', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
-                SizedBox(height: 8),
-                Text('Administra tu escaparate local', style: TextStyle(color: Colors.white60, fontSize: 16)),
-                SizedBox(height: 40),
-                TextField(
-                  controller: _emailController,
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Correo Electrónico',
-                    labelStyle: TextStyle(color: Colors.white60),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
-                    prefixIcon: Icon(Icons.email, color: Colors.white54),
-                  ),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Contraseña',
-                    labelStyle: TextStyle(color: Colors.white60),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withOpacity(0.2))),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary)),
-                    prefixIcon: Icon(Icons.lock, color: Colors.white54),
-                  ),
-                ),
-                SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 8,
-                      shadowColor: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                    ),
-                    child: _isLoading
-                        ? CircularProgressIndicator(color: Colors.white)
-                        : Text('Comenzar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
-                    Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('O INGRESAR CON', style: TextStyle(color: Colors.white54, fontSize: 12))),
-                    Expanded(child: Divider(color: Colors.white.withOpacity(0.2))),
-                  ],
-                ),
-                SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: OutlinedButton.icon(
-                    onPressed: _isGoogleLoading ? null : _loginWithGoogle,
-                    icon: _isGoogleLoading 
-                      ? SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)) 
-                      : Icon(Icons.g_mobiledata, size: 36, color: Colors.white),
-                    label: Text('Continuar con Google', style: TextStyle(color: Colors.white)),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.white.withOpacity(0.2)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      backgroundColor: Colors.white.withOpacity(0.05)
+          child: SingleChildScrollView(
+            child: GlassContainer(
+              width: 450,
+              padding: const EdgeInsets.all(40),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.dashboard_customize, size: 64, color: primary),
+                  const SizedBox(height: 24),
+                  Text('Acceso Central', style: GoogleFonts.inter(fontSize: 28, fontWeight: FontWeight.bold, color: onSurface)),
+                  const SizedBox(height: 8),
+                  Text('Administra tu escaparate local', style: TextStyle(color: onSurface.withOpacity(0.65), fontSize: 16)),
+                  const SizedBox(height: 40),
+                  TextField(
+                    controller: _emailController,
+                    style: TextStyle(color: onSurface),
+                    decoration: InputDecoration(
+                      labelText: 'Correo Electrónico',
+                      labelStyle: TextStyle(color: onSurface.withOpacity(0.60)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: onSurface.withOpacity(0.2))),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: primary)),
+                      prefixIcon: Icon(Icons.email, color: onSurface.withOpacity(0.54)),
                     ),
                   ),
-                ),
-                SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/register'),
-                  child: Text('¿No tienes cuenta? Registra tu Comercio Aquí', style: TextStyle(color: Colors.white70)),
-                )
-              ],
+                  const SizedBox(height: 20),
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    style: TextStyle(color: onSurface),
+                    decoration: InputDecoration(
+                      labelText: 'Contraseña',
+                      labelStyle: TextStyle(color: onSurface.withOpacity(0.60)),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: onSurface.withOpacity(0.2))),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: primary)),
+                      prefixIcon: Icon(Icons.lock, color: onSurface.withOpacity(0.54)),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 8,
+                        shadowColor: primary.withOpacity(0.5),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text('Comenzar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: onSurface.withOpacity(0.2))),
+                      Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: Text('O INGRESAR CON', style: TextStyle(color: onSurface.withOpacity(0.55), fontSize: 12, fontWeight: FontWeight.bold))),
+                      Expanded(child: Divider(color: onSurface.withOpacity(0.2))),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: OutlinedButton.icon(
+                      onPressed: _isGoogleLoading ? null : _loginWithGoogle,
+                      icon: _isGoogleLoading 
+                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)) 
+                        : Icon(Icons.g_mobiledata, size: 36, color: onSurface),
+                      label: Text('Continuar con Google', style: TextStyle(color: onSurface, fontWeight: FontWeight.bold)),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: onSurface.withOpacity(0.2)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        backgroundColor: onSurface.withOpacity(0.04)
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextButton(
+                    onPressed: () => Navigator.pushNamed(context, '/register'),
+                    child: Text('¿No tienes cuenta? Registra tu Comercio Aquí', style: TextStyle(color: primary, fontWeight: FontWeight.bold)),
+                  )
+                ],
+              ),
             ),
           ),
         ),
@@ -554,21 +560,21 @@ class CuentaVerificadaPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.greenAccent.withOpacity(0.2),
+                    color: (Theme.of(context).brightness == Brightness.dark ? Colors.greenAccent : const Color(0xFF16A34A)).withOpacity(0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.check_circle, size: 80, color: Colors.greenAccent),
+                  child: Icon(Icons.check_circle, size: 80, color: Theme.of(context).brightness == Brightness.dark ? Colors.greenAccent : const Color(0xFF16A34A)),
                 ),
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
                 Text(
-                  'Cuenta Verificada!',
-                  style: GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white),
+                  '¡Cuenta Verificada!',
+                  style: GoogleFonts.inter(fontSize: 32, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface),
                 ),
-                SizedBox(height: 16),
+                const SizedBox(height: 16),
                 Text(
                   'Tu email ha sido validado correctamente. Tu negocio ya cuenta con la insignia de confianza en ChiviMarket.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white70, fontSize: 16, height: 1.5),
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75), fontSize: 16, height: 1.5),
                 ),
                 SizedBox(height: 48),
                 SizedBox(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -348,19 +348,19 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                       isActive: _currentStep >= 1,
                       content: Column(
                         children: [
-                          TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'Teléfono / WhatsApp', prefixIcon: Icon(Icons.phone, color: Colors.greenAccent)), style: const TextStyle(color: Colors.white)),
+                          TextField(controller: _phoneController, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'Teléfono / WhatsApp', prefixIcon: Icon(Icons.phone, color: Theme.of(context).brightness == Brightness.dark ? Colors.greenAccent : const Color(0xFF16A34A))), style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           const SizedBox(height: 12),
-                          TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email Comercial', prefixIcon: Icon(Icons.email, color: Colors.blueAccent)), style: const TextStyle(color: Colors.white)),
+                          TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: InputDecoration(labelText: 'Email Comercial', prefixIcon: Icon(Icons.email, color: Theme.of(context).brightness == Brightness.dark ? Colors.blueAccent : const Color(0xFF2563EB))), style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           const SizedBox(height: 12),
-                          TextField(controller: _facebookController, decoration: InputDecoration(labelText: 'Página de Facebook', prefixIcon: Icon(Icons.facebook, color: Colors.blue)), style: const TextStyle(color: Colors.white)),
+                          TextField(controller: _facebookController, decoration: const InputDecoration(labelText: 'Página de Facebook', prefixIcon: Icon(Icons.facebook, color: Color(0xFF1877F2))), style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           const SizedBox(height: 12),
-                          TextField(controller: _instagramController, decoration: InputDecoration(labelText: 'Instagram (URL o @usuario)', prefixIcon: Icon(Icons.camera_alt, color: Colors.pinkAccent)), style: const TextStyle(color: Colors.white)),
+                          TextField(controller: _instagramController, decoration: const InputDecoration(labelText: 'Instagram (URL o @usuario)', prefixIcon: Icon(Icons.camera_alt, color: Color(0xFFE1306C))), style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           const SizedBox(height: 16),
                           
                           // Selector de Horarios
                           Container(
                             padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(border: Border.all(color: Colors.white24), borderRadius: BorderRadius.circular(12)),
+                            decoration: BoxDecoration(border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black12), borderRadius: BorderRadius.circular(12)),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -370,7 +370,7 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                   children: _daysOfWeek.map((day) {
                                     final isSelected = _selectedDays.contains(day);
                                     return ChoiceChip(
-                                      label: Text(day, style: TextStyle(fontSize: 12, color: isSelected ? Colors.black : Colors.white)),
+                                      label: Text(day, style: TextStyle(fontSize: 12, color: isSelected ? Colors.black : Theme.of(context).colorScheme.onSurface)),
                                       selected: isSelected,
                                       selectedColor: Colors.orangeAccent,
                                       backgroundColor: Colors.transparent,
@@ -392,9 +392,9 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                   children: [
                                     Column(
                                       children: [
-                                        Text('Apertura', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                        Text('Apertura', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 12)),
                                         ElevatedButton.icon(
-                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.black45, foregroundColor: Colors.white),
+                                          style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black45 : Colors.grey[200], foregroundColor: Theme.of(context).colorScheme.onSurface),
                                           icon: Icon(Icons.sunny, size: 16, color: Colors.yellowAccent),
                                           label: Text(_openTime.format(context)),
                                           onPressed: () async {
@@ -406,9 +406,9 @@ class _CreateBusinessPageState extends State<CreateBusinessPage> {
                                     ),
                                     Column(
                                       children: [
-                                        Text('Cierre', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                                        Text('Cierre', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 12)),
                                         ElevatedButton.icon(
-                                          style: ElevatedButton.styleFrom(backgroundColor: Colors.black45, foregroundColor: Colors.white),
+                                          style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).brightness == Brightness.dark ? Colors.black45 : Colors.grey[200], foregroundColor: Theme.of(context).colorScheme.onSurface),
                                           icon: Icon(Icons.nightlight_round, size: 16, color: Colors.indigoAccent),
                                           label: Text(_closeTime.format(context)),
                                           onPressed: () async {

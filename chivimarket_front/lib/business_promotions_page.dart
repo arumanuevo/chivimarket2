@@ -77,7 +77,7 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
                     dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
                     items: [
                       const DropdownMenuItem(value: null, child: Text('- Toda la Tienda -', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold))),
-                      ...storeProducts.map((p) => DropdownMenuItem(value: p['id'].toString(), child: Text(p['name'], style: const TextStyle(color: Colors.white)))),
+                      ...storeProducts.map((p) => DropdownMenuItem(value: p['id'].toString(), child: Text(p['name'], style: TextStyle(color: Theme.of(context).colorScheme.onSurface)))),
                     ],
                     onChanged: (val) => setStateModal(() => selectedProductId = val),
                   ),
@@ -282,7 +282,7 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
                  child: _isLoading 
                    ? const Center(child: CircularProgressIndicator())
                    : _promotions.isEmpty
-                     ? const Center(child: Text('No tienes ofertas publicadas.\n¡Lanza tu primera promoción para atraer clientes!', textAlign: TextAlign.center, style: TextStyle(color: Colors.white54)))
+                     ? Center(child: Text('No tienes ofertas publicadas.\n¡Lanza tu primera promoción para atraer clientes!', textAlign: TextAlign.center, style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.55), fontSize: 15)))
                      : ListView.builder(
                          padding: const EdgeInsets.symmetric(horizontal: 16),
                          itemCount: _promotions.length,
@@ -299,22 +299,22 @@ class _BusinessPromotionsPageState extends State<BusinessPromotionsPage> {
                                    child: Column(
                                      crossAxisAlignment: CrossAxisAlignment.start,
                                      children: [
-                                       Text(promo['title'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
+                                       Text(promo['title'] ?? '', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Theme.of(context).colorScheme.onSurface)),
                                        const SizedBox(height: 4),
-                                       Text(promo['description'] ?? '', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                       Text(promo['description'] ?? '', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75), fontSize: 12)),
                                        const SizedBox(height: 8),
                                        Row(
                                          children: [
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                              decoration: BoxDecoration(color: Colors.blueAccent.withOpacity(0.3), borderRadius: BorderRadius.circular(8)),
-                                              child: Text('Lv. ${promo['required_level']}+', style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 10)),
+                                              decoration: BoxDecoration(color: (Theme.of(context).brightness == Brightness.dark ? Colors.blueAccent : const Color(0xFF2563EB)).withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                                              child: Text('Lv. ${promo['required_level']}+', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.lightBlueAccent : const Color(0xFF1D4ED8), fontWeight: FontWeight.bold, fontSize: 10)),
                                             ),
                                             const SizedBox(width: 8),
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                              decoration: BoxDecoration(color: Colors.deepPurple.withOpacity(0.3), borderRadius: BorderRadius.circular(8)),
-                                              child: Text('Max: ${promo['max_uses_per_user']}/us.', style: const TextStyle(color: Colors.deepPurpleAccent, fontWeight: FontWeight.bold, fontSize: 10)),
+                                              decoration: BoxDecoration(color: (Theme.of(context).brightness == Brightness.dark ? Colors.deepPurple : const Color(0xFF7C3AED)).withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                                              child: Text('Max: ${promo['max_uses_per_user']}/us.', style: TextStyle(color: Theme.of(context).brightness == Brightness.dark ? Colors.deepPurpleAccent : const Color(0xFF6D28D9), fontWeight: FontWeight.bold, fontSize: 10)),
                                             ),
                                          ],
                                        )

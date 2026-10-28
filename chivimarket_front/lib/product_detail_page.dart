@@ -35,6 +35,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
+    final Color onSurface = theme.colorScheme.onSurface;
+    final Color primary = theme.colorScheme.primary;
     final imageUrl = _getImageUrl();
     final business = widget.product['business'] ?? {};
 
@@ -46,9 +50,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         leading: Padding(
           padding: const EdgeInsets.all(8.0),
           child: CircleAvatar(
-            backgroundColor: Colors.black54,
+            backgroundColor: isDark ? Colors.black54 : Colors.white.withOpacity(0.85),
             child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
+              icon: Icon(Icons.arrow_back_ios, color: onSurface, size: 18),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -75,11 +79,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     bottom: 0, left: 0, right: 0,
                     height: 150,
                     child: Container(
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Colors.black87],
+                          colors: isDark
+                            ? const [Colors.transparent, Colors.black87]
+                            : [Colors.transparent, const Color(0xFFF1F5F9).withOpacity(0.85)],
                         ),
                       ),
                     ),
@@ -104,14 +110,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           children: [
                             Expanded(
                               child: Text(
-                                widget.product['name'] ?? 'Producto Remasterizado',
-                                style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                                widget.product['name'] ?? 'Producto',
+                                style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: onSurface),
                               ),
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(color: Colors.orangeAccent, borderRadius: BorderRadius.circular(12)),
-                              child: Text('\$${widget.product['price']}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.black87)),
+                              decoration: BoxDecoration(color: primary, borderRadius: BorderRadius.circular(12)),
+                              child: Text('\$${widget.product['price']}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Colors.white)),
                             )
                           ],
                         ),
@@ -122,19 +128,26 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             leading: CircleAvatar(
-                              backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-                              child: Icon(Icons.storefront, color: Theme.of(context).colorScheme.primary),
+                              backgroundColor: primary.withOpacity(0.15),
+                              child: Icon(Icons.storefront, color: primary),
                             ),
-                            title: Text(business['name'] ?? 'Tienda', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            subtitle: const Text('Comercio Verificado', style: TextStyle(color: Colors.greenAccent, fontSize: 12)),
+                            title: Text(business['name'] ?? 'Tienda', style: TextStyle(color: onSurface, fontWeight: FontWeight.bold)),
+                            subtitle: Text(
+                              'Comercio Verificado', 
+                              style: TextStyle(
+                                color: isDark ? Colors.greenAccent : const Color(0xFF15803D), 
+                                fontSize: 12, 
+                                fontWeight: FontWeight.w600
+                              ),
+                            ),
                           ),
                         
-                        const Divider(color: Colors.white24, height: 32),
-                        Text('Descripción del Artículo', style: GoogleFonts.outfit(fontSize: 18, color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                        Divider(color: isDark ? Colors.white24 : Colors.black12, height: 32),
+                        Text('Descripción del Artículo', style: GoogleFonts.outfit(fontSize: 18, color: primary, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 12),
                         Text(
                           widget.product['description'] ?? 'No hay descripción disponible para este producto en este momento.',
-                          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 15, height: 1.5),
+                          style: TextStyle(color: onSurface.withOpacity(0.8), fontSize: 15, height: 1.5),
                         ),
                         
                         const SizedBox(height: 48),
@@ -143,9 +156,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           height: 56,
                           child: ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orangeAccent,
-                              foregroundColor: Colors.black87,
+                              backgroundColor: primary,
+                              foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              elevation: 4,
                             ),
                             onPressed: () {
                               if (business.isNotEmpty) {

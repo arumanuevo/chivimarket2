@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -109,6 +109,8 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
     if (lat == null || lng == null) return const SizedBox();
 
     final String token = AppConfig.mapboxToken;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    final mapStyle = isDark ? 'dark-v11' : 'streets-v12';
     
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
@@ -128,7 +130,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=$token',
+                    urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/$mapStyle/tiles/{z}/{x}/{y}?access_token=$token',
                   ),
                   MarkerLayer(
                     markers: [
@@ -149,8 +151,9 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
               right: 8,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.9),
-                  foregroundColor: Colors.blueAccent[700],
+                  backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+                  foregroundColor: isDark ? Colors.lightBlueAccent : Colors.blueAccent[700],
+                  elevation: 2,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
@@ -175,16 +178,21 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bool isDark = theme.brightness == Brightness.dark;
+    final Color onSurface = theme.colorScheme.onSurface;
+    final Color primary = theme.colorScheme.primary;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(widget.business['name'] ?? 'Tienda', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: Colors.black87.withOpacity(0.6),
+        title: Text(widget.business['name'] ?? 'Tienda', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: onSurface)),
+        backgroundColor: isDark ? Colors.black87.withOpacity(0.6) : Colors.white.withOpacity(0.88),
         elevation: 0,
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios, color: Colors.white), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(icon: Icon(Icons.arrow_back_ios, color: onSurface), onPressed: () => Navigator.pop(context)),
         actions: [
           IconButton(
-            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.redAccent : Colors.white),
+            icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: _isFavorite ? Colors.redAccent : onSurface),
             tooltip: 'Añadir a Favoritos',
             onPressed: _toggleFavorite,
           )
@@ -206,21 +214,37 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                       children: [
                         Row(
                           children: [
-                            CircleAvatar(radius: 30, backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.2), child: const Icon(Icons.storefront, size: 36, color: Colors.orangeAccent)),
+                            CircleAvatar(radius: 30, backgroundColor: primary.withOpacity(0.15), child: Icon(Icons.storefront, size: 36, color: primary)),
                             const SizedBox(width: 16),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(widget.business['name'] ?? '', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
-                                  Text('${(widget.business['modality'] ?? 'Físico').toString().toUpperCase()} - ⭐ ${widget.business['avg_rating'] ?? '5.0'}', style: const TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                                  Text(widget.business['name'] ?? '', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: onSurface)),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: (isDark ? Colors.greenAccent : const Color(0xFF16A34A)).withOpacity(0.12),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: (isDark ? Colors.greenAccent : const Color(0xFF16A34A)).withOpacity(0.3)),
+                                    ),
+                                    child: Text(
+                                      '${(widget.business['modality'] ?? 'Físico').toString().toUpperCase()}  •  ⭐ ${widget.business['avg_rating'] ?? '5.0'}', 
+                                      style: TextStyle(
+                                        color: isDark ? Colors.greenAccent : const Color(0xFF15803D), 
+                                        fontSize: 11.5, 
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             )
                           ],
                         ),
                         const SizedBox(height: 16),
-                        Text(widget.business['description'] ?? 'Este vendedor es un misterio.', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 14)),
+                        Text(widget.business['description'] ?? 'Este vendedor es un misterio.', style: TextStyle(color: onSurface.withOpacity(0.8), fontSize: 14, height: 1.4)),
                         const SizedBox(height: 16),
                         Builder(
                           builder: (context) {
@@ -242,20 +266,24 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                               return Container(
                                 padding: const EdgeInsets.all(12),
                                 margin: const EdgeInsets.only(bottom: 16),
-                                decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.04), 
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     if (hours.isNotEmpty)
-                                      Row(children: [const Icon(Icons.access_time, color: Colors.orangeAccent, size: 16), const SizedBox(width: 8), Expanded(child: Text(hours, style: const TextStyle(color: Colors.white70)))]),
+                                      Row(children: [const Icon(Icons.access_time, color: Colors.orange, size: 16), const SizedBox(width: 8), Expanded(child: Text(hours, style: TextStyle(color: onSurface.withOpacity(0.85), fontSize: 13)))]),
                                     if (phone.isNotEmpty)
-                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.phone, color: Colors.greenAccent, size: 16), const SizedBox(width: 8), Text(phone, style: const TextStyle(color: Colors.white70))])),
+                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [Icon(Icons.phone, color: isDark ? Colors.greenAccent : const Color(0xFF16A34A), size: 16), const SizedBox(width: 8), Text(phone, style: TextStyle(color: onSurface.withOpacity(0.85), fontSize: 13))])),
                                     if (email.isNotEmpty)
-                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.email, color: Colors.blueAccent, size: 16), const SizedBox(width: 8), Text(email, style: const TextStyle(color: Colors.white70))])),
+                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [Icon(Icons.email, color: isDark ? Colors.blueAccent : const Color(0xFF2563EB), size: 16), const SizedBox(width: 8), Text(email, style: TextStyle(color: onSurface.withOpacity(0.85), fontSize: 13))])),
                                     if (facebook.isNotEmpty)
-                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.facebook, color: Colors.blue, size: 16), const SizedBox(width: 8), Text(facebook, style: const TextStyle(color: Colors.white70))])),
+                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.facebook, color: Color(0xFF1877F2), size: 16), const SizedBox(width: 8), Text(facebook, style: TextStyle(color: onSurface.withOpacity(0.85), fontSize: 13))])),
                                     if (instagram.isNotEmpty)
-                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.camera_alt, color: Colors.pinkAccent, size: 16), const SizedBox(width: 8), Text(instagram, style: const TextStyle(color: Colors.white70))])),
+                                      Padding(padding: const EdgeInsets.only(top: 8), child: Row(children: [const Icon(Icons.camera_alt, color: Color(0xFFE1306C), size: 16), const SizedBox(width: 8), Text(instagram, style: TextStyle(color: onSurface.withOpacity(0.85), fontSize: 13))])),
                                   ],
                                 )
                               );
@@ -279,27 +307,27 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                      border: Border.all(color: Theme.of(context).colorScheme.primary),
+                      color: primary.withOpacity(0.1),
+                      border: Border.all(color: primary.withOpacity(0.4)),
                       borderRadius: BorderRadius.circular(16)
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.shopping_bag, color: Colors.orangeAccent, size: 36),
+                        Icon(Icons.shopping_bag, color: primary, size: 36),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Vienes a comprar:', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontSize: 12)),
-                              Text(widget.highlightedProduct!['name'] ?? '', style: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                              Text('Vienes a comprar:', style: TextStyle(color: onSurface.withOpacity(0.7), fontSize: 12)),
+                              Text(widget.highlightedProduct!['name'] ?? '', style: GoogleFonts.outfit(color: onSurface, fontWeight: FontWeight.bold, fontSize: 16)),
                             ]
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(color: Colors.orangeAccent, borderRadius: BorderRadius.circular(8)),
-                          child: Text('\$${widget.highlightedProduct!['price']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+                          decoration: BoxDecoration(color: primary, borderRadius: BorderRadius.circular(8)),
+                          child: Text('\$${widget.highlightedProduct!['price']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
                         ),
                       ],
                     )
@@ -310,7 +338,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               sliver: SliverToBoxAdapter(
-                child: Text('Catálogo de Productos', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
+                child: Text('Catálogo de Productos', style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: onSurface)),
               ),
             ),
             
@@ -329,7 +357,7 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
             else if (_products.isEmpty)
               SliverFillRemaining(
                 child: Center(
-                  child: Text('El vendedor aún no ha publicado artículos.', style: TextStyle(color: Colors.white54, fontSize: 16)),
+                  child: Text('El vendedor aún no ha publicado artículos.', style: TextStyle(color: onSurface.withOpacity(0.55), fontSize: 16)),
                 ),
               )
             else
@@ -366,18 +394,26 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
                               Expanded(
                                 child: Container(
                                   width: double.infinity,
-                                  decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(12)),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? Colors.white10 : Colors.black.withOpacity(0.04), 
+                                    borderRadius: BorderRadius.circular(12)
+                                  ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(12),
                                     child: imageUrl != null 
-                                      ? Image.network(imageUrl, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Center(child: Icon(Icons.broken_image, color: Colors.white30, size: 32)))
-                                      : const Center(child: Icon(Icons.image, color: Colors.white30, size: 48)),
+                                      ? Image.network(
+                                          imageUrl, 
+                                          fit: BoxFit.cover, 
+                                          cacheWidth: 380,
+                                          errorBuilder: (_,__,___) => Center(child: Icon(Icons.broken_image, color: onSurface.withOpacity(0.3), size: 32))
+                                        )
+                                      : Center(child: Icon(Icons.image, color: onSurface.withOpacity(0.3), size: 48)),
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Text(p['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
-                              Text('\$${p['price']}', style: const TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+                              Text(p['name'] ?? '', style: TextStyle(fontWeight: FontWeight.bold, color: onSurface), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              Text('\$${p['price']}', style: TextStyle(color: primary, fontWeight: FontWeight.bold, fontSize: 16)),
                             ],
                           ),
                         ),

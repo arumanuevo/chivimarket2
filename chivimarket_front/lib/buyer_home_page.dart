@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -713,7 +713,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                             style: TextStyle(
                               fontWeight: FontWeight.w900, 
                               fontSize: isBarter ? 15 : 18, 
-                              color: isBarter ? Colors.tealAccent[700] ?? Colors.teal : Theme.of(context).colorScheme.primary,
+                              color: isBarter ? (isDark ? Colors.tealAccent : const Color(0xFF0F766E)) : Theme.of(context).colorScheme.primary,
                             ),
                           ),
                           Text(
@@ -919,7 +919,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
               title: Text('Mis Compras', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),
               onTap: () {},
             ),
-            const Divider(color: Colors.white24),
+            Divider(color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black12),
             ListTile(
               leading: const Icon(Icons.storefront, color: Colors.orangeAccent),
               title: const Text('¡Vender mis servicios!', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold)),
@@ -929,7 +929,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                 Navigator.pushNamed(context, '/dashboard');
               },
             ),
-            const Divider(color: Colors.white24),
+            Divider(color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black12),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.redAccent),
               title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.redAccent)),
@@ -939,7 +939,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
               },
             ),
           ],
-          const Divider(color: Colors.white24),
+          Divider(color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black12),
           ListTile(
             leading: Icon(Icons.gavel_rounded, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
             title: Text('Avisos Legales y Términos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
@@ -1174,14 +1174,14 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.greenAccent.withOpacity(0.15),
+                    color: (Theme.of(context).brightness == Brightness.dark ? Colors.greenAccent : const Color(0xFF15803D)).withOpacity(0.15),
                     borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.greenAccent.withOpacity(0.3)),
+                    border: Border.all(color: (Theme.of(context).brightness == Brightness.dark ? Colors.greenAccent : const Color(0xFF15803D)).withOpacity(0.3)),
                   ),
-                  child: const Text(
+                  child: Text(
                     '100% Local',
                     style: TextStyle(
-                      color: Colors.greenAccent,
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.greenAccent : const Color(0xFF15803D),
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
