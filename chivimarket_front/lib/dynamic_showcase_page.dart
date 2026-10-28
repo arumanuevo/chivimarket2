@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ltlng;
 import 'package:url_launcher/url_launcher.dart';
+import 'app_config.dart';
 import 'api_service.dart';
 import 'main.dart'; // AnimatedGradientBackground, GlassContainer
 import 'product_detail_page.dart';
@@ -27,6 +29,12 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
   bool _isUsingGps = false;
   bool _liveTracking = false;
   StreamSubscription<Position>? _positionStreamSub;
+
+  final MapController _mapController = MapController();
+  final ScrollController _scrollController = ScrollController();
+  
+  bool _showMap = true; // Mapa poco invasivo visible por defecto (colapsable con un toque)
+  int? _selectedBusinessId; // Comercio tocado en el mapa para destacar su vidriera
 
   bool _isLoading = true;
   String _statusMessage = 'Calculando comercios y vidrieras...';
@@ -51,6 +59,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
   @override
   void dispose() {
     _positionStreamSub?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -98,6 +107,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
           _userLng = position.longitude;
           _isUsingGps = true;
         });
+        _recenterMapOnUser();
       }
     } catch (_) {
       _useFallbackLocation('No se pudo fijar GPS. Usando centro de Chivilcoy.');
@@ -111,6 +121,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
         _userLng = defaultLng;
         _isUsingGps = false;
       });
+      _recenterMapOnUser();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(reason),
@@ -121,12 +132,20 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
     }
   }
 
+  void _recenterMapOnUser() {
+    if (_userLat != null && _userLng != null) {
+      try {
+        _mapController.move(ltlng.LatLng(_userLat!, _userLng!), 15.5);
+      } catch (_) {}
+    }
+  }
+
   void _toggleLiveTracking(bool enabled) {
     if (enabled) {
       setState(() => _liveTracking = true);
       const locationSettings = LocationSettings(
         accuracy: LocationAccuracy.high,
-        distanceFilter: 15, // Actualiza solo cada 15 metros para no liquidar batería
+        distanceFilter: 15, // Actualiza solo cada 15 metros para cuidar batería
       );
       _positionStreamSub = Geolocator.getPositionStream(locationSettings: locationSettings).listen((pos) {
         if (mounted) {
@@ -136,11 +155,12 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
             _isUsingGps = true;
             _sortBusinessesByDistance();
           });
+          _recenterMapOnUser();
         }
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('📡 Radar en vivo activado: las vidrieras se reordenarán a tu paso.'),
+          content: Text('📡 Radar en vivo activado: mapa y vidrieras se reordenan a tu paso.'),
           backgroundColor: Colors.teal,
         ),
       );
@@ -165,7 +185,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
         _businesses = List<Map<String, dynamic>>.from(list);
         _sortBusinessesByDistance();
       }
-    } catch (e) {
+    } catch (_) {
       // Ignorar o mantener lista
     } finally {
       if (mounted) {
@@ -206,6 +226,20 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
     }).toList();
   }
 
+  void _scrollToBusiness(dynamic bId) {
+    final filtered = _filteredBusinesses;
+    final index = filtered.indexWhere((item) => item['id'] == bId);
+    if (index != -1 && _scrollController.hasClients) {
+      // Desplazamiento animado suave a la tarjeta seleccionada
+      final targetOffset = (index * 270.0).clamp(0.0, _scrollController.position.maxScrollExtent);
+      _scrollController.animateTo(
+        targetOffset,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
   String _formatDistance(double? meters) {
     if (meters == null || meters > 9000000) return 'Distancia desconocida';
     if (meters < 50) {
@@ -241,6 +275,183 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
     }
   }
 
+  Widget _buildMiniMap(bool isDark, Color onSurface, Color primary, List<Map<String, dynamic>> filtered) {
+    final lat = _userLat ?? defaultLat;
+    final lng = _userLng ?? defaultLng;
+    final mapStyle = isDark ? 'dark-v11' : 'streets-v12';
+    final token = AppConfig.mapboxToken;
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+      height: 190,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.25 : 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          )
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: ltlng.LatLng(lat, lng),
+              initialZoom: 15.2,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/$mapStyle/tiles/{z}/{x}/{y}?access_token=$token',
+              ),
+              // Círculo translúcido del radio de alcance del radar
+              if (_selectedRadiusMeters != null)
+                CircleLayer(
+                  circles: [
+                    CircleMarker(
+                      point: ltlng.LatLng(lat, lng),
+                      radius: _selectedRadiusMeters!.toDouble(),
+                      useRadiusInMeter: true,
+                      color: Colors.teal.withOpacity(0.12),
+                      borderColor: Colors.teal.withOpacity(0.45),
+                      borderStrokeWidth: 1.5,
+                    ),
+                  ],
+                ),
+              MarkerLayer(
+                markers: [
+                  // Marcador de posición del usuario (pulsante)
+                  Marker(
+                    point: ltlng.LatLng(lat, lng),
+                    width: 32,
+                    height: 32,
+                    alignment: Alignment.center,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2.5),
+                        boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 4, offset: Offset(0, 2))],
+                      ),
+                      child: const Icon(Icons.my_location, color: Colors.white, size: 16),
+                    ),
+                  ),
+                  // Marcadores interactivos de los comercios
+                  ...filtered.map((b) {
+                    final bLat = double.tryParse(b['latitude']?.toString() ?? '');
+                    final bLng = double.tryParse(b['longitude']?.toString() ?? '');
+                    if (bLat == null || bLng == null) return null;
+                    final isSelected = b['id'] == _selectedBusinessId;
+
+                    return Marker(
+                      point: ltlng.LatLng(bLat, bLng),
+                      width: 100,
+                      height: 48,
+                      alignment: Alignment.topCenter,
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() => _selectedBusinessId = b['id']);
+                          try {
+                            _mapController.move(ltlng.LatLng(bLat, bLng), 16.0);
+                          } catch (_) {}
+                          _scrollToBusiness(b['id']);
+                        },
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isSelected ? primary : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isSelected ? Colors.white : primary,
+                                  width: isSelected ? 1.5 : 1.0,
+                                ),
+                                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 3)],
+                              ),
+                              child: Text(
+                                b['name'] ?? 'Local',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected ? Colors.white : onSurface,
+                                ),
+                              ),
+                            ),
+                            Icon(
+                              Icons.location_on, 
+                              color: isSelected ? primary : Colors.orangeAccent, 
+                              size: isSelected ? 26 : 22,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }).whereType<Marker>().toList(),
+                ],
+              ),
+            ],
+          ),
+
+          // Badge indicador flotante arriba
+          Positioned(
+            top: 8,
+            left: 8,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: (isDark ? const Color(0xFF0F172A) : Colors.white).withOpacity(0.9),
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.touch_app, size: 12, color: Colors.teal),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Toca un pin para ver su vidriera',
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: onSurface),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Botón flotante para re-centrar en el usuario
+          Positioned(
+            bottom: 8,
+            right: 8,
+            child: InkWell(
+              onTap: _recenterMapOnUser,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.95),
+                  shape: BoxShape.circle,
+                  boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                ),
+                child: const Icon(Icons.my_location, size: 18, color: Colors.blueAccent),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -270,7 +481,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
                 children: [
                   Text('Radar de Vidrieras', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 18, color: onSurface)),
                   Text(
-                    _isUsingGps ? '📍 Ubicación GPS precisa' : '📍 Centro (Plaza 25 de Mayo)',
+                    _isUsingGps ? '📍 Tu ubicación GPS' : '📍 Centro (Plaza 25 de Mayo)',
                     style: TextStyle(fontSize: 11, color: onSurface.withOpacity(0.6)),
                   ),
                 ],
@@ -305,48 +516,93 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
           child: Column(
             children: [
               // ==========================================
-              // BARRA DE CONTROL DE RADIO DE ALCANCE
+              // BARRA DE RADIOS + BOTÓN COLAPSO DE MAPA
               // ==========================================
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: SizedBox(
-                  height: 38,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _radiusOptions.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
-                    itemBuilder: (ctx, i) {
-                      final opt = _radiusOptions[i];
-                      final isSelected = _selectedRadiusMeters == opt['value'];
-                      return ChoiceChip(
-                        label: Text(opt['label'], style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                          color: isSelected ? Colors.white : onSurface.withOpacity(0.85),
-                        )),
-                        selected: isSelected,
-                        selectedColor: primary,
-                        backgroundColor: isDark ? Colors.white10 : Colors.black.withOpacity(0.04),
-                        shape: RoundedRectangleBorder(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 6),
+                child: Row(
+                  children: [
+                    // Botón conmutador del mapa (Poco invasivo / Colapsable)
+                    InkWell(
+                      onTap: () => setState(() => _showMap = !_showMap),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                        decoration: BoxDecoration(
+                          color: _showMap ? primary.withOpacity(0.15) : (isDark ? Colors.white10 : Colors.black.withOpacity(0.04)),
                           borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: isSelected ? primary : (isDark ? Colors.white12 : Colors.black12)),
+                          border: Border.all(color: _showMap ? primary : (isDark ? Colors.white12 : Colors.black12)),
                         ),
-                        onSelected: (_) {
-                          setState(() => _selectedRadiusMeters = opt['value']);
-                        },
-                      );
-                    },
-                  ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(_showMap ? Icons.map : Icons.map_outlined, size: 15, color: _showMap ? primary : onSurface.withOpacity(0.7)),
+                            const SizedBox(width: 5),
+                            Text(
+                              _showMap ? 'Ocultar Mapa' : 'Ver Mapa (${filtered.length})',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.bold,
+                                color: _showMap ? primary : onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Selector horizontal de radios de alcance
+                    Expanded(
+                      child: SizedBox(
+                        height: 36,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _radiusOptions.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 6),
+                          itemBuilder: (ctx, i) {
+                            final opt = _radiusOptions[i];
+                            final isSelected = _selectedRadiusMeters == opt['value'];
+                            return ChoiceChip(
+                              label: Text(opt['label'], style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                color: isSelected ? Colors.white : onSurface.withOpacity(0.85),
+                              )),
+                              selected: isSelected,
+                              selectedColor: primary,
+                              backgroundColor: isDark ? Colors.white10 : Colors.black.withOpacity(0.04),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                side: BorderSide(color: isSelected ? primary : (isDark ? Colors.white12 : Colors.black12)),
+                              ),
+                              onSelected: (_) {
+                                setState(() {
+                                  _selectedRadiusMeters = opt['value'];
+                                  _selectedBusinessId = null;
+                                });
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+
+              // ==========================================
+              // MAPITA DINÁMICO COMPACTO (POCO INVASIVO)
+              // ==========================================
+              if (_showMap)
+                _buildMiniMap(isDark, onSurface, primary, filtered),
 
               // ==========================================
               // ESTADO DE RADAR / LIVE TRACKING BANNER
               // ==========================================
               if (_liveTracking)
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.teal.withOpacity(0.12),
@@ -362,8 +618,8 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Radar en vivo activo: las vidrieras se ordenan a medida que avanzas.',
-                          style: TextStyle(fontSize: 11.5, color: Colors.teal, fontWeight: FontWeight.bold),
+                          'Radar en vivo activo: mapa y vidrieras se actualizan al avanzar.',
+                          style: TextStyle(fontSize: 11, color: Colors.teal, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -420,7 +676,8 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
                         ),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                        controller: _scrollController,
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                         itemCount: filtered.length,
                         itemBuilder: (ctx, i) {
                           final b = filtered[i];
@@ -438,6 +695,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
   Widget _buildShowcaseCard(Map<String, dynamic> b, bool isDark, Color onSurface, Color primary) {
     final double? distMeters = b['_distance_meters'];
     final bool isVeryClose = distMeters != null && distMeters < 80;
+    final bool isSelectedFromMap = b['id'] == _selectedBusinessId;
     final List products = (b['products'] is List) ? b['products'] : [];
 
     final lat = double.tryParse(b['latitude']?.toString() ?? '');
@@ -449,17 +707,21 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
         color: isDark ? const Color(0xFF1E293B).withOpacity(0.85) : Colors.white.withOpacity(0.92),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isVeryClose 
-            ? (isDark ? Colors.greenAccent : const Color(0xFF16A34A))
-            : (isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.06)),
-          width: isVeryClose ? 2.0 : 1.2,
+          color: isSelectedFromMap 
+            ? primary
+            : (isVeryClose 
+                ? (isDark ? Colors.greenAccent : const Color(0xFF16A34A))
+                : (isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.06))),
+          width: (isSelectedFromMap || isVeryClose) ? 2.0 : 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: isVeryClose 
-              ? (isDark ? Colors.greenAccent.withOpacity(0.2) : const Color(0xFF16A34A).withOpacity(0.15))
-              : Colors.black.withOpacity(isDark ? 0.25 : 0.05),
-            blurRadius: isVeryClose ? 12 : 8,
+            color: isSelectedFromMap
+              ? primary.withOpacity(0.3)
+              : (isVeryClose 
+                  ? (isDark ? Colors.greenAccent.withOpacity(0.2) : const Color(0xFF16A34A).withOpacity(0.15))
+                  : Colors.black.withOpacity(isDark ? 0.25 : 0.05)),
+            blurRadius: (isSelectedFromMap || isVeryClose) ? 12 : 8,
             offset: const Offset(0, 3),
           )
         ],
@@ -477,19 +739,38 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> {
                 children: [
                   CircleAvatar(
                     radius: 22,
-                    backgroundColor: primary.withOpacity(0.15),
-                    child: Icon(Icons.storefront, color: primary, size: 24),
+                    backgroundColor: isSelectedFromMap ? primary : primary.withOpacity(0.15),
+                    child: Icon(Icons.storefront, color: isSelectedFromMap ? Colors.white : primary, size: 24),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          b['name'] ?? 'Comercio',
-                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 17, color: onSurface),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                b['name'] ?? 'Comercio',
+                                style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 17, color: onSurface),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (isSelectedFromMap)
+                              Container(
+                                margin: const EdgeInsets.only(left: 6),
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: primary,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Text(
+                                  '📍 EN MAPA',
+                                  style: TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                          ],
                         ),
                         const SizedBox(height: 2),
                         Row(
