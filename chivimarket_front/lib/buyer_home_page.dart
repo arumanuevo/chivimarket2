@@ -11,6 +11,9 @@ import 'main.dart'; // Animations and global things
 import 'product_detail_page.dart';
 import 'public_business_page.dart';
 import 'favorites_page.dart';
+import 'create_community_post_page.dart';
+import 'community_post_detail_page.dart';
+import 'my_community_posts_page.dart';
 
 class BuyerHomePage extends StatefulWidget {
   const BuyerHomePage({Key? key}) : super(key: key);
@@ -49,15 +52,27 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     setState(() => _isLoading = true);
     
     try {
-      String endpoint = _searchMode == 'products' 
-          ? '/products/search?query=$query' 
-          : _searchMode == 'businesses' 
-              ? '/businesses/search?name=$query'
-              : '/promotions/all';
+      String endpoint;
+      if (_searchMode == 'products') {
+        endpoint = '/products/search?query=$query';
+      } else if (_searchMode == 'businesses') {
+        endpoint = '/businesses/search?name=$query';
+      } else if (_searchMode == 'promotions') {
+        endpoint = '/promotions/all';
+      } else {
+        // Trueques y Usados
+        endpoint = '/community-posts?search=$query';
+      }
 
-      if (_sortBy != 'default' && _searchMode != 'promotions') {
+      if (_sortBy != 'default' && _searchMode != 'promotions' && _searchMode != 'barter_used') {
         String orderParam = (_sortBy == 'views_count' || _sortBy == 'avg_rating') ? 'desc' : 'asc';
         endpoint += '&sort_by=$_sortBy&order=$orderParam';
+      } else if (_searchMode == 'barter_used') {
+        if (_sortBy == 'views_count') {
+          endpoint += '&sort=popular';
+        } else if (_sortBy == 'price') {
+          endpoint += '&sort=price_asc';
+        }
       }
           
       final res = await ApiService.get(endpoint);
@@ -71,6 +86,56 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
     }
+  }
+
+  void _openPublishCommunityPost() {
+    if (!_isLoggedIn) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: const [
+              Icon(Icons.lock_outline, color: Colors.teal),
+              SizedBox(width: 8),
+              Text('Identificación Requerida', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: const Text(
+            'Por motivos de seguridad y resguardo legal comunitario, para publicar trueques o artículos usados debés iniciar sesión o registrar tu cuenta gratis.',
+            style: TextStyle(fontSize: 13),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white),
+              onPressed: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, '/login').then((_) => _checkLogin());
+              },
+              child: const Text('Ingresar'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const CreateCommunityPostPage()),
+    ).then((val) {
+      if (val == true) {
+        setState(() {
+          _searchMode = 'barter_used';
+          _sortBy = 'default';
+        });
+        _performSearch('');
+      }
+    });
   }
   Future<void> _checkLogin() async {
     final uri = Uri.base;
@@ -169,7 +234,12 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
         icon: Icon(_showMap ? Icons.grid_view : Icons.map),
         label: Text(_showMap ? 'Ver Cuadrícula' : 'Ver Mapa', style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onSurface)),
         onPressed: () => setState(() => _showMap = !_showMap),
-      ) : null,
+      ) : (_searchMode == 'barter_used' ? FloatingActionButton.extended(
+        onPressed: _openPublishCommunityPost,
+        backgroundColor: Colors.teal,
+        icon: const Icon(Icons.add, color: Colors.white),
+        label: const Text('Publicar Trueque/Usado', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      ) : null),
       appBar: AppBar(
         title: Text('ChiviMarket', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 24, color: Theme.of(context).colorScheme.onSurface)),
         actions: [
@@ -222,6 +292,10 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                     height: 92.0,
                   ),
                 ),
+                if (_searchMode == 'barter_used')
+                  SliverToBoxAdapter(
+                    child: _buildCommunityBarterHeader(),
+                  ),
                 if (_isLoading)
                   const SliverFillRemaining(
                     hasScrollBody: false,
@@ -264,6 +338,107 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     );
   }
 
+  Widget _buildCommunityBarterHeader() {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDark 
+                ? [const Color(0xFF134E4A), const Color(0xFF0F766E)] 
+                : [const Color(0xFFCCFBF1), const Color(0xFF99F6E4)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.tealAccent.withOpacity(0.2) : Colors.white.withOpacity(0.8),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.swap_horiz_rounded, color: Colors.teal, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Mercado Comunitario: Trueques y Usados',
+                        style: GoogleFonts.outfit(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : const Color(0xFF134E4A),
+                        ),
+                      ),
+                      Text(
+                        'Intercambiá o vendé artículos de segunda mano entre vecinos de Chivilcoy.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white70 : const Color(0xFF115E59),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _openPublishCommunityPost,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isDark ? const Color(0xFF14B8A6) : const Color(0xFF0F766E),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                    ),
+                    icon: const Icon(Icons.add_circle_outline, size: 18),
+                    label: const Text('Publicar mi Trueque o Usado', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.shield_outlined, size: 14, color: Colors.teal),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Transacciones directas C2C en modalidad "como está". ChiviMarket no custodia ni garantiza los bienes. Revisá todo en persona.',
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: isDark ? Colors.white60 : const Color(0xFF134E4A).withOpacity(0.85),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSearchBarAndFilters() {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -284,7 +459,13 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                     decoration: InputDecoration(
                       isDense: true,
                       contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                      hintText: _searchMode == 'products' ? 'Buscar productos...' : 'Buscar tiendas...',
+                      hintText: _searchMode == 'products' 
+                          ? 'Buscar productos...' 
+                          : _searchMode == 'businesses' 
+                              ? 'Buscar tiendas...' 
+                              : _searchMode == 'promotions' 
+                                  ? 'Buscar promociones...' 
+                                  : 'Buscar trueques o usados...',
                       hintStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
                       border: InputBorder.none,
                       icon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary, size: 20),
@@ -312,6 +493,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                       DropdownMenuItem(value: 'products', child: Text('Productos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13))),
                       DropdownMenuItem(value: 'businesses', child: Text('Tiendas', style: TextStyle(color: Theme.of(context).colorScheme.onSurface, fontSize: 13))),
                       DropdownMenuItem(value: 'promotions', child: Text('Promo / Vouchers', style: TextStyle(color: Colors.pinkAccent, fontWeight: FontWeight.bold, fontSize: 13))),
+                      DropdownMenuItem(value: 'barter_used', child: Text('🔄 Trueques y Usados', style: TextStyle(color: Colors.tealAccent[700] ?? Colors.teal, fontWeight: FontWeight.bold, fontSize: 13))),
                     ],
                     onChanged: (val) {
                       if (val != null) {
@@ -347,7 +529,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                 items: [
                   const DropdownMenuItem(value: 'default', child: Text('Relevancia')),
                   const DropdownMenuItem(value: 'views_count', child: Text('🔥 Más Populares (Vistas)')),
-                  if (_searchMode == 'products') const DropdownMenuItem(value: 'price', child: Text('💸 Precio')),
+                  if (_searchMode == 'products' || _searchMode == 'barter_used') const DropdownMenuItem(value: 'price', child: Text('💸 Precio')),
                   if (_searchMode == 'businesses') const DropdownMenuItem(value: 'avg_rating', child: Text('⭐ Mejor Calificados')),
                 ],
                 onChanged: (val) {
@@ -382,25 +564,45 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
   Widget _buildItemCard(dynamic item) {
     final isBusiness = _searchMode == 'businesses';
     final isPromo = _searchMode == 'promotions';
-    final isSponsored = !isBusiness && !isPromo && (item['is_sponsored'] == true);
+    final isBarter = _searchMode == 'barter_used';
+    final isSponsored = !isBusiness && !isPromo && !isBarter && (item['is_sponsored'] == true);
     
-    final title = isPromo ? (item['title'] ?? 'Voucher') : (item['name'] ?? '');
+    final title = isPromo 
+        ? (item['title'] ?? 'Voucher') 
+        : (isBarter ? (item['title'] ?? 'Artículo') : (item['name'] ?? ''));
+
     final subtitle = isPromo 
         ? (item['business'] != null ? item['business']['name'] : 'Beneficio Exclusivo')
         : isBusiness 
             ? (item['address'] ?? 'Tienda') 
-            : (item['business'] != null ? (item['business']['name'] ?? 'Local') : 'Local');
+            : isBarter 
+                ? 'Chivilcoy (${item['zone'] ?? 'Centro'})'
+                : (item['business'] != null ? (item['business']['name'] ?? 'Local') : 'Local');
     
     final priceOrRating = isPromo
         ? '🏆 Lvl. ${item['required_level'] ?? 1}'
         : isBusiness 
             ? '⭐ ${item['avg_rating'] ?? 'Nuevo'}' 
-            : '\$${item['price']}';
+            : isBarter 
+                ? (item['type'] == 'barter' 
+                    ? '🔄 Trueque' 
+                    : (item['price'] != null && double.tryParse(item['price'].toString()) != null && double.parse(item['price'].toString()) > 0 
+                        ? '\$${item['price']}' 
+                        : '🔄 Permuta'))
+                : '\$${item['price']}';
 
     final viewsStr = isPromo ? '🎁 ${item['max_uses_per_user'] ?? 1}x/u' : '👀 ${item['views_count'] ?? 0}';
     
     return GestureDetector(
       onTap: () {
+        if (isBarter) {
+          setState(() {
+            item['views_count'] = (item['views_count'] ?? 0) + 1;
+          });
+          Navigator.push(context, MaterialPageRoute(builder: (_) => CommunityPostDetailPage(post: item)));
+          return;
+        }
+
         if (isPromo) {
           if (item['business'] != null) {
             Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: item['business'])));
@@ -438,7 +640,23 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                       color: Theme.of(context).colorScheme.surface,
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     ),
-                    child: Icon(isBusiness ? Icons.store : Icons.image, size: 48, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
+                    clipBehavior: Clip.antiAlias,
+                    child: (isBarter && item['image_url'] != null && item['image_url'].toString().trim().isNotEmpty)
+                        ? Image.network(
+                            item['image_url'].toString().startsWith('http')
+                                ? item['image_url']
+                                : 'https://chivimarket.arumasoft.com/${item['image_url']}',
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            errorBuilder: (_, __, ___) => Icon(Icons.swap_horiz_rounded, size: 48, color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+                          )
+                        : Icon(
+                            isBusiness 
+                                ? Icons.store 
+                                : (isBarter ? Icons.swap_horiz_rounded : Icons.image),
+                            size: 48, 
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+                          ),
                   ),
                 ),
                 Padding(
@@ -458,7 +676,11 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                         children: [
                           Text(
                             priceOrRating,
-                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Theme.of(context).colorScheme.primary),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900, 
+                              fontSize: isBarter ? 15 : 18, 
+                              color: isBarter ? Colors.tealAccent[700] ?? Colors.teal : Theme.of(context).colorScheme.primary,
+                            ),
                           ),
                           Text(
                             viewsStr,
@@ -469,7 +691,13 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(isBusiness ? Icons.location_on : Icons.storefront, size: 14, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                          Icon(
+                            isBusiness 
+                                ? Icons.location_on 
+                                : (isBarter ? Icons.pin_drop_outlined : Icons.storefront),
+                            size: 14, 
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                          ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
@@ -499,41 +727,63 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                   child: const Text('Promocionado', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
                 ),
               ),
-            Positioned(
-              top: 4,
-              right: 4,
-              child: IconButton(
-                icon: Icon(
-                  (isBusiness || isPromo ? _favoriteBusinessIds.contains(isPromo ? item['business_id'] : item['id']) : _favoriteProductIds.contains(item['id']))
-                    ? Icons.favorite
-                    : Icons.favorite_border,
-                  color: Colors.redAccent,
+            if (isBarter)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: item['type'] == 'both' 
+                        ? Colors.teal 
+                        : (item['type'] == 'barter' ? Colors.deepPurpleAccent : Colors.orangeAccent),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4)]
+                  ),
+                  child: Text(
+                    item['type'] == 'both' 
+                        ? 'Venta o Trueque' 
+                        : (item['type'] == 'barter' ? 'Solo Trueque' : 'Venta Usado'),
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
                 ),
-                onPressed: () {
-                  if (!_isLoggedIn) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('¡Debes iniciar sesión para agregar a favoritos!'),
-                        backgroundColor: Colors.orange,
-                        action: SnackBarAction(
-                          label: 'Ingresar',
-                          textColor: Colors.white,
-                          onPressed: () => Navigator.pushNamed(context, '/login'),
-                        ),
-                      ),
-                    );
-                    return;
-                  }
-                  if (isPromo) {
-                    if (item['business'] != null) {
-                      _toggleFavorite(true, item['business']);
-                    }
-                  } else {
-                    _toggleFavorite(isBusiness, item);
-                  }
-                },
               ),
-            ),
+            if (!isBarter)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: IconButton(
+                  icon: Icon(
+                    (isBusiness || isPromo ? _favoriteBusinessIds.contains(isPromo ? item['business_id'] : item['id']) : _favoriteProductIds.contains(item['id']))
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                    color: Colors.redAccent,
+                  ),
+                  onPressed: () {
+                    if (!_isLoggedIn) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('¡Debes iniciar sesión para agregar a favoritos!'),
+                          backgroundColor: Colors.orange,
+                          action: SnackBarAction(
+                            label: 'Ingresar',
+                            textColor: Colors.white,
+                            onPressed: () => Navigator.pushNamed(context, '/login'),
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    if (isPromo) {
+                      if (item['business'] != null) {
+                        _toggleFavorite(true, item['business']);
+                      }
+                    } else {
+                      _toggleFavorite(isBusiness, item);
+                    }
+                  },
+                ),
+              ),
           ],
         ),
       ),
@@ -568,6 +818,22 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
             onTap: () => Navigator.pop(context),
           ),
           
+          ListTile(
+            leading: const Icon(Icons.swap_horiz_rounded, color: Colors.teal),
+            title: const Text('Trueques y Usados', style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('Mercado comunitario entre vecinos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.55), fontSize: 12)),
+            onTap: () {
+              Navigator.pop(context);
+              setState(() {
+                _searchMode = 'barter_used';
+                _sortBy = 'default';
+                _searchController.clear();
+                _showMap = false;
+              });
+              _performSearch('');
+            },
+          ),
+          
           if (!_isLoggedIn) ...[
             ListTile(
               leading: Icon(Icons.login, color: Theme.of(context).colorScheme.primary),
@@ -589,6 +855,15 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           ],
 
           if (_isLoggedIn) ...[
+            ListTile(
+              leading: const Icon(Icons.inventory_2_outlined, color: Colors.teal),
+              title: const Text('Mis Trueques y Usados', style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text('Gestionar o pausar mis publicaciones', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.55), fontSize: 12)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const MyCommunityPostsPage()));
+              },
+            ),
             ListTile(
               leading: Icon(Icons.favorite, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
               title: Text('Mis Favoritos', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7))),

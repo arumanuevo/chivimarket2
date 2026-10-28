@@ -63,6 +63,13 @@ Route::get('/businesses/top-rated', [BusinessController::class, 'getTopRatedBusi
 Route::get('/business-image/{filename}', [ImageController::class, 'showBusinessImage']);
 Route::get('/image/{filename}', [ImageController::class, 'show'])->name('image.show');
 
+// =============================================
+// Trueques y Usados Comunitarios (PÚBLICAS)
+// =============================================
+Route::get('/community-posts', [\App\Http\Controllers\API\CommunityPostController::class, 'index']);
+Route::get('/community-posts/{id}', [\App\Http\Controllers\API\CommunityPostController::class, 'show']);
+Route::post('/community-posts/{id}/report', [\App\Http\Controllers\API\CommunityPostController::class, 'report']);
+
 
 // =============================================
 // RUTAS PROTEGIDAS (requieren autenticaciÃ³n)
@@ -132,6 +139,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/subscription/change-plan', [SubscriptionController::class, 'changePlan']);
     Route::get('/subscription/status', [SubscriptionController::class, 'status']);
     Route::put('/subscription/upgrade', [SubscriptionController::class, 'upgrade']);
+
+    // Trueques y Usados Comunitarios (AUTENTICADAS)
+    Route::get('/my-community-posts', [\App\Http\Controllers\API\CommunityPostController::class, 'myPosts']);
+    Route::post('/community-posts', [\App\Http\Controllers\API\CommunityPostController::class, 'store']);
+    Route::post('/community-posts/{id}/update', [\App\Http\Controllers\API\CommunityPostController::class, 'update']);
+    Route::put('/community-posts/{id}', [\App\Http\Controllers\API\CommunityPostController::class, 'update']);
+    Route::delete('/community-posts/{id}', [\App\Http\Controllers\API\CommunityPostController::class, 'destroy']);
+    Route::post('/community-posts/{id}/toggle-status', [\App\Http\Controllers\API\CommunityPostController::class, 'toggleStatus']);
 
     // Favoritos
     Route::post('/favorites/businesses/{business}', [FavoriteController::class, 'toggleBusiness']);
