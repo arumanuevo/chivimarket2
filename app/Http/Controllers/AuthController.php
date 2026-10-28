@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
+use App\Notifications\ResetPasswordNotification;
 
 class AuthController extends Controller
 {
@@ -248,6 +252,136 @@ class AuthController extends Controller
                 'current' => $currentBusinesses,
                 'limit' => $maxBusinesses,
             ]
+        ]);
+    }
+
+    /**
+     * Solicitar código de recuperación de contraseña por correo.
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ], [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Por favor ingresa un correo electrónico válido.',
+            'email.exists' => 'No encontramos ningún usuario registrado con ese correo.',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        // Código numérico de 6 dígitos
+        $code = (string) random_int(100000, 999999);
+
+        // Guardar token hasheado en la tabla password_reset_tokens
+        DB::table('password_reset_tokens')->updateOrInsert(
+            ['email' => $user->email],
+            [
+                'token' => Hash::make($code),
+                'created_at' => Carbon::now(),
+            ]
+        );
+
+        try {
+            $user->notify(new ResetPasswordNotification($code));
+        } catch (\Exception $e) {
+            Log::error('Error al enviar correo de recuperación:', ['error' => $e->getMessage()]);
+            return response()->json([
+                'message' => 'No se pudo enviar el correo de recuperación. Por favor verifica la configuración SMTP.'
+            ], 500);
+        }
+
+        return response()->json([
+            'message' => 'Te enviamos un código de 6 dígitos a tu casilla de correo.'
+        ]);
+    }
+
+    /**
+     * Restablecer contraseña con el código recibido.
+     */
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'code' => 'required|string',
+            'password' => 'required|string|min:8|confirmed',
+        ], [
+            'email.exists' => 'El correo no corresponde a un usuario registrado.',
+            'code.required' => 'El código de seguridad es obligatorio.',
+            'password.required' => 'La nueva contraseña es obligatoria.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'La confirmación de la contraseña no coincide.',
+        ]);
+
+        $record = DB::table('password_reset_tokens')
+            ->where('email', $request->email)
+            ->first();
+
+        if (!$record) {
+            return response()->json([
+                'message' => 'No hay solicitudes activas de recuperación para este correo o ya fue utilizado.'
+            ], 422);
+        }
+
+        // Verificar expiración (30 minutos)
+        if (Carbon::parse($record->created_at)->addMinutes(30)->isPast()) {
+            DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+            return response()->json([
+                'message' => 'El código ha expirado (validez: 30 minutos). Por favor solicita uno nuevo.'
+            ], 422);
+        }
+
+        // Verificar código numérico
+        if (!Hash::check(trim($request->code), $record->token)) {
+            return response()->json([
+                'message' => 'El código de verificación es incorrecto.'
+            ], 422);
+        }
+
+        // Actualizar contraseña del usuario
+        $user = User::where('email', $request->email)->first();
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        // Borrar token usado
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
+
+        // Revocar tokens de sesión previos para mayor seguridad
+        $user->tokens()->delete();
+
+        return response()->json([
+            'message' => '¡Contraseña restablecida correctamente! Ya puedes iniciar sesión con tu nueva clave.'
+        ]);
+    }
+
+    /**
+     * Cambiar contraseña actual (usuario autenticado).
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ], [
+            'current_password.required' => 'Debes ingresar tu contraseña actual.',
+            'new_password.required' => 'Debes ingresar una nueva contraseña.',
+            'new_password.min' => 'La nueva contraseña debe tener al menos 8 caracteres.',
+            'new_password.confirmed' => 'La confirmación de la nueva contraseña no coincide.',
+        ]);
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'message' => 'La contraseña actual ingresada es incorrecta.'
+            ], 422);
+        }
+
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        return response()->json([
+            'message' => '¡Tu contraseña ha sido actualizada con éxito!'
         ]);
     }
 

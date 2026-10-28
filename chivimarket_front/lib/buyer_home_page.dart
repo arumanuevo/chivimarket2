@@ -15,6 +15,7 @@ import 'create_community_post_page.dart';
 import 'community_post_detail_page.dart';
 import 'my_community_posts_page.dart';
 import 'dynamic_showcase_page.dart';
+import 'change_password_dialog.dart';
 
 class BuyerHomePage extends StatefulWidget {
   const BuyerHomePage({Key? key}) : super(key: key);
@@ -971,6 +972,15 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
               },
             ),
             Divider(color: Theme.of(context).brightness == Brightness.dark ? Colors.white24 : Colors.black12),
+            ListTile(
+              leading: Icon(Icons.lock_reset, color: Theme.of(context).colorScheme.primary),
+              title: Text('Cambiar Contraseña', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+              subtitle: Text('Actualizar tu clave de acceso', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5), fontSize: 12)),
+              onTap: () {
+                Navigator.pop(context);
+                showChangePasswordDialog(context);
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.redAccent),
               title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.redAccent)),

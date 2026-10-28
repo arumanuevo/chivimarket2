@@ -44,6 +44,8 @@ use App\Http\Controllers\DeviceController;
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/acceso-usuario', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 Route::get('/explore/products', [\App\Http\Controllers\API\ProductController::class, 'explore']);
 Route::get('/test', fn() => response()->json(['message' => 'Â¡API funcionando!']));
 // CategorÃ­as (solo lectura para apps mÃ³viles)
@@ -365,6 +367,7 @@ Route::get('/admin/importar-ml', [\App\Http\Controllers\API\MLSyncController::cl
 
     // Perfil din�mico desde Flutter SDK
     Route::get('/me', [\App\Http\Controllers\AuthController::class, 'me'])->middleware('auth:sanctum');
+    Route::post('/change-password', [\App\Http\Controllers\AuthController::class, 'changePassword'])->middleware('auth:sanctum');
 
 @
 

@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import 'dart:convert';
 import 'api_service.dart';
 import 'main.dart'; // Para reutilizar GlassContainer y AnimatedGradientBackground
 import 'upgrade_plan_page.dart';
+import 'change_password_dialog.dart';
 
 class DashboardPage extends StatefulWidget {
   DashboardPage({Key? key}) : super(key: key);
@@ -168,6 +169,14 @@ class _DashboardPageState extends State<DashboardPage> {
               },
             ),
             const Divider(color: Colors.white24),
+            ListTile(
+              leading: Icon(Icons.lock_reset, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70)),
+              title: Text('Cambiar Contraseña', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.70))),
+              onTap: () {
+                Navigator.pop(context);
+                showChangePasswordDialog(context);
+              },
+            ),
             ListTile(
               leading: Icon(Icons.exit_to_app, color: Colors.greenAccent),
               title: const Text('Volver a Compras', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),

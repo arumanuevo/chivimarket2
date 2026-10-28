@@ -11,6 +11,7 @@ import 'superadmin_page.dart';
 import 'buyer_home_page.dart';
 import 'legal_terms_page.dart';
 import 'dynamic_showcase_page.dart';
+import 'forgot_password_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 
@@ -486,7 +487,20 @@ class _LoginPageState extends State<LoginPage> {
                       prefixIcon: Icon(Icons.lock, color: onSurface.withOpacity(0.54)),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => showForgotPasswordDialog(context, initialEmail: _emailController.text.trim()),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(50, 30),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text('¿Olvidaste tu contraseña?', style: TextStyle(color: primary, fontSize: 13, fontWeight: FontWeight.w600)),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     height: 56,
