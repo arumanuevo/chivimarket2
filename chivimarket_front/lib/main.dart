@@ -40,15 +40,21 @@ class ChivimarketApp extends StatelessWidget {
           // CLARO
           theme: ThemeData(
             fontFamily: GoogleFonts.outfit().fontFamily,
-            scaffoldBackgroundColor: Color(0xFFF1F5F9), // Slate 50
+            scaffoldBackgroundColor: const Color(0xFFF1F5F9), // Slate 50
             primarySwatch: Colors.orange,
             colorScheme: const ColorScheme.light(
               primary: Color(0xFFF97316),
               secondary: Color(0xFFFB923C),
-              surface: Color(0x99FFFFFF), // Superficie clarita
+              surface: Colors.white, // 100% Sólido sin transparencias
               onSurface: Colors.black87, // Texto principal en claro
             ),
-            appBarTheme: AppBarTheme(
+            dialogTheme: const DialogThemeData(
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.transparent,
+              elevation: 20,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
+            ),
+            appBarTheme: const AppBarTheme(
               color: Colors.transparent,
               elevation: 0,
               centerTitle: true,
@@ -60,14 +66,20 @@ class ChivimarketApp extends StatelessWidget {
           darkTheme: ThemeData(
             fontFamily: GoogleFonts.outfit().fontFamily,
             primarySwatch: Colors.orange,
-            scaffoldBackgroundColor: Color(0xFF1E293B), // Dark blueish gray background
+            scaffoldBackgroundColor: const Color(0xFF1E293B), // Dark blueish gray background
             colorScheme: const ColorScheme.dark(
               primary: Color(0xFFF97316),
               secondary: Color(0xFFFB923C),
-              surface: Color(0x33FFFFFF), // Transparent surface for glassmorphism
+              surface: Color(0xFF1E293B), // 100% Sólido sin transparencias
               onSurface: Colors.white,
             ),
-            appBarTheme: AppBarTheme(
+            dialogTheme: const DialogThemeData(
+              backgroundColor: Color(0xFF1E293B),
+              surfaceTintColor: Colors.transparent,
+              elevation: 20,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
+            ),
+            appBarTheme: const AppBarTheme(
               color: Colors.transparent,
               elevation: 0,
               centerTitle: true,
@@ -124,8 +136,8 @@ class GlassContainer extends StatelessWidget {
       padding: padding,
       decoration: BoxDecoration(
         color: isDark 
-            ? const Color(0xFF1E293B).withOpacity(0.75) 
-            : Colors.white.withOpacity(0.85),
+            ? const Color(0xFF1E293B) 
+            : Colors.white,
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
           color: isDark ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.06), 
