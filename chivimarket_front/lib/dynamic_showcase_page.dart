@@ -488,10 +488,13 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
   // VISTA RADAR: MAPA PROTAGONISTA + CARRUSEL HORIZONTAL DOCK
   // =========================================================
   Widget _buildRadarSplitView(List<Map<String, dynamic>> filtered, bool isDark, Color onSurface, Color primary) {
+    final double screenHeight = MediaQuery.of(context).size.height;
+    final bool isSmallScreen = screenHeight < 750;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        // En celular: el mapa toma aprox 52% o 75% si está expandido; el dock inferior el resto
-        final double mapFlex = _isMapExpanded ? 0.82 : 0.52;
+        // En celular: el mapa toma aprox 48% normal, o 68% expandido para no asfixiar el dock inferior
+        final double mapFlex = _isMapExpanded ? (isSmallScreen ? 0.65 : 0.70) : (isSmallScreen ? 0.46 : 0.50);
         final double dockFlex = 1.0 - mapFlex;
 
         return Column(
@@ -516,9 +519,9 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                     right: 12,
                     child: Column(
                       children: [
-                        // Botón Re-centrar en el usuario (Ícono GPS estándar indiscutible)
+                        // Botón Re-centrar en el usuario
                         _buildMapActionButton(
-                          icon: Icons.gps_fixed,
+                          icon: Icons.my_location,
                           tooltip: 'Centrar en mi ubicación',
                           color: const Color(0xFF0284C7), // Sky blue vivo
                           isDark: isDark,
@@ -526,7 +529,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                         ),
                         const SizedBox(height: 10),
 
-                        // Toggle Expandir / Achicar mapa (Íconos estándar)
+                        // Toggle Expandir / Achicar mapa
                         _buildMapActionButton(
                           icon: _isMapExpanded ? Icons.fullscreen_exit : Icons.fullscreen,
                           tooltip: _isMapExpanded ? 'Restaurar vidrieras' : 'Maximizar mapa',
@@ -536,7 +539,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                         ),
                         const SizedBox(height: 10),
 
-                        // Toggle Estilo de Mapa (Íconos estándar sol / luna)
+                        // Toggle Estilo de Mapa
                         _buildMapActionButton(
                           icon: _mapStyle == 'streets-v12' ? Icons.wb_sunny : Icons.nightlight_round,
                           tooltip: _mapStyle == 'streets-v12' ? 'Cambiar a modo noche' : 'Cambiar a calles claras',
@@ -864,7 +867,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
       decoration: BoxDecoration(
         color: cardBg,
         borderRadius: BorderRadius.circular(20),
@@ -878,32 +881,34 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // FILA SUPERIOR: LOGO + NOMBRE + DISTANCIA + ACCIÓN
           Row(
             children: [
               CircleAvatar(
-                radius: 20,
+                radius: 18,
                 backgroundColor: isSelected ? primary : primary.withOpacity(0.15),
-                child: Icon(Icons.storefront, color: isSelected ? Colors.white : primary, size: 20),
+                child: Icon(Icons.storefront, color: isSelected ? Colors.white : primary, size: 18),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       b['name'] ?? 'Comercio',
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16, color: onSurface),
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 15, color: onSurface),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 1),
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
                           decoration: BoxDecoration(
                             color: const Color(0xFF0D9488).withOpacity(0.15),
                             borderRadius: BorderRadius.circular(6),
@@ -912,7 +917,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                             _formatDistance(distMeters),
                             style: const TextStyle(
                               color: Color(0xFF0D9488),
-                              fontSize: 11,
+                              fontSize: 10.5,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -922,7 +927,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                           Expanded(
                             child: Text(
                               b['address'],
-                              style: TextStyle(fontSize: 10.5, color: onSurface.withOpacity(0.6)),
+                              style: TextStyle(fontSize: 10, color: onSurface.withOpacity(0.6)),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -934,7 +939,9 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.open_in_new, size: 20),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                icon: const Icon(Icons.open_in_new, size: 18),
                 color: primary,
                 tooltip: 'Ver perfil completo',
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => PublicBusinessPage(business: b))),
@@ -942,7 +949,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
             ],
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
 
           // PRODUCTOS DESTACADOS HORIZONTALES
           Expanded(
@@ -961,7 +968,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                     child: Text(
                       'Este local atiende presencialmente. Tocá arriba para ver su ficha completa.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 11.5, color: onSurface.withOpacity(0.6)),
+                      style: TextStyle(fontSize: 11, color: onSurface.withOpacity(0.6)),
                     ),
                   ),
           ),
@@ -974,16 +981,16 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
               if (lat != null && lng != null)
                 Expanded(
                   child: SizedBox(
-                    height: 32,
+                    height: 28,
                     child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         padding: EdgeInsets.zero,
                         side: BorderSide(color: isDark ? Colors.lightBlueAccent.withOpacity(0.5) : const Color(0xFF2563EB)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                       ),
                       onPressed: () => _openMaps(lat, lng),
-                      icon: const Icon(Icons.directions, size: 14),
-                      label: const Text('Cómo Llegar', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      icon: const Icon(Icons.directions, size: 13),
+                      label: const Text('Cómo Llegar', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ),
@@ -991,18 +998,18 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                 const SizedBox(width: 8),
                 Expanded(
                   child: SizedBox(
-                    height: 32,
+                    height: 28,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF25D366),
                         foregroundColor: Colors.white,
                         padding: EdgeInsets.zero,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                       ),
                       onPressed: () => _contactWhatsapp(b['phone']?.toString(), b['name'] ?? 'Local'),
-                      icon: const Icon(Icons.chat, size: 14),
-                      label: const Text('WhatsApp', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      icon: const Icon(Icons.chat, size: 13),
+                      label: const Text('WhatsApp', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ),

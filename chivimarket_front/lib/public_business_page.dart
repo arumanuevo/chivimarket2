@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -110,7 +110,8 @@ class _PublicBusinessPageState extends State<PublicBusinessPage> {
 
     final String token = AppConfig.mapboxToken;
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
-    final mapStyle = isDark ? 'dark-v11' : 'streets-v12';
+    // Mapa claro permanente de alta visibilidad para fichas de negocio
+    const mapStyle = 'streets-v12';
     
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),

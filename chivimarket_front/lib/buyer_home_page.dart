@@ -1127,7 +1127,7 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
       ),
       children: [
         TileLayer(
-          urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/dark-v11/tiles/{z}/{x}/{y}?access_token=$mapboxToken',
+          urlTemplate: 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=$mapboxToken',
         ),
         MarkerLayer(
           markers: mapItems.map((b) {

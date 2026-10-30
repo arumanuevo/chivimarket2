@@ -16,7 +16,16 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:g_recaptcha_v3/g_recaptcha_v3.dart';
 
 
-final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
+// Modo por defecto según horario solar (Modo Claro de 7:00 a 19:30, Oscuro de noche)
+ThemeMode getInitialThemeMode() {
+  final now = DateTime.now();
+  if (now.hour >= 7 && now.hour < 20) {
+    return ThemeMode.light;
+  }
+  return ThemeMode.dark;
+}
+
+final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(getInitialThemeMode());
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
