@@ -452,6 +452,8 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
   }
 
   Widget _buildSearchBarAndFilters() {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -525,40 +527,52 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           ),
         ),
 
-        // Botones de filtro de ordenamiento (Sort By)
+        // Botones de filtro de ordenamiento (Sort By) y Radar de Vidrieras
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
             children: [
-              Text('Ordenar por:', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 11)),
-              const SizedBox(width: 8),
-              DropdownButton<String>(
-                value: _sortBy,
-                dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
-                style: const TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
-                underline: const SizedBox(),
-                isDense: true,
-                items: [
-                  const DropdownMenuItem(value: 'default', child: Text('Relevancia')),
-                  const DropdownMenuItem(value: 'views_count', child: Text('🔥 Más Populares (Vistas)')),
-                  if (_searchMode == 'products' || _searchMode == 'barter_used') const DropdownMenuItem(value: 'price', child: Text('💸 Precio')),
-                  if (_searchMode == 'businesses') const DropdownMenuItem(value: 'avg_rating', child: Text('⭐ Mejor Calificados')),
-                ],
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() => _sortBy = val);
-                    _performSearch(_searchController.text);
-                  }
-                },
+              Expanded(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Ordenar por:', style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 11)),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _sortBy,
+                          dropdownColor: Theme.of(context).brightness == Brightness.dark ? const Color(0xFF2C2C2C) : Colors.white,
+                          style: const TextStyle(color: Colors.orangeAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                          isDense: true,
+                          items: [
+                            const DropdownMenuItem(value: 'default', child: Text('Relevancia', overflow: TextOverflow.ellipsis)),
+                            const DropdownMenuItem(value: 'views_count', child: Text('🔥 Más Populares', overflow: TextOverflow.ellipsis)),
+                            if (_searchMode == 'products' || _searchMode == 'barter_used')
+                              const DropdownMenuItem(value: 'price', child: Text('💸 Precio', overflow: TextOverflow.ellipsis)),
+                            if (_searchMode == 'businesses')
+                              const DropdownMenuItem(value: 'avg_rating', child: Text('⭐ Mejor Calificados', overflow: TextOverflow.ellipsis)),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() => _sortBy = val);
+                              _performSearch(_searchController.text);
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               InkWell(
                 onTap: () {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const DynamicShowcasePage()));
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
                   decoration: BoxDecoration(
                     color: Colors.teal.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -566,10 +580,13 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.radar, size: 14, color: Colors.teal),
-                      SizedBox(width: 4),
-                      Text('Radar de Vidrieras', style: TextStyle(color: Colors.teal, fontSize: 11, fontWeight: FontWeight.bold)),
+                    children: [
+                      const Icon(Icons.radar, size: 14, color: Colors.teal),
+                      const SizedBox(width: 4),
+                      Text(
+                        isMobile ? 'Radar Vidrieras' : 'Radar de Vidrieras',
+                        style: const TextStyle(color: Colors.teal, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                 ),
@@ -1284,58 +1301,133 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
             const SizedBox(height: 16),
 
             // Accesos directos / Filtros rápidos
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _buildHeroActionChip(
-                  icon: Icons.radar,
-                  label: '📡 Radar de Vidrieras',
-                  color: Colors.teal,
-                  isSelected: false,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const DynamicShowcasePage()));
-                  },
-                ),
-                _buildHeroActionChip(
-                  icon: Icons.storefront,
-                  label: 'Ver Tiendas & Mapa',
-                  color: Colors.blueAccent,
-                  isSelected: _searchMode == 'businesses',
-                  onTap: () {
-                    setState(() {
-                      _searchMode = 'businesses';
-                      _searchController.clear();
-                    });
-                    _performSearch('');
-                  },
-                ),
-                _buildHeroActionChip(
-                  icon: Icons.local_offer,
-                  label: 'Cupones & Vouchers',
-                  color: Colors.pinkAccent,
-                  isSelected: _searchMode == 'promotions',
-                  onTap: () {
-                    setState(() {
-                      _searchMode = 'promotions';
-                      _searchController.clear();
-                    });
-                    _performSearch('');
-                  },
-                ),
-                _buildHeroCtaChip(
-                  icon: Icons.rocket_launch,
-                  label: _isLoggedIn ? 'Mi Panel de Negocios' : '¡Publicá tu Negocio Gratis!',
-                  onTap: () {
-                    if (_isLoggedIn) {
-                      Navigator.pushNamed(context, '/dashboard');
-                    } else {
-                      _showPublishPromoDialog();
-                    }
-                  },
-                ),
-              ],
-            ),
+            if (isMobile)
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildHeroActionChip(
+                          icon: Icons.radar,
+                          label: 'Radar Vidrieras',
+                          color: Colors.teal,
+                          isSelected: false,
+                          isMobile: true,
+                          onTap: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => const DynamicShowcasePage()));
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildHeroActionChip(
+                          icon: Icons.storefront,
+                          label: 'Tiendas & Mapa',
+                          color: Colors.blueAccent,
+                          isSelected: _searchMode == 'businesses',
+                          isMobile: true,
+                          onTap: () {
+                            setState(() {
+                              _searchMode = 'businesses';
+                              _searchController.clear();
+                            });
+                            _performSearch('');
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildHeroActionChip(
+                          icon: Icons.local_offer,
+                          label: 'Cupones & Vouchers',
+                          color: Colors.pinkAccent,
+                          isSelected: _searchMode == 'promotions',
+                          isMobile: true,
+                          onTap: () {
+                            setState(() {
+                              _searchMode = 'promotions';
+                              _searchController.clear();
+                            });
+                            _performSearch('');
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildHeroCtaChip(
+                          icon: Icons.rocket_launch,
+                          label: _isLoggedIn ? 'Mi Panel' : '¡Publicar Negocio!',
+                          isMobile: true,
+                          onTap: () {
+                            if (_isLoggedIn) {
+                              Navigator.pushNamed(context, '/dashboard');
+                            } else {
+                              _showPublishPromoDialog();
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildHeroActionChip(
+                    icon: Icons.radar,
+                    label: '📡 Radar de Vidrieras',
+                    color: Colors.teal,
+                    isSelected: false,
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => const DynamicShowcasePage()));
+                    },
+                  ),
+                  _buildHeroActionChip(
+                    icon: Icons.storefront,
+                    label: 'Ver Tiendas & Mapa',
+                    color: Colors.blueAccent,
+                    isSelected: _searchMode == 'businesses',
+                    onTap: () {
+                      setState(() {
+                        _searchMode = 'businesses';
+                        _searchController.clear();
+                      });
+                      _performSearch('');
+                    },
+                  ),
+                  _buildHeroActionChip(
+                    icon: Icons.local_offer,
+                    label: 'Cupones & Vouchers',
+                    color: Colors.pinkAccent,
+                    isSelected: _searchMode == 'promotions',
+                    onTap: () {
+                      setState(() {
+                        _searchMode = 'promotions';
+                        _searchController.clear();
+                      });
+                      _performSearch('');
+                    },
+                  ),
+                  _buildHeroCtaChip(
+                    icon: Icons.rocket_launch,
+                    label: _isLoggedIn ? 'Mi Panel de Negocios' : '¡Publicá tu Negocio Gratis!',
+                    onTap: () {
+                      if (_isLoggedIn) {
+                        Navigator.pushNamed(context, '/dashboard');
+                      } else {
+                        _showPublishPromoDialog();
+                      }
+                    },
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -1348,12 +1440,16 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     required Color color,
     required bool isSelected,
     required VoidCallback onTap,
+    bool isMobile = false,
   }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 8 : 12,
+          vertical: isMobile ? 8 : 7,
+        ),
         decoration: BoxDecoration(
           color: isSelected ? color.withOpacity(0.25) : color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(14),
@@ -1363,16 +1459,21 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           ),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: isMobile ? MainAxisAlignment.center : MainAxisAlignment.start,
+          mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
           children: [
             Icon(icon, size: 15, color: color),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onSurface,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                fontSize: 12.5,
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  fontSize: isMobile ? 11.5 : 12.5,
+                ),
               ),
             ),
           ],
@@ -1385,12 +1486,16 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    bool isMobile = false,
   }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(14),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 8 : 13,
+          vertical: isMobile ? 8 : 7,
+        ),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [Color(0xFFF97316), Color(0xFFEA580C)],
@@ -1405,16 +1510,21 @@ class _BuyerHomePageState extends State<BuyerHomePage> {
           ],
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: isMobile ? MainAxisAlignment.center : MainAxisAlignment.start,
+          mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
           children: [
             Icon(icon, size: 15, color: Colors.white),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 12.5,
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: isMobile ? 11.5 : 12.5,
+                ),
               ),
             ),
           ],
