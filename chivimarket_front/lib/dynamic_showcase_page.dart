@@ -516,19 +516,15 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                     right: 12,
                     child: Column(
                       children: [
-                        // Toggle Estilo de Mapa (Calles Claras vs Satélite / Noche)
+                        // Botón Re-centrar en el usuario
                         _buildMapActionButton(
-                          icon: _mapStyle == 'streets-v12' ? Icons.wb_sunny_rounded : Icons.dark_mode_rounded,
-                          tooltip: _mapStyle == 'streets-v12' ? 'Estilo Calles Claras (Activo)' : 'Estilo Noche',
-                          color: Colors.amber[800] ?? Colors.amber,
+                          icon: Icons.my_location_rounded,
+                          tooltip: 'Centrar en mi ubicación',
+                          color: const Color(0xFF0284C7), // Sky blue vivo
                           isDark: isDark,
-                          onTap: () {
-                            setState(() {
-                              _mapStyle = _mapStyle == 'streets-v12' ? 'dark-v11' : 'streets-v12';
-                            });
-                          },
+                          onTap: () => _recenterMapOnUser(zoom: 16.0),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
 
                         // Toggle Expandir / Achicar mapa
                         _buildMapActionButton(
@@ -538,15 +534,19 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                           isDark: isDark,
                           onTap: () => setState(() => _isMapExpanded = !_isMapExpanded),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
 
-                        // Botón Re-centrar en el usuario
+                        // Toggle Estilo de Mapa (Calles Claras permanente por defecto)
                         _buildMapActionButton(
-                          icon: Icons.my_location_rounded,
-                          tooltip: 'Centrar en mi ubicación',
-                          color: Colors.blueAccent,
+                          icon: _mapStyle == 'streets-v12' ? Icons.wb_sunny_rounded : Icons.dark_mode_rounded,
+                          tooltip: _mapStyle == 'streets-v12' ? 'Cambiar a modo noche' : 'Cambiar a calles claras',
+                          color: const Color(0xFFD97706), // Amber oscuro nítido
                           isDark: isDark,
-                          onTap: () => _recenterMapOnUser(zoom: 16.0),
+                          onTap: () {
+                            setState(() {
+                              _mapStyle = _mapStyle == 'streets-v12' ? 'dark-v11' : 'streets-v12';
+                            });
+                          },
                         ),
                       ],
                     ),
@@ -760,43 +760,53 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
   // BOTÓN LIVE TRACKING FLOTANTE
   // =========================================================
   Widget _buildLiveTrackingPill(Color primary, bool isDark) {
-    return InkWell(
-      onTap: () => _toggleLiveTracking(!_liveTracking),
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-        decoration: BoxDecoration(
-          color: _liveTracking
-              ? const Color(0xFF0D9488) // Teal vivo
-              : (isDark ? const Color(0xFF1E293B) : Colors.white),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: _liveTracking ? Colors.tealAccent : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-            width: 1.4,
-          ),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))],
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white, // Fondo blanco sólido para que resalte perfecto en el mapa
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: _liveTracking ? const Color(0xFF0D9488) : Colors.black12,
+          width: 1.5,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _liveTracking ? Colors.tealAccent : Colors.grey,
-              ),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black38,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(22),
+        child: InkWell(
+          onTap: () => _toggleLiveTracking(!_liveTracking),
+          borderRadius: BorderRadius.circular(22),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _liveTracking ? const Color(0xFF10B981) : Colors.grey[500],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _liveTracking ? 'Radar en Vivo: ACTIVO' : 'Activar Radar en Vivo',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: _liveTracking ? const Color(0xFF0D9488) : const Color(0xFF1E293B),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(width: 7),
-            Text(
-              _liveTracking ? 'Radar en Vivo: Activo' : 'Activar Radar en Vivo',
-              style: TextStyle(
-                fontSize: 11.5,
-                fontWeight: FontWeight.bold,
-                color: _liveTracking ? Colors.white : (isDark ? Colors.white : const Color(0xFF0F172A)),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -811,18 +821,30 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
     required VoidCallback onTap,
   }) {
     return Container(
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: Colors.white, // Siempre fondo blanco sólido brillante para máximo contraste sobre el mapa
         shape: BoxShape.circle,
-        border: Border.all(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
-        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
+        border: Border.all(color: Colors.black12, width: 1.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black38,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
       ),
-      child: IconButton(
-        icon: Icon(icon, color: color, size: 20),
-        tooltip: tooltip,
-        onPressed: onTap,
-        padding: const EdgeInsets.all(8),
-        constraints: const BoxConstraints(),
+      child: Material(
+        color: Colors.transparent,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Center(
+            child: Icon(icon, color: color, size: 24),
+          ),
+        ),
       ),
     );
   }
