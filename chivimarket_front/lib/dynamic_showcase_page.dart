@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:geolocator/geolocator.dart';
@@ -476,6 +477,13 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                     _activeCardIndex = 0;
                   }
                 });
+
+                // Si seleccionó "Todo Chivilcoy" o no hay comercios en su radio GPS actual, centrar el mapa en la Plaza 25 de Mayo
+                if (opt['value'] == null) {
+                  try {
+                    _mapController.move(const ltlng.LatLng(defaultLat, defaultLng), 14.5);
+                  } catch (_) {}
+                }
               },
             );
           },
@@ -585,30 +593,98 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
             // DOCK INFERIOR: CARRUSEL HORIZONTAL DE VIDRIERAS
             Expanded(
               flex: (dockFlex * 100).toInt(),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: filtered.length,
-                  onPageChanged: (idx) {
-                    setState(() {
-                      _activeCardIndex = idx;
-                      _selectedBusinessId = filtered[idx]['id'];
-                    });
-                    final b = filtered[idx];
-                    final bLat = double.tryParse(b['latitude']?.toString() ?? '');
-                    final bLng = double.tryParse(b['longitude']?.toString() ?? '');
-                    if (bLat != null && bLng != null) {
-                      try {
-                        _mapController.move(ltlng.LatLng(bLat, bLng), 16.0);
-                      } catch (_) {}
-                    }
-                  },
-                  itemBuilder: (ctx, idx) {
-                    final b = filtered[idx];
-                    return _buildDockBusinessCard(b, isDark, onSurface, primary);
-                  },
-                ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: ScrollConfiguration(
+                      behavior: const MaterialScrollBehavior().copyWith(
+                        dragDevices: {
+                          PointerDeviceKind.touch,
+                          PointerDeviceKind.mouse,
+                          PointerDeviceKind.trackpad,
+                          PointerDeviceKind.stylus,
+                        },
+                      ),
+                      child: PageView.builder(
+                        controller: _pageController,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: filtered.length,
+                        onPageChanged: (idx) {
+                          setState(() {
+                            _activeCardIndex = idx;
+                            _selectedBusinessId = filtered[idx]['id'];
+                          });
+                          final b = filtered[idx];
+                          final bLat = double.tryParse(b['latitude']?.toString() ?? '');
+                          final bLng = double.tryParse(b['longitude']?.toString() ?? '');
+                          if (bLat != null && bLng != null) {
+                            try {
+                              _mapController.move(ltlng.LatLng(bLat, bLng), 16.0);
+                            } catch (_) {}
+                          }
+                        },
+                        itemBuilder: (ctx, idx) {
+                          final b = filtered[idx];
+                          return _buildDockBusinessCard(b, isDark, onSurface, primary);
+                        },
+                      ),
+                    ),
+                  ),
+
+                  // FLECHA NAVEGACIÓN ANTERIOR (PC y Tablets)
+                  if (_activeCardIndex > 0)
+                    Positioned(
+                      left: 2,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.black12),
+                          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
+                          tooltip: 'Comercio anterior',
+                          padding: const EdgeInsets.all(6),
+                          constraints: const BoxConstraints(),
+                          onPressed: () {
+                            _pageController.previousPage(
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                  // FLECHA NAVEGACIÓN SIGUIENTE (PC y Tablets)
+                  if (_activeCardIndex < filtered.length - 1)
+                    Positioned(
+                      right: 2,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.black12),
+                          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.black87),
+                          tooltip: 'Siguiente comercio',
+                          padding: const EdgeInsets.all(6),
+                          constraints: const BoxConstraints(),
+                          onPressed: () {
+                            _pageController.nextPage(
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeInOut,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ],
