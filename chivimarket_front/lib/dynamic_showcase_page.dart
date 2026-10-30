@@ -516,9 +516,9 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                     right: 12,
                     child: Column(
                       children: [
-                        // Botón Re-centrar en el usuario
+                        // Botón Re-centrar en el usuario (Ícono GPS estándar indiscutible)
                         _buildMapActionButton(
-                          icon: Icons.my_location_rounded,
+                          icon: Icons.gps_fixed,
                           tooltip: 'Centrar en mi ubicación',
                           color: const Color(0xFF0284C7), // Sky blue vivo
                           isDark: isDark,
@@ -526,9 +526,9 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                         ),
                         const SizedBox(height: 10),
 
-                        // Toggle Expandir / Achicar mapa
+                        // Toggle Expandir / Achicar mapa (Íconos estándar)
                         _buildMapActionButton(
-                          icon: _isMapExpanded ? Icons.fullscreen_exit_rounded : Icons.fullscreen_rounded,
+                          icon: _isMapExpanded ? Icons.fullscreen_exit : Icons.fullscreen,
                           tooltip: _isMapExpanded ? 'Restaurar vidrieras' : 'Maximizar mapa',
                           color: primary,
                           isDark: isDark,
@@ -536,9 +536,9 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                         ),
                         const SizedBox(height: 10),
 
-                        // Toggle Estilo de Mapa (Calles Claras permanente por defecto)
+                        // Toggle Estilo de Mapa (Íconos estándar sol / luna)
                         _buildMapActionButton(
-                          icon: _mapStyle == 'streets-v12' ? Icons.wb_sunny_rounded : Icons.dark_mode_rounded,
+                          icon: _mapStyle == 'streets-v12' ? Icons.wb_sunny : Icons.nightlight_round,
                           tooltip: _mapStyle == 'streets-v12' ? 'Cambiar a modo noche' : 'Cambiar a calles claras',
                           color: const Color(0xFFD97706), // Amber oscuro nítido
                           isDark: isDark,
