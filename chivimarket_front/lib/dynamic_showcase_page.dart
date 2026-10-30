@@ -36,7 +36,7 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
   final ScrollController _listScrollController = ScrollController();
 
   // Opciones de visualización
-  bool _isMapExpanded = false; // Pantalla dividida vs mapa expandido
+  bool _isMapExpanded = true; // Mapa maximizado por defecto
   bool _isListViewMode = false; // Modo Radar (Mapa + Carrusel) vs Modo Lista Vertical
   String _mapStyle = 'streets-v12'; // Siempre claro y nítido por defecto
   int? _selectedBusinessId;
@@ -633,41 +633,46 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                     ),
                   ),
 
-                  // FLECHA NAVEGACIÓN ANTERIOR (PC y Tablets)
-                  if (_activeCardIndex > 0)
-                    Positioned(
-                      left: 2,
+                  // FLECHA NAVEGACIÓN ANTERIOR (PC, Tablets y Celulares)
+                  Positioned(
+                    left: 2,
+                    child: Opacity(
+                      opacity: _activeCardIndex > 0 ? 1.0 : 0.35,
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.black12),
+                          border: Border.all(color: Colors.black12, width: 1.2),
                           boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new, size: 16, color: Colors.black87),
+                          icon: const Icon(Icons.arrow_back_ios, size: 16, color: Colors.black87),
                           tooltip: 'Comercio anterior',
                           padding: const EdgeInsets.all(6),
                           constraints: const BoxConstraints(),
-                          onPressed: () {
-                            _pageController.previousPage(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeInOut,
-                            );
-                          },
+                          onPressed: _activeCardIndex > 0
+                              ? () {
+                                  _pageController.previousPage(
+                                    duration: const Duration(milliseconds: 250),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                              : null,
                         ),
                       ),
                     ),
+                  ),
 
-                  // FLECHA NAVEGACIÓN SIGUIENTE (PC y Tablets)
-                  if (_activeCardIndex < filtered.length - 1)
-                    Positioned(
-                      right: 2,
+                  // FLECHA NAVEGACIÓN SIGUIENTE (PC, Tablets y Celulares)
+                  Positioned(
+                    right: 2,
+                    child: Opacity(
+                      opacity: _activeCardIndex < filtered.length - 1 ? 1.0 : 0.35,
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.black12),
+                          border: Border.all(color: Colors.black12, width: 1.2),
                           boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 2))],
                         ),
                         child: IconButton(
@@ -675,15 +680,18 @@ class _DynamicShowcasePageState extends State<DynamicShowcasePage> with SingleTi
                           tooltip: 'Siguiente comercio',
                           padding: const EdgeInsets.all(6),
                           constraints: const BoxConstraints(),
-                          onPressed: () {
-                            _pageController.nextPage(
-                              duration: const Duration(milliseconds: 250),
-                              curve: Curves.easeInOut,
-                            );
-                          },
+                          onPressed: _activeCardIndex < filtered.length - 1
+                              ? () {
+                                  _pageController.nextPage(
+                                    duration: const Duration(milliseconds: 250),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                              : null,
                         ),
                       ),
                     ),
+                  ),
                 ],
               ),
             ),
